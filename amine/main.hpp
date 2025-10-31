@@ -9,31 +9,40 @@
 #include <cctype>
 
 typedef std::string str;
+typedef std::vector<std::string>::const_iterator string_it;
 
 class Directive {
 	private:
-		str name;
-		std::vector<str> values;
+		std::string name;
+		std::vector<std::string> values;
 		std::vector<Directive> children;
 
 	public:
 		// Constructors
 		Directive() {}
-		Directive(const str& n) { name = n;}
+		Directive(const char *config_file);
+		Directive(const std::string& n) { name = n;}
+		Directive &operator=(const Directive& other) {
+			if (this != &other) {
+				name = other.name; values = other.values;
+				children = other.children; }
+			return *this; }
 
 		// Setters
-		void	setName(const str& n) {name = n;}
-		void	addValue(const str& value) { values.push_back(value); }
+		void	setName(const std::string& n) {name = n;}
+		void	addValue(const std::string& value) { values.push_back(value); }
 		void	addChild(const Directive& child) { children.push_back(child); }
 
 		// Getters
-		const str& getName() const { return name; }
-		const std::vector<str> &getValues() const { return values; }
+		const std::string& getName() const { return name; }
+		const std::vector<std::string> &getValues() const { return values; }
 		const std::vector<Directive> &getChildren() const { return children; }
 
 		// parser
-		static	Directive *AST_Constructor(const str &config_file);
+		void		PrintDirective(int indent);
+		static	Directive	DirectiveBuilder(string_it &it, const string_it &end);
 };
 
+std::string	strtrim(const std::string &s);
 
 #endif
