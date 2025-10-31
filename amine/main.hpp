@@ -34,15 +34,33 @@ class Directive {
 		void	addChild(const Directive& child) { children.push_back(child); }
 
 		// Getters
-		const std::string& getName() const { return name; }
-		const std::vector<std::string> &getValues() const { return values; }
-		const std::vector<Directive> &getChildren() const { return children; }
+		const	std::string& getName() const { return name; }
+		const	std::vector<std::string> &getValues() const { return values; }
+		const	std::vector<Directive> &getChildren() const { return children; }
 
 		// parser
-		void		PrintDirective(int indent);
+		void				PrintDirective(int indent);
 		static	Directive	DirectiveBuilder(string_it &it, const string_it &end);
 };
 
+// helper functions
 std::string	strtrim(const std::string &s);
+std::string	num_to_string(std::size_t num);
+
+class ConfigException : public std::exception
+{
+	private:
+		std::string _msg;
+
+	public:
+		ConfigException(const std::string& msg) : _msg("Configuration File Syntax Error: " + msg) {}
+		virtual ~ConfigException() throw() {}
+		virtual const char* what() const throw() { return _msg.c_str();}
+};
+
+enum NextState {
+	EXPECT_DIRECTIVE,
+	EXPECT_TERMINATOR_OR_VALUE
+};
 
 #endif

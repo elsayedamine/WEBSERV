@@ -1,20 +1,34 @@
 #include "main.hpp"
 
-std::vector<std::string>	tokenizer(const std::string &str)
+std::string AddSpacesAroundDelimiters(const std::string &str)
 {
-	std::vector<std::string> tokens;
-	std::string	stop = "{};";
+	std::string result;
+	std::string delimiters = "{};";
 
-	for (std::size_t i = 0; i < str.size();) {
-		std::size_t pos = str.find_first_of(stop, i);
-		if (pos == std::string::npos)
-			pos = str.size();
-		std::string token = strtrim(str.substr(i, pos - i));
-		if (!token.empty())
-			tokens.push_back(token);
-		tokens.push_back(str.substr(pos, 1));
-		i = pos + 1;
+	for (std::size_t i = 0; i < str.size(); ++i) {
+		char c = str[i];
+		if (delimiters.find(c) != std::string::npos)
+		{
+			result += ' ';
+			result += c;
+			result += ' ';
+		}
+		else
+			result += c;
 	}
+	return result;
+}
+
+std::vector<std::string> tokenizer(const std::string &str)
+{
+	std::string spaced_str = AddSpacesAroundDelimiters(str);
+	std::stringstream ss(spaced_str);
+	std::vector<std::string> tokens;
+	std::string token;
+
+	while (ss >> token)
+		tokens.push_back(token);
+
 	return tokens;
 }
 
@@ -35,17 +49,54 @@ Directive	Directive::DirectiveBuilder(string_it &it, const string_it &end)
 		else if (it != end && *it == "{")
 		{
 			++it;
-			Directive child = DirectiveBuilder(it, end);
-			dir.addChild(child);
+			dir.addChild(DirectiveBuilder(it, end));
 		}
 		Main.addChild(dir);
-		// bayna 3la wed the first loop
-		// if (Main.getName().empty())
-			// Main = dir;
-		// else
-			// Main.addChild(dir);
 	}
 	return Main;
+}
+
+void	ValidateTokens(const std::vector<std::string> & tokens)
+{
+	if (tokens.empty())
+		throw ConfigException("Configuration file is empty.");
+
+	std::vector<std::size_t> brace_stack;
+	NextState state = EXPECT_DIRECTIVE;
+
+	for (std::size_t i = 0; i < tokens.size(); ++i)
+	{
+		if (tokens[i] == "{")
+		{
+			if (state == EXPECT_DIRECTIVE)
+				throw ConfigException("Unexpected '{' .");
+			brace_stack.push_back(i);
+			state = EXPECT_DIRECTIVE;
+		}
+		else if (tokens[i] == "}")
+		{
+			if (state == EXPECT_TERMINATOR_OR_VALUE)
+				throw ConfigException("Missing ';' before '}' .");
+			if (brace_stack.empty())
+				throw ConfigException("Unexpected '}' .");
+			if (i > 0 && tokens[i - 1] == "{")
+				throw ConfigException("Empty block '{}' is not allowed .");
+			state = EXPECT_DIRECTIVE;
+			brace_stack.pop_back();
+		}
+		else if (tokens[i] == ";")
+		{
+			if (state == EXPECT_DIRECTIVE)
+				throw ConfigException("Unexpected ';' .");
+			state = EXPECT_DIRECTIVE;
+		}
+		else
+			state = EXPECT_TERMINATOR_OR_VALUE;
+	}
+	if (state == EXPECT_TERMINATOR_OR_VALUE)
+		throw ConfigException("Unexpected end of file (expected ';' or '{').");
+	if (!brace_stack.empty())
+		throw ConfigException("Mismatched '{' (from token " + num_to_string(brace_stack.front()) + ") at end of file.");
 }
 
 Directive::Directive(const char *conf)
@@ -58,6 +109,10 @@ Directive::Directive(const char *conf)
 	std::string	content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 
 	std::vector<std::string> tokens = tokenizer(content);
+
+	try { ValidateTokens(tokens); }
+	catch (const std::exception &e) {std::cout << e.what() << std::endl; return ;}
+
 	string_it it = tokens.begin();
 	*this = DirectiveBuilder(it, tokens.end());
 	this->name = "Main";

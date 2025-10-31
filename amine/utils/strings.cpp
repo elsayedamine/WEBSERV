@@ -10,3 +10,11 @@ std::string	strtrim(const std::string &s)
 		--end;
 	return s.substr(start, end - start);
 }
+
+
+std::string num_to_string(std::size_t num)
+{
+	std::stringstream ss;
+	ss << num;
+	return ss.str();
+}

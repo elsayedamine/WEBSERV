@@ -11,7 +11,7 @@ server {
     location /redirect {              
         return 301 http://google.com; 
     }                                 
-    location /uploads {               
+    location /uploads  {             
         root /var/www/uploads;        
         upload_enable on;             
         upload_store /var/www/uploads;

@@ -7,7 +7,7 @@ int main(int ac, char **av)
 		config_file = av[1];
 
 	Directive Directive(config_file.c_str());
-	Directive.ASTprint(0);
+	Directive.PrintDirective(0);
 
 	// Configuration config(*t);
 	// Server server(config);
