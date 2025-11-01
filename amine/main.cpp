@@ -1,5 +1,5 @@
 #include "Directive.hpp"
-
+#include "Configuration.hpp"
 int main(int ac, char **av)
 {
 	std::string config_file = "test.web";
@@ -9,7 +9,8 @@ int main(int ac, char **av)
 	Directive Directive(config_file.c_str());
 	// Directive.PrintDirective(0);
 
-	// Configuration config(*t);
+	try { Configuration config(Directive); }
+	catch (std::exception &e) { std::cerr << e.what() <<std::endl;}
 	// Server server(config);
 	// server.start();
 
