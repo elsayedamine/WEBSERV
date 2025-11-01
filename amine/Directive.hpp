@@ -1,5 +1,5 @@
-#ifndef MAIN_HPP
-# define MAIN_HPP
+#ifndef DIRECTIVE_HPP
+# define DIRECTIVE_HPP
 
 #include <iostream>
 #include <fstream>

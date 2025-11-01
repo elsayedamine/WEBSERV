@@ -1,4 +1,4 @@
-#include "../main.hpp"
+#include "../Directive.hpp"
 
 void    Directive::PrintDirective(int indent = 0)
 {

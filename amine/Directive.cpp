@@ -1,4 +1,4 @@
-#include "main.hpp"
+#include "Directive.hpp"
 
 std::string AddSpacesAroundDelimiters(const std::string &str)
 {
@@ -110,7 +110,7 @@ Directive::Directive(const char *conf)
 
 	std::vector<std::string> tokens = tokenizer(content);
 
-	try { ValidateTokens(tokens); }
+	try { ValidateTokens(tokens);}
 	catch (const std::exception &e) {std::cout << e.what() << std::endl; return ;}
 
 	string_it it = tokens.begin();
