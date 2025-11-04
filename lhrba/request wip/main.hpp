@@ -6,6 +6,8 @@
 // Function prototypes
 void parseRequest(int fd);
 Request::Method stringToMethod(const string& methodStr);
-Request parseRequestLine(string line);
+vector<string> tokenize(const string& line);
+string readline(int fd, bool includeDelimiter);
+Request *parseRequestLine(string line);
 
 #endif // MAIN_HPP

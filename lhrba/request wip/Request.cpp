@@ -1,64 +1,70 @@
 #include "Request.hpp"
 
 // Request class method implementations
-Request::Request(Method m, const string& t) {
-    this->method = m;
-    this->target = t;
+Request::Request(Method m, const string& t, const string& v) {
+	this->method = m;
+	this->target = t;
+	this->version = v;
 }
 
 void Request::setHeader(string& key, string& value) {
-    headers[key] = value;
+	headers[key] = value;
 }
 
 void Request::setBody(const string& b) { 
-    body = b;
+	body = b;
 }
 
 Request::Method Request::getMethod() const { 
-    return method; 
+	return method; 
 }
 
 const string& Request::gettarget() const { 
-    return target; 
+	return target; 
+}
+
+const string& Request::getVersion() const { 
+	return version; 
 }
 
 const map<string, string>& Request::getHeaders() const { 
-    return headers; 
+	return headers; 
 }
 
 string Request::getHeader(const string& key) const {  
-    map<string, string>::const_iterator it = headers.find(key); 
-    return it != headers.end() ? it->second : "";
+	map<string, string>::const_iterator it = headers.find(key); 
+	return it != headers.end() ? it->second : "";
 }
 
 const string& Request::getBody() const { 
-    return body; 
+	return body; 
 }
 
 // Operator<< overload implementation
 ostream& operator<<(ostream& os, const Request& req) {
-    // Print method as a string
-    string methodStr;
-    switch (req.getMethod()) {
-        case Request::GET:     methodStr = "GET"; break;
-        case Request::POST:    methodStr = "POST"; break;
-        case Request::PUT:     methodStr = "PUT"; break;
-        case Request::DELETE:  methodStr = "DELETE"; break;
-        default:               methodStr = "UNKNOWN"; break;
-    }
+	// Print method as a string
+	string methodStr;
+	switch (req.getMethod()) {
+		case Request::GET:     methodStr = "GET"; break;
+		case Request::POST:    methodStr = "POST"; break;
+		case Request::PUT:     methodStr = "PUT"; break;
+		case Request::DELETE:  methodStr = "DELETE"; break;
+		default:               methodStr = "UNKNOWN"; break;
+	}
 
-    os << "=== Request Debug Info ===\n";
-    os << "Method: " << methodStr << "\n";
-    os << "Target: " << req.gettarget() << "\n";
-    os << "Headers:\n";
+	os << "=== Request Debug Info ===\n";
+	os << "Method: " << methodStr << "\n";
+	os << "Target: " << req.gettarget() << "\n";
+	os << "Version: " << req.getVersion() << "\n";
+	os << "Headers:\n";
 
-    // Use traditional iterator for compatibility
-    for (map<string, string>::const_iterator it = req.getHeaders().begin(); 
-         it != req.getHeaders().end(); ++it)
-        os << "  " << it->first << ": " << it->second << "\n";
+	// Use traditional iterator for compatibility
+	for (map<string, string>::const_iterator it = req.getHeaders().begin(); 
+		 it != req.getHeaders().end(); ++it)
+		os << "  " << it->first << ": " << it->second << "\n";
 
-    os << "Body:\n" << req.getBody() << "\n";
-    os << "==========================\n";
+	os << "Body:\n" << req.getBody() << "\n";
+	os << "==========================\n";
 
-    return os;
+	return os;
 }

@@ -18,15 +18,17 @@ class Request {
 	private: 
 		Method method;
 		string target;
+		string version;
 		map<string, string> headers; 
 		string body; 
 																
 	public:  
-		Request(Method m, const string& t);
+		Request(Method m, const string& t, const string& v);
 		void setHeader(string& key, string& value);
 		void setBody(const string& b);
 		Method getMethod() const;
 		const string& gettarget() const;
+		const string& getVersion() const;
 		const map<string, string>& getHeaders() const;
 		string getHeader(const string& key) const;
 		const string& getBody() const;
