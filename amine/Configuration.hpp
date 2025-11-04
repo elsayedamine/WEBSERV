@@ -27,6 +27,7 @@ struct LocationConfig
 
 struct ServerConfig
 {
+	int				valid;
 	unsigned short	port;
 	unsigned int	host;
 	std::string		root;
@@ -44,17 +45,17 @@ struct ServerConfig
 class Configuration
 {
 	public:
-		typedef bool (Configuration::*isValidDirective) (const Directive&);
+		typedef ServerConfig (Configuration::*isValidDirective) (const Directive&);
 		struct DirectiveInfo
 		{
 			bool	allowsMultiple;
 			bool	expectsChildren;
-			int		appearance;
+			int		appearance; // needs to be removed and replaced by a better idea
 			int		values;
 			int		error;
 			isValidDirective Validator;
 			DirectiveInfo(bool multiple, bool children, isValidDirective fct)
-				: allowsMultiple(multiple), expectsChildren(children), appearance(0), values(0), error(0), Validator(fct){}
+				: allowsMultiple(multiple), expectsChildren(children), appearance(0), values(0), error(0), Validator(fct) {}
 		};
 
 		Configuration(const Directive& directive);
@@ -84,24 +85,23 @@ class Configuration
 		};
 		std::map<e_error, std::string> error;
 		e_error	err;
-		bool	validate_listen(const Directive &);
-		bool	validate_index(const Directive &listen);
-		bool	validate_server_name(const Directive &listen);
-		bool	validate_allowed_methods(const Directive &listen);
-		bool	validate_root(const Directive &listen);
-		bool	validate_error_page(const Directive &listen);
-		bool	validate_location(const Directive &listen);
-		bool	validate_clients(const Directive &listen);
-		bool	validate_autoindex(const Directive &listen);
-		bool	validate_upload_store(const Directive &listen);
-		bool	validate_upload_enable(const Directive &listen);
-		bool	validate_return(const Directive &listen);
+		ServerConfig	validate_listen(const Directive &);
+		ServerConfig	validate_index(const Directive &listen);
+		ServerConfig	validate_server_name(const Directive &listen);
+		ServerConfig	validate_allowed_methods(const Directive &listen);
+		ServerConfig	validate_root(const Directive &listen);
+		ServerConfig	validate_error_page(const Directive &listen);
+		ServerConfig	validate_location(const Directive &listen);
+		ServerConfig	validate_clients(const Directive &listen);
+		ServerConfig	validate_autoindex(const Directive &listen);
+		ServerConfig	validate_upload_store(const Directive &listen);
+		ServerConfig	validate_upload_enable(const Directive &listen);
+		ServerConfig	validate_return(const Directive &listen);
 
 	private:
 		std::vector<ServerConfig> servers;
-		e_error PreValidation(const Directive &d);
 		e_error PostValidation();
-		e_error ValidateServer(const Directive &server);
+		ServerConfig	ValidateAndFillServer(const Directive & server);
 		std::map<std::string, DirectiveInfo> server_keys;
 
 };

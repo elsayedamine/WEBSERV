@@ -49,6 +49,14 @@
         "random": "cpp",
         "utility": "cpp",
         "cinttypes": "cpp",
-        "fstream": "cpp"
+        "fstream": "cpp",
+        "chrono": "cpp",
+        "cstdarg": "cpp",
+        "cstring": "cpp",
+        "deque": "cpp",
+        "map": "cpp",
+        "ratio": "cpp",
+        "iomanip": "cpp",
+        "sstream": "cpp"
     }
 }

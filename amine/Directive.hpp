@@ -39,7 +39,7 @@ class Directive {
 		const	std::vector<Directive> &getChildren() const { return children; }
 
 		// parser
-		void				PrintDirective(int indent);
+		void				PrintDirective(int indent) const ;
 		static	Directive	DirectiveBuilder(string_it &it, const string_it &end);
 };
 

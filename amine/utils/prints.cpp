@@ -1,11 +1,11 @@
 #include "../Directive.hpp"
 
-void    Directive::PrintDirective(int indent = 0)
+void    Directive::PrintDirective(int indent = 0) const
 {
     // create padding
     std::string pad;
     for (int i = 0; i < indent * 2; ++i)
-        pad += " ";
+        pad += "  ";
 
     // print directive name
     std::cout << pad << this->getName();

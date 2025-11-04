@@ -49,7 +49,10 @@ Directive	Directive::DirectiveBuilder(string_it &it, const string_it &end)
 		else if (it != end && *it == "{")
 		{
 			++it;
-			dir.addChild(DirectiveBuilder(it, end));
+			Directive dumbBlock = DirectiveBuilder(it, end);
+			const std::vector<Directive>& realChildren = dumbBlock.getChildren();
+			for (std::size_t i = 0; i < realChildren.size(); ++i)
+				dir.addChild(realChildren[i]);
 		}
 		Main.addChild(dir);
 	}

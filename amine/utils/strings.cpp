@@ -11,7 +11,6 @@ std::string	strtrim(const std::string &s)
 	return s.substr(start, end - start);
 }
 
-
 std::string num_to_string(std::size_t num)
 {
 	std::stringstream ss;

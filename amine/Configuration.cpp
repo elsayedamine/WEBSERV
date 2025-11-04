@@ -24,7 +24,7 @@ void fill_errors(std::map<Configuration::e_error, std::string> &error)
 
 void fill_keys(std::map<std::string, Configuration::DirectiveInfo> &server_keys)
 {
-	server_keys.insert(std::make_pair("listen", Configuration::DirectiveInfo(true, false, &Configuration::validate_listen)));
+	server_keys.insert(std::make_pair("listen", Configuration::DirectiveInfo(false, false, &Configuration::validate_listen)));
 	server_keys.insert(std::make_pair("index", Configuration::DirectiveInfo(false, false, &Configuration::validate_index)));
 	server_keys.insert(std::make_pair("server_name", Configuration::DirectiveInfo(false, false, &Configuration::validate_server_name)));
 	server_keys.insert(std::make_pair("allowed_methods", Configuration::DirectiveInfo(false, false, &Configuration::validate_allowed_methods)));
@@ -38,54 +38,48 @@ void fill_keys(std::map<std::string, Configuration::DirectiveInfo> &server_keys)
 	server_keys.insert(std::make_pair("return", Configuration::DirectiveInfo(false, false, &Configuration::validate_return)));
 }
 
-Configuration::e_error Configuration::ValidateServer(const Directive & server)
+ServerConfig	Configuration::ValidateAndFillServer(const Directive & server)
 {
-	if (server.getName() != "server" || server.getValues().size() != 0 || server.getChildren().size() < 1)
-		return (Configuration::ERROR_INVALID_SERVER);
-
-	std::size_t i = 0;
-	while (i < server.getChildren().size())
-	{
-		const Directive &d = server.getChildren()[i];
-		// somehow the directive is empty
-		// std::cout << d.getName() << " amine ";
-		const std::map<std::string, DirectiveInfo>::iterator &it =  server_keys.find(d.getName());
-		if (it == server_keys.end() || (it->second.expectsChildren ^ !d.getChildren().empty()) || \
-			(!it->second.allowsMultiple && it->second.appearance++))
-			return Configuration::ERROR_INVALID_KEY;
-		if ((this->*(it->second.Validator))(d))
-			return static_cast<Configuration::e_error>(it->second.error);
-		i++;
-	}
-
-	return Configuration::ERROR_NONE;
+	(void)server;
+	// check the expected children and multiple existance
+	// loop over the children and validate each one
+	// while (i < server.getChildren().size())
+	// {
+		// const Directive &d = server.getChildren()[i];
+ 
+		// const std::map<std::string, DirectiveInfo>::iterator &it =  server_keys.find(d.getName());
+ 
+		// if (it == server_keys.end() || (it->second.expectsChildren ^ !d.getChildren().empty()) || \
+			// (!it->second.allowsMultiple && it->second.appearance++))
+			// return Configuration::ERROR_INVALID_KEY;
+		// if ((serv = (this->*(it->second.Validator))(d)).valid)
+			// return static_cast<Configuration::e_error>(serv.valid);
+		// i++;
+	// }
+	return (ServerConfig());
 }
 
-Configuration::e_error Configuration::PreValidation(const Directive &d)
-{
-	std::vector<Directive> servers = d.getChildren();
-
-	err = Configuration::ERROR_NONE;
-	if (servers.empty())
-		return Configuration::ERROR_INVALID_SERVER;
-	for (std::vector<Directive>::iterator it = servers.begin(); it != servers.end(); ++it)
-		if ((err = ValidateServer(*it)) != Configuration::ERROR_NONE)
-			return err;
-	return Configuration::ERROR_NONE;
-}
-
-Configuration::Configuration(const Directive &d)
+Configuration::Configuration(const Directive &main)
 {
 	fill_errors(error);
 	fill_keys(server_keys);
-	if ((err = PreValidation(d)) != Configuration::ERROR_NONE)
-		throw std::runtime_error(error[err]);
 
-	// for (size_t i = 0; i < d.getChildren().size(); i++)
-		// servers.push_back(fill_server(d.getChildren()[i]));
+	const std::vector<Directive>& server_directives = main.getChildren();
 
+	for (size_t i = 0; i < server_directives.size(); ++i)
+	{
+		const Directive& server = server_directives[i];
+		if (server.getName() != "server" || server.getValues().size() != 0 || server.getChildren().size() < 1)
+			throw std::runtime_error(error[Configuration::ERROR_INVALID_SERVER]);
+		ServerConfig server_conf;
+		server_conf = ValidateAndFillServer(server);
+		servers.push_back(server_conf);
+	}
+		
+	// run a final check for duplicate servers
+	// (two servers listening on the same host/port)
 	if ((err = PostValidation()) != Configuration::ERROR_NONE)
-		throw std::runtime_error(error[err]); 
+		throw std::runtime_error(error[err]);
 }
 
 
