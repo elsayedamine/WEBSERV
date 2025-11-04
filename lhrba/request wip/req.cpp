@@ -1,4 +1,5 @@
 #include "main.hpp"
+#include "Request.hpp"
 
 Request::Method stringToMethod(const string& methodStr) {
     if (methodStr == "GET") return Request::GET;
