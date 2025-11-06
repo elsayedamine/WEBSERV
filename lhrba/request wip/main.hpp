@@ -4,10 +4,8 @@
 #include "Request.hpp"
 
 // Function prototypes
-void parseRequest(int fd);
 Request::Method stringToMethod(const string& methodStr);
-vector<string> tokenize(const string& line);
-string readline(int fd, bool includeDelimiter);
-Request *parseRequestLine(string line);
+vector<string> tokenize(stringstream stream);
+void handleConnection(int fd);
 
 #endif // MAIN_HPP

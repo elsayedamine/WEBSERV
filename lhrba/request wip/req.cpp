@@ -9,99 +9,83 @@ Request::Method stringToMethod(const string& methodStr) {
 	return Request::UNKNOWN;
 }
 
-vector<string> tokenize(const string& line) {
-	stringstream stream(line);
+vector<string> tokenize(stringstream stream) {
 	string token;
 	vector<string> tokens;
 
-	while (stream >> token) {
+	while (getline(stream, token, ' ')) {
+		if (token.empty())
+			return (tokens);
 		tokens.push_back(token);
 	}
-
 	return tokens;
 }
 
-string readline(int fd, bool includeDelimiter) {
-	string line;
-	char c;
-	ssize_t bytes_read;
-	
-	while ((bytes_read = read(fd, &c, 1)) > 0) {
-		if (c == '\0') {
-			// Null terminator - end of line
-			if (includeDelimiter) {
-				line += c;
-			}
-			break;
-		} else if (c == '\r') {
-			char next_c;
-			ssize_t next_read = read(fd, &next_c, 1);
-			if (next_read > 0 && next_c == '\n') {
-				// Found proper \r\n sequence
-				if (includeDelimiter) {
-					line += c;
-					line += next_c;
-				}
-				break;
-			} else {
-				// \r not followed by \n - continue reading
-				line += c;
-				if (next_read > 0) {
-					line += next_c;
-				}
-			}
-		} else {
-			line += c;
-		}
-	}
-	return line;
-}
-
-Request *parseRequestLine(string line) {
-	vector<string> tokens;
-	
-	tokens = tokenize(line);
-	if (tokens.size() != 3)
-		return (new Request(Request::UNKNOWN, "", ""));
-	return (new Request(stringToMethod(tokens[0]), tokens[1], tokens[2]));
-}
-
-pair<string, string> parseHeader(string line) {
-	stringstream stream(line);
+pair<string, string> parseHeader(stringstream stream) {
 	string temp;
-	pair<string, string> en;
+	pair<string, string> pair;
 
 	getline(stream, temp, ':');
-	en.first = temp;
+	if (temp.front() == ' ' || temp.back() == ' ')
+		return (make_pair("error", "error"));
+	pair.first = temp;
 	stream >> temp;
-	en.second = temp;
+	if (temp.empty())
+		return (make_pair("error", "error"));
+	pair.second = temp;
 
-	return (en);
+	return (pair);
 }
 
-void parseRequest(int fd) {
-	string reqline;
-	string body;
-	string temp;
-	pair<string, string> en;
+Request *parseRequest(stringstream stream) {
+	int cr = 0;
 	Request *request;
 	
-	reqline = readline(fd, false);
-    request = parseRequestLine(reqline);
-	while (1) {
-		temp = readline(fd, 0);
-		if (temp.empty())
-			break;
-		en = parseHeader(temp);
-		request->setHeader(en.first, en.second);
+	{ // Request line
+		string reqline;
+		vector<string> tokens;
+
+		getline(stream, reqline);
+		if (reqline.back() == '\r') {
+			cr = 1;
+			reqline.pop_back();
+		}
+		tokens = tokenize(stringstream(reqline));
+		if (tokens.size() != 3)
+			return (new Request(Request::UNKNOWN, "", ""));
+		request = new Request(stringToMethod(tokens[0]), tokens[1], tokens[2]);
 	}
-	//readline(fd, 1);
-	while (1) {
-		temp = readline(fd, 1);
-		if (temp.empty())
-			break;
-		body += temp;
+	{ // Headers
+		string header;
+		pair<string, string> pair;
+		while (1) {
+			getline(stream, header);
+			if ((header.back() == '\r') != cr) {
+				request->setHeader("error", "error");
+				return (request);
+			}
+			header.pop_back();
+			pair = parseHeader(stringstream(header));
+			if (!request->getHeader(pair.first).empty()) {
+				request->setHeader("error", "error");
+				return (request);
+			}
+			request->setHeader(pair.first, pair.second);
+		}
 	}
-	request->setBody(body);
-	cout << *request;
+	return (request);
+}
+
+void handleConnection(int fd) {
+	string data;
+	char buffer[1024];
+	Request *request;
+	int error = 0;
+
+	{
+		ssize_t readSize;
+		while ((readSize = read(fd, buffer, 1024)) > 0)
+			data.append(buffer, readSize);
+	}
+	request = parseRequest(stringstream(data));
 }

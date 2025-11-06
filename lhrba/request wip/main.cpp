@@ -23,7 +23,8 @@ int main() {
 	}
 	close(fd[1]); // writer done, simulate end of transmission
 
-	parseRequest(fd[0]);
+	// parseRequest(fd[0]);
+	handleConnection(fd[0]);
 	// close(fd[0]);
 	return 0;
 }
