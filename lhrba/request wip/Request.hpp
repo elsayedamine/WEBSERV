@@ -3,11 +3,7 @@
 
 #include <vector>
 #include <iostream>
-#include <sstream>
-#include <fstream>
 #include <map>
-#include <cstring>
-#include <unistd.h>
 
 using namespace std;
 
@@ -22,7 +18,8 @@ class Request {
 		map<string, string> headers; 
 		string body; 
 																
-	public:  
+	public:
+		int headerCount;
 		Request(Method m, const string& t, const string& v);
 		void setHeader(const string& key, const string& value);
 		void setBody(const string& b);
