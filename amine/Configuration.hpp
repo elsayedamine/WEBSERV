@@ -42,23 +42,22 @@ struct ServerConfig
 	std::vector<LocationConfig> locations;
 };
 
-class Configuration
+class Config
 {
 	public:
-		typedef ServerConfig (Configuration::*isValidDirective) (const Directive&);
+		typedef ServerConfig (Config::*isValidDirective) (const Directive&);
 		struct DirectiveInfo
 		{
 			bool	allowsMultiple;
 			bool	expectsChildren;
-			int		appearance; // needs to be removed and replaced by a better idea
 			int		values;
 			int		error;
 			isValidDirective Validator;
 			DirectiveInfo(bool multiple, bool children, isValidDirective fct)
-				: allowsMultiple(multiple), expectsChildren(children), appearance(0), values(0), error(0), Validator(fct) {}
+				: allowsMultiple(multiple), expectsChildren(children), values(0), error(0), Validator(fct) {}
 		};
 
-		Configuration(const Directive& directive);
+		Config(const Directive& directive);
 		const	std::vector<ServerConfig>& getServers() const { return servers; }
 		const	std::map<std::string, DirectiveInfo>& getServerKeys() const { return server_keys; }
 
@@ -103,6 +102,7 @@ class Configuration
 		e_error PostValidation();
 		ServerConfig	ValidateAndFillServer(const Directive & server);
 		std::map<std::string, DirectiveInfo> server_keys;
+		std::map<std::string, std::string> ref;
 
 };
 

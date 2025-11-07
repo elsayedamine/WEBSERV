@@ -2,13 +2,11 @@
 #include "Configuration.hpp"
 int main(int ac, char **av)
 {
-	// std::string config_file = "test.web";
-	// if (ac == 2)
-		// config_file = av[1];
 	Directive Directive(av[ac -1]);
+	// need to stop execution when error are here
 	// Directive.PrintDirective(0);
 
-	try { Configuration config(Directive); }
+	try { Config config(Directive); }
 	catch (std::exception &e) { std::cerr << e.what() <<std::endl; }
 	// Server server(config);
 	// server.start();

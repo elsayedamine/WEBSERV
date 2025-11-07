@@ -53,7 +53,7 @@ class ConfigException : public std::exception
 		std::string _msg;
 
 	public:
-		ConfigException(const std::string& msg) : _msg("Configuration File Syntax Error: " + msg) {}
+		ConfigException(const std::string& msg) : _msg("Config File Syntax Error: " + msg) {}
 		virtual ~ConfigException() throw() {}
 		virtual const char* what() const throw() { return _msg.c_str();}
 };

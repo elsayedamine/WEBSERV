@@ -20,3 +20,6 @@ server ;
     }
 
 segfault at this example
+
+also need to seperate with the newlines and not ignore them
+

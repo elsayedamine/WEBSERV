@@ -62,11 +62,11 @@ Directive	Directive::DirectiveBuilder(string_it &it, const string_it &end)
 void	ValidateTokens(const std::vector<std::string> & tokens)
 {
 	if (tokens.empty())
-		throw ConfigException("Configuration file is empty.");
+		throw ConfigException("Config file is empty.");
 
 	std::vector<std::size_t> brace_stack;
+	
 	NextState state = EXPECT_DIRECTIVE;
-
 	for (std::size_t i = 0; i < tokens.size(); ++i)
 	{
 		if (tokens[i] == "{")
