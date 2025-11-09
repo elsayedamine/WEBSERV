@@ -1,12 +1,11 @@
 #include "Directive.hpp"
 #include "Configuration.hpp"
+
 int main(int ac, char **av)
 {
 	Directive direct;
 	try { direct =  Directive(av[ac -1]); }
 	catch (std::exception &e) { std::cerr << e.what() << std::endl; return 1; }
-	// need to stop execution when error are here
-	// Directive.PrintDirective(0);
 
 	Configuration conf;
 	try { conf = Configuration(direct); }
@@ -15,6 +14,6 @@ int main(int ac, char **av)
 	// Server serv;
 	// try { serv = Server(conf); }
 	// catch (std::exception &e) { std::cerr << e.what() << std::endl; return 1; }
-
+	// serv.run();
 	return 0;
 }

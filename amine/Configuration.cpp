@@ -71,4 +71,6 @@ Configuration::Configuration(const Directive &main)
 			throw std::runtime_error(error[server_conf.err]);
 		servers.push_back(server_conf);
 	}
+
+	// resolve_config();
 }
