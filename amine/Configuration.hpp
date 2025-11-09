@@ -8,58 +8,44 @@
 #include <string>
 #include <cctype>
 #include <map>
+#include <cstdlib>
 
 #include "Directive.hpp"
 
-struct LocationConfig
-{
-	std::string		prefix;
-	std::string		root;
-	std::string		autoindex;
-	std::string		upload_path;
-	std::string		client_max_body_size;
-	std::vector<std::string>	cgi_path;
-	std::vector<std::string>	error_page;
-	std::vector<std::string>	redirect;
-	std::vector<std::string>	index;
-	std::vector<std::string>	allowed_methods;
-};
-
-struct ServerConfig
+struct ConfigBlock
 {
 	int				valid;
+	// --- Server-Only ---
 	unsigned short	port;
-	unsigned int	host;
-	std::string		root;
-	std::string		client_max_body_size;
-	std::string		upload_path;
-	std::vector<std::string> allowed_methods;
-	std::vector<std::string> redirect;
+	std::string		host;
 	std::vector<std::string> server_name;
-	std::vector<std::string> index;
+	// --- Location-Only ---
+	std::string		prefix;
+	std::vector<std::string> cgi_path;
+	// --- Shared Fields ---
+	int				autoindex;
+	int				upload_enable;
+	std::string		root;
+	std::string		upload_path;
+	std::string		client_max_body_size;
 	std::map<int,std::string> error_page;
+	std::pair<int,std::string> redirect;
+	std::vector<std::string>	index;
+	std::vector<std::string>	methods;
+	// --- For Nesting ---
+	std::vector<ConfigBlock> locations; 
 
-	std::vector<LocationConfig> locations;
+	ConfigBlock() : valid(0), port(0), autoindex(-1), upload_enable(-1) {}
 };
 
 class Config
 {
 	public:
-		typedef ServerConfig (Config::*isValidDirective) (const Directive&);
-		struct DirectiveInfo
-		{
-			bool	allowsMultiple;
-			bool	expectsChildren;
-			int		values;
-			int		error;
-			isValidDirective Validator;
-			DirectiveInfo(bool multiple, bool children, isValidDirective fct)
-				: allowsMultiple(multiple), expectsChildren(children), values(0), error(0), Validator(fct) {}
-		};
+		typedef ConfigBlock (Config::*Validators)(const Directive &);
 
 		Config(const Directive& directive);
-		const	std::vector<ServerConfig>& getServers() const { return servers; }
-		const	std::map<std::string, DirectiveInfo>& getServerKeys() const { return server_keys; }
+		const	std::vector<ConfigBlock>& getServers() const { return servers; }
+		const	std::map<std::string, Validators>& getServerKeys() const { return server_keys; }
 
 		enum e_error {
 			ERROR_NONE,
@@ -84,24 +70,26 @@ class Config
 		};
 		std::map<e_error, std::string> error;
 		e_error	err;
-		ServerConfig	validate_listen(const Directive &);
-		ServerConfig	validate_index(const Directive &listen);
-		ServerConfig	validate_server_name(const Directive &listen);
-		ServerConfig	validate_allowed_methods(const Directive &listen);
-		ServerConfig	validate_root(const Directive &listen);
-		ServerConfig	validate_error_page(const Directive &listen);
-		ServerConfig	validate_location(const Directive &listen);
-		ServerConfig	validate_clients(const Directive &listen);
-		ServerConfig	validate_autoindex(const Directive &listen);
-		ServerConfig	validate_upload_store(const Directive &listen);
-		ServerConfig	validate_upload_enable(const Directive &listen);
-		ServerConfig	validate_return(const Directive &listen);
+
+		ConfigBlock	validate_listen(const Directive &);
+		ConfigBlock	validate_index(const Directive &);
+		ConfigBlock	validate_server_name(const Directive &);
+		ConfigBlock	validate_allowed_methods(const Directive &);
+		ConfigBlock	validate_root(const Directive &);
+		ConfigBlock	validate_error_page(const Directive &);
+		ConfigBlock	validate_location(const Directive &);
+		ConfigBlock	validate_clients(const Directive &);
+		ConfigBlock	validate_autoindex(const Directive &);
+		ConfigBlock	validate_upload_store(const Directive &);
+		ConfigBlock	validate_upload_enable(const Directive &);
+		ConfigBlock	validate_return(const Directive &);
+		ConfigBlock	validate_cgi_path(const Directive &);
 
 	private:
-		std::vector<ServerConfig> servers;
-		e_error PostValidation();
-		ServerConfig	ValidateAndFillServer(const Directive & server);
-		std::map<std::string, DirectiveInfo> server_keys;
+		ConfigBlock	ValidateAndFillServer(const Directive & server);
+		std::vector<ConfigBlock> servers;
+		std::map<std::string, Validators> server_keys;
+		std::map<std::string, Validators> location_keys;
 		std::map<std::string, std::string> ref;
 
 };

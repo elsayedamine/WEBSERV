@@ -1,4 +1,4 @@
-server ;                           
+server {          
     listen 127.0.0.1:8080;
     server_name example.com;          
     error_page 404 /errors/404.html;  
@@ -18,8 +18,10 @@ server ;
         upload_store /var/www/uploads;
         allow_methods POST;           
     }
+}
 
 segfault at this example
 
 also need to seperate with the newlines and not ignore them
 
+don't forget to handle comments

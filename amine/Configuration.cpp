@@ -22,66 +22,73 @@ void	fill_errors(std::map<Config::e_error, std::string> &error)
 	error[Config::ERROR_INVALID_UPLOAD_PATH] = "ERROR_INVALID_UPLOAD_PATH";
 }
 
-void	fill_keys(std::map<std::string, Config::DirectiveInfo> &server_keys)
+void	fill_server_keys(std::map<std::string, Config::Validators> &server_keys)
 {
-	server_keys.insert(std::make_pair("listen", Config::DirectiveInfo(false, false, &Config::validate_listen)));
-	server_keys.insert(std::make_pair("index", Config::DirectiveInfo(false, false, &Config::validate_index)));
-	server_keys.insert(std::make_pair("server_name", Config::DirectiveInfo(false, false, &Config::validate_server_name)));
-	server_keys.insert(std::make_pair("allowed_methods", Config::DirectiveInfo(false, false, &Config::validate_allowed_methods)));
-	server_keys.insert(std::make_pair("root", Config::DirectiveInfo(false, false, &Config::validate_root)));
-	server_keys.insert(std::make_pair("error_page", Config::DirectiveInfo(true, false, &Config::validate_error_page)));
-	server_keys.insert(std::make_pair("location", Config::DirectiveInfo(true, true, &Config::validate_location)));
-	server_keys.insert(std::make_pair("client_max_body_size", Config::DirectiveInfo(false, false, &Config::validate_clients)));
-	server_keys.insert(std::make_pair("autoindex", Config::DirectiveInfo(false, false, &Config::validate_autoindex)));
-	server_keys.insert(std::make_pair("upload_store", Config::DirectiveInfo(false, false, &Config::validate_upload_store)));
-	server_keys.insert(std::make_pair("upload_enable", Config::DirectiveInfo(false, false, &Config::validate_upload_enable)));
-	server_keys.insert(std::make_pair("return", Config::DirectiveInfo(false, false, &Config::validate_return)));
+	server_keys["listen"] = &Config::validate_listen;
+	server_keys["index"] = &Config::validate_index;
+	server_keys["server_name"] = &Config::validate_server_name;
+	server_keys["allowed_methods"] = &Config::validate_allowed_methods;
+	server_keys["root"] = &Config::validate_root;
+	server_keys["error_page"] = &Config::validate_error_page;
+	server_keys["location"] = &Config::validate_location;
+	server_keys["client_max_body_size"] = &Config::validate_clients;
+	server_keys["autoindex"] = &Config::validate_autoindex;
+	server_keys["upload_store"] = &Config::validate_upload_store;
+	server_keys["upload_enable"] = &Config::validate_upload_enable;
+	server_keys["return"] = &Config::validate_return;
 }
 
-void	fill_ref(std::map<std::string, std::string> & ref)
+void	fill_location_keys(std::map<std::string, Config::Validators> &location_keys)
 {
-	ref["listen"] = "";
-	ref["server_name"] = "";
-	ref["root"] = "";
-	ref["autoindex"] = "";
-	ref["error_page"] = "";
-	ref["client_max_body_size"] = "";
-	ref["allowed_methods"] = "";
-	ref["location"] = "";
-	ref["host"] = "";
-	ref["return"] = "";
-	ref["upload_enable"] = "";
-	ref["upload_store"] = "";
+    location_keys["root"] = &Config::validate_root;
+    location_keys["index"] = &Config::validate_index;
+    location_keys["autoindex"] = &Config::validate_autoindex;
+    location_keys["upload_enable"] = &Config::validate_upload_enable;
+    location_keys["upload_store"] = &Config::validate_upload_store;
+    location_keys["return"] = &Config::validate_return;
+    location_keys["error_page"] = &Config::validate_error_page;
+    location_keys["client_max_body_size"] = &Config::validate_clients;
+    location_keys["allowed_methods"] = &Config::validate_allowed_methods;
+	// location_keys["cgi_path"] = &Config::validate_cgi_path;
 }
 
-ServerConfig Config::ValidateAndFillServer(const Directive &server)
+ConfigBlock Config::ValidateAndFillServer(const Directive &server)
 {
-	ServerConfig serv;
+	ConfigBlock serv;
+	std::map<std::string, int> directive_counts;
 
 	for (std::size_t i = 0; i < server.getChildren().size(); ++i) {
 		const Directive &d = server.getChildren()[i];
-		const std::map<std::string, DirectiveInfo>::iterator & it = server_keys.find(d.getName());
+		const std::string &name = d.getName();
+		const std::map<std::string, Validators>::iterator & it = server_keys.find(name);
 		if (it == server_keys.end()) {
 			err = ERROR_UNKNOWN_KEY;
 			serv.valid = false;
 			return serv;
 		}
-		DirectiveInfo &info = it->second;
-		if ((info.expectsChildren != !d.getChildren().empty()) || (!info.allowsMultiple && info.values > 0)) {
-			err = (info.expectsChildren != !d.getChildren().empty()) ? ERROR_INVALID_KEY : ERROR_DUPLICATE_KEY;
+		int &count = directive_counts[name];
+		if (name != "location" && name != "error_page" && count > 0) {
+			err = ERROR_DUPLICATE_KEY;
 			serv.valid = false;
 			return serv;
 		}
-		info.values++;
-		ServerConfig tmp = (this->*(info.Validator))(d);
+		count++;
+		ConfigBlock tmp = (this->*(it->second))(d);
+		// if (!tmp.locations.empty()) serv.locations.insert(serv.locations.end(), tmp.locations.begin(), tmp.locations.end());
 		if (!tmp.valid) return serv.valid = false, tmp;
-		if (!tmp.root.empty()) serv.root = tmp.root;
-		if (!tmp.server_name.empty()) serv.server_name = tmp.server_name;
-		if (tmp.port) serv.port = tmp.port;
-		if (tmp.host) serv.host = tmp.host;
-		if (!tmp.index.empty()) serv.index = tmp.index;
 		if (!tmp.error_page.empty()) serv.error_page = tmp.error_page;
-		if (!tmp.locations.empty()) serv.locations.insert(serv.locations.end(), tmp.locations.begin(), tmp.locations.end());
+		if (tmp.port) serv.port = tmp.port;
+		if (!tmp.host.empty()) serv.host = tmp.host;
+		if (!tmp.root.empty()) serv.root = tmp.root;
+		if (!tmp.client_max_body_size.empty()) ;
+		if (!tmp.upload_path.empty()) ;
+		if (!tmp.methods.empty()) ;
+		if (!tmp.redirect.second.empty()) ;
+		if (!tmp.server_name.empty()) serv.server_name = tmp.server_name;
+		if (!tmp.index.empty()) serv.index = tmp.index;
+		if (tmp.autoindex != false && !tmp.autoindex != true) serv.autoindex = tmp.autoindex; 
+		//dont forget to overload the operator= for these ifs
+		// location and error page
 	}
 	return serv;
 }
@@ -89,7 +96,8 @@ ServerConfig Config::ValidateAndFillServer(const Directive &server)
 Config::Config(const Directive &main)
 {
 	fill_errors(error);
-	fill_keys(server_keys);
+	fill_server_keys(server_keys);
+	fill_location_keys(location_keys);
 	// fill_ref(ref);
 	const std::vector<Directive>& server_directives = main.getChildren();
 
@@ -98,15 +106,9 @@ Config::Config(const Directive &main)
 		const Directive& server = server_directives[i];
 		if (server.getName() != "server" || server.getValues().size() != 0 || server.getChildren().size() < 1)
 			throw std::runtime_error(error[Config::ERROR_INVALID_SERVER]);
-		ServerConfig server_conf = ValidateAndFillServer(server);
+		ConfigBlock server_conf = ValidateAndFillServer(server);
 		if (server_conf.valid == false)
-			throw std::runtime_error(error[Config::ERROR_UNKNOWN_KEY]);
+			throw std::runtime_error(error[err]);
 		servers.push_back(server_conf);
 	}
 }
-
-
-Config::e_error Config::PostValidation() {return Config::ERROR_NONE;}
-
-ServerConfig fill_server(const Directive &server) {(void)server; return ServerConfig();}
-
