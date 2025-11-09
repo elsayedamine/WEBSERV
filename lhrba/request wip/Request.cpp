@@ -21,7 +21,7 @@ Request::Method Request::getMethod() const {
 	return method; 
 }
 
-const string& Request::gettarget() const { 
+const string& Request::getTarget() const { 
 	return target; 
 }
 
@@ -56,7 +56,7 @@ ostream& operator<<(ostream& os, const Request& req) {
 
 	os << "=== Request Debug Info ===\n";
 	os << "Method: " << methodStr << "\n";
-	os << "Target: " << req.gettarget() << "\n";
+	os << "Target: " << req.getTarget() << "\n";
 	os << "Version: " << req.getVersion() << "\n";
 	os << "Header Count: " << req.headerCount << "\n";
 	os << "Headers:\n";

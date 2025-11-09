@@ -1,7 +1,7 @@
 #include "main.hpp"
 #include "Request.hpp"
 
-Request::Method stringToMethod(const string& methodStr) {
+Request::Method stringToMethod(const string &methodStr) {
 	if (methodStr == "GET") return Request::GET;
 	if (methodStr == "POST") return Request::POST;
 	if (methodStr == "PUT") return Request::PUT;
@@ -9,7 +9,7 @@ Request::Method stringToMethod(const string& methodStr) {
 	return Request::UNKNOWN;
 }
 
-vector<string> tokenize(string& line) {
+vector<string> tokenize(string &line) {
 	stringstream stream(line);
 	string token;
 	vector<string> tokens;
@@ -22,7 +22,7 @@ vector<string> tokenize(string& line) {
 	return tokens;
 }
 
-pair<string, string> parseHeader(string& header) {
+pair<string, string> parseHeader(string &header) {
 	stringstream stream(header);
 	string temp;
 	pair<string, string> pair;
@@ -39,7 +39,7 @@ pair<string, string> parseHeader(string& header) {
 	return (pair);
 }
 
-Request *parseRequest(string& data) {
+Request *parseRequest(string &data) {
 	stringstream stream(data);
 	int cr = 0;
 	Request *request;
@@ -88,11 +88,10 @@ Request *parseRequest(string& data) {
 				body = "";
 				break;
 			}
-			if (cr && line.length() > 0 && line[line.length() - 1] == '\r')
-				line = line.substr(0, line.length() - 1);
-			
-			if (!body.empty()) body += "\n";
 			body.append(line);
+			if (stream.peek() != EOF) {
+				body += "\n";
+			}
 		}
 		request->setBody(body);
 	}
@@ -114,8 +113,9 @@ void handleConnection(int fd) {
 		stringstream stream(data);
 
 		request = parseRequest(data);
+		// cout << *request << endl;
 	}
 	{ // Process request
-		
+		processRequest(*request);
 	}
 }
