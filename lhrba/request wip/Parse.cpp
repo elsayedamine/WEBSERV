@@ -113,7 +113,6 @@ void handleConnection(int fd) {
 		stringstream stream(data);
 
 		request = parseRequest(data);
-		// cout << *request << endl;
 	}
 	{ // Process request
 		processRequest(*request);
