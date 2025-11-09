@@ -29,7 +29,7 @@ class Directive {
 			return *this; }
 
 		// Setters
-		void	setName(const std::string& n) {name = n;}
+		void	setName(const std::string& n) { name = n; }
 		void	addValue(const std::string& value) { values.push_back(value); }
 		void	addChild(const Directive& child) { children.push_back(child); }
 

@@ -113,8 +113,7 @@ Directive::Directive(const char *conf)
 
 	std::vector<std::string> tokens = tokenizer(content);
 
-	try { ValidateTokens(tokens);}
-	catch (const std::exception &e) {std::cout << e.what() << std::endl; return ;}
+	ValidateTokens(tokens);
 
 	string_it it = tokens.begin();
 	*this = DirectiveBuilder(it, tokens.end());

@@ -3,7 +3,7 @@ NAME = webserv
 CXX = c++
 CXXFLAGS = -Wall -Wextra  -std=c++98 -g #-Werror 
 
-SRCS = main.cpp Directive.cpp Configuration.cpp utils/prints.cpp utils/strings.cpp Validators.cpp
+SRCS = main.cpp Directive.cpp Configuration.cpp utils/prints.cpp utils/strings.cpp ConfigBlock.cpp
 
 
 OBJS = $(SRCS:.cpp=.o)
