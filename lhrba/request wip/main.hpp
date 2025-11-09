@@ -6,7 +6,7 @@
 #include <cstring>
 #include <unistd.h>
 #include "Request.hpp"
-
+#include "Response.hpp"
 
 // Function prototypes
 Request::Method stringToMethod(const string& methodStr);
@@ -15,6 +15,6 @@ pair<string, string> parseHeader(string& header);
 Request* parseRequest(string& data);
 void handleConnection(int fd);
 
-void processRequest(Request& request);
+Response *processRequest(Request& request);
 
 #endif // MAIN_HPP

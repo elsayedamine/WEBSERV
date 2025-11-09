@@ -9,7 +9,7 @@ using namespace std;
 
 class Request {  
 	public:  
-		enum Method {GET, POST, PUT, DELETE, UNKNOWN}; 
+		enum Method {GET, DELETE, POST, PUT, UNKNOWN = -1}; 
 																
 	private: 
 		Method method;
@@ -24,7 +24,7 @@ class Request {
 		void setHeader(const string& key, const string& value);
 		void setBody(const string& b);
 		Method getMethod() const;
-		const string& gettarget() const;
+		const string& getTarget() const;
 		const string& getVersion() const;
 		const map<string, string>& getHeaders() const;
 		string getHeader(const string& key) const;

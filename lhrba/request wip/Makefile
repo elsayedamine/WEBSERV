@@ -1,7 +1,7 @@
 NAME= req
 CXX= c++
 FLAGS= -Wall -Wextra -Werror -std=c++98 -g
-SRC= Parse.cpp main.cpp Request.cpp
+SRC= Parse.cpp main.cpp Request.cpp Response.cpp Process.cpp
 OBJ= $(SRC:.cpp=.o)
 
 all: $(NAME)
