@@ -98,9 +98,8 @@ Config::Config(const Directive &main)
 	fill_errors(error);
 	fill_server_keys(server_keys);
 	fill_location_keys(location_keys);
-	// fill_ref(ref);
-	const std::vector<Directive>& server_directives = main.getChildren();
 
+	const std::vector<Directive>& server_directives = main.getChildren();
 	for (size_t i = 0; i < server_directives.size(); ++i)
 	{
 		const Directive& server = server_directives[i];

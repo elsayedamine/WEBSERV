@@ -87,10 +87,9 @@ class Config
 
 	private:
 		ConfigBlock	ValidateAndFillServer(const Directive & server);
-		std::vector<ConfigBlock> servers;
 		std::map<std::string, Validators> server_keys;
 		std::map<std::string, Validators> location_keys;
-		std::map<std::string, std::string> ref;
+		std::vector<ConfigBlock> servers;
 
 };
 
