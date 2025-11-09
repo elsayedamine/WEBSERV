@@ -18,6 +18,8 @@ Response *validateRequest(Request &request) {
 	{ // Request line
 		if (request.getTarget().empty() || request.getVersion().empty())
 			return (new Response(400, "Bad request"));
+		if (request.getMethod() == -1)
+			return (new Response(405, "Method Not Allowed"));
 	}
 	{ // Headers
 		map<string, string> headers = request.getHeaders();
@@ -32,12 +34,8 @@ Response *validateRequest(Request &request) {
 			return (new Response(400, "Bad request"));
 	}
 	{ // Body
-		string body = request.getBody();
-
-		cout << body.length();
-		// for (int i = 0; i < body.length(); i++) {
-		
-		// }
+		if (request.getBody().length() != stoi(request.getHeader("Content-Length")))
+			return (new Response(400, "Bad request"));
 	}
 	return (NULL);
 }
@@ -47,8 +45,13 @@ Response *processRequest(Request &request) {
 
 	{ // Validate request
 		response = validateRequest(request);
+		// If this function returns a response, it's an error reponse to be
+		// Sent immediately. Otherwise, if it's null, continue processing request
 		if (response)
 			return (response);
+	}
+	{ // Actually process the request
+
 	}
 	return (NULL);
 }
