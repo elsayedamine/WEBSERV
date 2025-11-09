@@ -1,13 +1,15 @@
 #include "Request.hpp"
 
 // Request class method implementations
-Request::Request(Method m, const string& t, const string& v) {
+Request::Request(Method m, const string& t, const string& v) : headerCount(0) {
 	this->method = m;
 	this->target = t;
 	this->version = v;
 }
 
-void Request::setHeader(string& key, string& value) {
+void Request::setHeader(const string& key, const string& value) {
+	if (headers[key].empty())
+		this->headerCount++;
 	headers[key] = value;
 }
 
@@ -56,6 +58,7 @@ ostream& operator<<(ostream& os, const Request& req) {
 	os << "Method: " << methodStr << "\n";
 	os << "Target: " << req.gettarget() << "\n";
 	os << "Version: " << req.getVersion() << "\n";
+	os << "Header Count: " << req.headerCount << "\n";
 	os << "Headers:\n";
 
 	// Use traditional iterator for compatibility

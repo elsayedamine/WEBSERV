@@ -1,13 +1,16 @@
 NAME= req
 CXX= c++
 FLAGS= -Wall -Wextra -Werror -std=c++98 -g
-SRC= req.cpp main.cpp Request.cpp
+SRC= Parse.cpp main.cpp Request.cpp
 OBJ= $(SRC:.cpp=.o)
 
 all: $(NAME)
 
 $(NAME): $(OBJ)
-	$(CXX) $(FLAGS) $(OBJ) -o $(NAME)
+	$(CXX) $(OBJ) -o $(NAME)
+
+%.opp: %.cpp
+	$(CXX) $(CFLAGS) -c $< -o $@
 
 clean:
 	rm -f $(OBJ)
