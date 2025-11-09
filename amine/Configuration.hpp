@@ -13,13 +13,13 @@
 #include "Directive.hpp"
 #include "ConfigBlock.hpp"
 
-class Config
+class Configuration
 {
 	private:
 		std::vector<ConfigBlock> servers;
 	public:
-		Config() {}
-		Config(const Directive& directive);
+		Configuration() {}
+		Configuration(const Directive& directive);
 		e_error	err;
 };
 

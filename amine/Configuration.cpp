@@ -54,7 +54,7 @@ void	fill_location_keys(std::map<std::string, Validators> &location_keys)
 	// location_keys["cgi_path"] = &validate_cgi_path;
 }
 
-Config::Config(const Directive &main)
+Configuration::Configuration(const Directive &main)
 {
 	std::map<e_error, std::string> error;
 

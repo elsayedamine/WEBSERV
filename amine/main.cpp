@@ -8,8 +8,8 @@ int main(int ac, char **av)
 	// need to stop execution when error are here
 	// Directive.PrintDirective(0);
 
-	Config conf;
-	try { conf = Config(direct); }
+	Configuration conf;
+	try { conf = Configuration(direct); }
 	catch (std::exception &e) { std::cerr << e.what() << std::endl; return 1; }
 
 	// Server serv;
