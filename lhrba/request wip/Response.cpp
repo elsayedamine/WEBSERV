@@ -1,9 +1,8 @@
 #include "Response.hpp"
 
 // Response class method implementations
-Response::Response(int c, const string& m) {
-	this->code = c;
-	this->message = m;
+Response::Response(int c) : code(c) {
+
 }
 
 void Response::setHeader(string& key, string& value) {
@@ -18,13 +17,8 @@ int Response::getCode() const {
 	return code;
 }
 
-const string& Response::getMessage() const {
-	return message;
-}
-
-string Response::getHeader(const string& key) const {
-	map<string, string>::const_iterator it = headers.find(key);
-	return it != headers.end() ? it->second : "";
+const map<string, string>& Response::getHeaders() const { 
+	return headers; 
 }
 
 const string& Response::getBody() const {

@@ -2,21 +2,20 @@
 #define RESPONSE_HPP
 
 #include <string>
-#include <map>   
-#include <iostream>  
+#include <map>
+#include <iostream>
  
-using namespace std; 
+using namespace std;
  
-class Response { 
+class Response {
 	private: 
 		int code;
-		string message;  
 		map<string, string> headers;   
 		string body; 
 
-	public:  
-		// Constructor   
-		Response(int c, const string& m);
+	public:
+		// Constructor
+		Response(int c);
 		
 		// Setters
 		void setHeader(string& key, string& value);
@@ -25,7 +24,7 @@ class Response {
 		// Getters
 		int getCode() const;
 		const string& getMessage() const;
-		string getHeader(const string& key) const;
+		const map<string, string>& getHeaders() const;
 		const string& getBody() const;
 }; 
 
