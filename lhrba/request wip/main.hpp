@@ -9,7 +9,6 @@
 #include "Response.hpp"
 
 // Function prototypes
-Request::Method stringToMethod(const string& methodStr);
 vector<string> tokenize(string& line);
 pair<string, string> parseHeader(string& header);
 Request* parseRequest(string& data);

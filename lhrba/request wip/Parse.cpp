@@ -1,12 +1,15 @@
 #include "main.hpp"
 #include "Request.hpp"
 
-Request::Method stringToMethod(const string &methodStr) {
-	if (methodStr == "GET") return Request::GET;
-	if (methodStr == "POST") return Request::POST;
-	if (methodStr == "PUT") return Request::PUT;
-	if (methodStr == "DELETE") return Request::DELETE;
-	return Request::UNKNOWN;
+string	strtrim(const string &s)
+{
+	size_t start = 0;
+	while (start < s.size() && isspace((unsigned char)(s[start])))
+		++start;
+	size_t end = s.size();
+	while (end > start && isspace((unsigned char)(s[end - 1])))
+		--end;
+	return s.substr(start, end - start);
 }
 
 vector<string> tokenize(string &line) {
@@ -23,19 +26,12 @@ vector<string> tokenize(string &line) {
 }
 
 pair<string, string> parseHeader(string &header) {
-	stringstream stream(header);
-	string temp;
 	pair<string, string> pair;
+	size_t mid;
 
-	getline(stream, temp, ':');
-	if (temp.length() > 0 && (temp[0] == ' ' || temp[temp.length() - 1] == ' '))
-		return (make_pair("", ""));
-	pair.first = temp;
-	stream >> temp;
-	if (temp.empty())
-		return (make_pair("", ""));
-	pair.second = temp;
-
+	mid = header.find(':');
+	pair.first = strtrim(header.substr(0, mid));
+	pair.second = strtrim(header.substr(mid + 1));
 	return (pair);
 }
 
@@ -54,9 +50,9 @@ Request *parseRequest(string &data) {
 			reqline = reqline.substr(0, reqline.length() - 1);
 		}
 		tokens = tokenize(reqline);
-		if (tokens.size() != 3)
-			return (new Request(Request::UNKNOWN, "", ""));
-		request = new Request(stringToMethod(tokens[0]), tokens[1], tokens[2]);
+		if (tokens.size() != 3 || reqline[reqline.length() - 1] == ' ')
+			return (new Request("", "", ""));
+		request = new Request(tokens[0], tokens[1], tokens[2]);
 	}
 	{ // Headers
 		string header;
@@ -72,7 +68,7 @@ Request *parseRequest(string &data) {
 			if (cr)
 				header = header.substr(0, header.length() - 1);
 			pair = parseHeader(header);
-			if (pair.first.empty() || !request->getHeader(pair.first).empty()) {
+			if (pair.first.empty()) {
 				request->headerCount = -1;
 				return (request);
 			}
@@ -80,19 +76,11 @@ Request *parseRequest(string &data) {
 		}
 	}
 	{ // Body
-		string line;
 		string body;
+		char ch;
 
-		while (getline(stream, line)) {
-			if (stream.peek() != EOF && (line[line.length() - 1] == '\r') != cr) {
-				body = "";
-				break;
-			}
-			body.append(line);
-			if (stream.peek() != EOF) {
-				body += "\n";
-			}
-		}
+		while (stream.get(ch))
+			body.push_back(ch);
 		request->setBody(body);
 	}
 	return (request);
@@ -115,6 +103,9 @@ void handleConnection(int fd) {
 		request = parseRequest(data);
 	}
 	{ // Process request
-		processRequest(*request);
+		if (processRequest(*request))
+			cout << "error in request\n";
+		else
+			cout << *request << endl;
 	}
 }

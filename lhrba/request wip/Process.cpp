@@ -66,24 +66,26 @@ int validateHeader(string key, string value) {
 
 Response *validateRequest(Request &request) {
 	{ // Request line
-		if (request.getTarget().empty() || request.getVersion().empty())
+		if (request.getTarget().empty() || request.getVersion().empty() || request.getMethod().empty())
 			return (new Response(400));
-		if (request.getMethod() == -1)
-			return (new Response(405));
 	}
 	{ // Headers
-		map<string, string> headers = request.getHeaders();
+		const multimap<string,string>& hdrs = request.getHeaders();
 
-		for (map<string, string>::const_iterator it = headers.begin(); it != headers.end(); ++it) {
-			if (!validateHeader(it->first, it->second))
-				return (new Response(400));
+		for (auto it = hdrs.begin(); it != hdrs.end(); ++it) {
+			auto range = hdrs.equal_range(it->first);
+			if (distance(range.first, range.second) > 1)
+				return new Response(400);
 		}
 		if (request.getHeader("Host").empty())
 			return (new Response(400));
-		if (request.getMethod() >= 2 && request.getHeader("Content-Length").empty())
-			return (new Response(400));
 	}
 	{ // Body
+		if (request.getHeader("Content-Length").empty()) {
+			if (request.getMethod() == "POST" || request.getMethod() == "PUT")
+				return (new Response(400));
+			return (NULL);
+		}
 		if (request.getBody().length() != stoi(request.getHeader("Content-Length")))
 			return (new Response(400));
 	}
