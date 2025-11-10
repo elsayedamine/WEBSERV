@@ -54,6 +54,25 @@ void	fill_location_keys(std::map<std::string, Validators> &location_keys)
 	// location_keys["cgi_path"] = &validate_cgi_path;
 }
 
+void	Configuration::resolve_config()
+{
+	for (size_t i = 0; i < this->servers.size(); ++i) {
+		ConfigBlock &server = this->servers[i];
+		for (size_t j = 0; j < server.locations.size(); ++j) {
+			ConfigBlock &location = server.locations[j];
+			if (location.root.empty()) location.root = server.root;
+			if (location.client_max_body_size.empty()) location.client_max_body_size = server.client_max_body_size;
+			if (location.upload_path.empty()) location.upload_path = server.upload_path;
+			if (location.autoindex == -1) location.autoindex = server.autoindex;
+			if (location.upload_enable == -1) location.upload_enable = server.upload_enable;
+			if (location.index.empty()) location.index = server.index;
+			if (location.methods.empty()) location.methods = server.methods;
+			if (location.error_page.empty()) location.error_page = server.error_page;
+			if (location.redirect.second.empty()) location.redirect = server.redirect;
+		}
+	}
+}
+
 Configuration::Configuration(const Directive &main)
 {
 	std::map<e_error, std::string> error;
@@ -72,5 +91,5 @@ Configuration::Configuration(const Directive &main)
 		servers.push_back(server_conf);
 	}
 
-	// resolve_config();
+	resolve_config();
 }

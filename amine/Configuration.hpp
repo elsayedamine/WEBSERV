@@ -17,6 +17,7 @@ class Configuration
 {
 	private:
 		std::vector<ConfigBlock> servers;
+		void	resolve_config();
 	public:
 		Configuration() {}
 		Configuration(const Directive& directive);

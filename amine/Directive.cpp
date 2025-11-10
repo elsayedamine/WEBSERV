@@ -82,8 +82,8 @@ void	ValidateTokens(const std::vector<std::string> & tokens)
 				throw ConfigException("Missing ';' before '}' .");
 			if (brace_stack.empty())
 				throw ConfigException("Unexpected '}' .");
-			if (i > 0 && tokens[i - 1] == "{")
-				throw ConfigException("Empty block '{}' is not allowed .");
+			// if (i > 0 && tokens[i - 1] == "{")
+			// 	throw ConfigException("Empty block '{}' is not allowed .");
 			state = EXPECT_DIRECTIVE;
 			brace_stack.pop_back();
 		}
