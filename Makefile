@@ -1,4 +1,4 @@
-CXX:= g++
+CXX:= c++
 CFLAGS:= -Wall -Wextra -Werror -g -std=c++98
 NAME:= webserv
 INC= -I./includes
@@ -10,6 +10,7 @@ SRC:=	src/Config/Configuration.cpp \
 		src/Processing/Process.cpp \
 		src/Processing/Response.cpp \
 		src/Processing/Request.cpp \
+		src/Server/Server.cpp \
 		src/utils/prints.cpp \
 		src/utils/strings.cpp \
 		src/main.cpp

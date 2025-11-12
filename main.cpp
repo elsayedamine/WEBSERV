@@ -12,9 +12,9 @@ int main(int ac, char **av)
 	try { Conf = Configuration(Dir); }
 	catch (std::exception &e) { std::cerr << e.what() << std::endl; return 1; }
 
-	Server serv;
-	try { serv = Server(Conf); }
+	Server Serv;
+	try { Serv = Server(Conf); }
 	catch (std::exception &e) { std::cerr << e.what() << std::endl; return 1; }
-	serv.run();
+	Serv.run();
 	return 0;
 }

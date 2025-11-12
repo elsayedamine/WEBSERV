@@ -4,6 +4,7 @@
 #include <Configuration.hpp>
 #include <sys/socket.h>
 #include <set>
+#include <main.hpp>
 
 class Server 
 {
@@ -14,7 +15,7 @@ class Server
         Server() {}
         ~Server() {} // clear the project ig
         Server(const Configuration &);
-        void    run( void );
+        void    run( void ) const;
     private:
         // the main functions to run the server
 
