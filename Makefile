@@ -1,4 +1,4 @@
-CXX:= g++
+CXX:= c++
 CFLAGS:= -Wall -Wextra -Werror -g -std=c++98
 NAME:= webserv
 INC= -I./includes

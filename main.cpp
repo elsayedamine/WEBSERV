@@ -3,16 +3,16 @@
 
 int main(int ac, char **av)
 {
-	Directive direct;
-	try { direct =  Directive(av[ac -1]); }
+	Directive Dir;
+	try { Dir =  Directive(av[ac -1]); }
 	catch (std::exception &e) { std::cerr << e.what() << std::endl; return 1; }
 
-	Configuration conf;
-	try { conf = Configuration(direct); }
+	Configuration Conf;
+	try { Conf = Configuration(Dir); }
 	catch (std::exception &e) { std::cerr << e.what() << std::endl; return 1; }
 
 	// Server serv;
-	// try { serv = Server(conf); }
+	// try { serv = Server(Conf); }
 	// catch (std::exception &e) { std::cerr << e.what() << std::endl; return 1; }
 	// serv.run();
 	return 0;

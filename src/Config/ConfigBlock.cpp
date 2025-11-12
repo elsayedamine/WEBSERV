@@ -222,25 +222,25 @@ ConfigBlock	validate_return(const Directive &ret)
 
 ConfigBlock	validate_error_page(const Directive &error_page)
 {
-    ConfigBlock server;
+	ConfigBlock server;
 
-    const std::vector<std::string> &vals = error_page.getValues();
-    if (vals.size() < 2 || !error_page.getChildren().empty() || vals.back().empty())
-        return server.err = ERROR_INVALID_ERROR_PAGE, server;
+	const std::vector<std::string> &vals = error_page.getValues();
+	if (vals.size() < 2 || !error_page.getChildren().empty() || vals.back().empty())
+		return server.err = ERROR_INVALID_ERROR_PAGE, server;
 
-    for (std::size_t i = 0; i < vals.size() - 1; ++i)
-    {
-        const std::string &code_str = vals[i];
-        for (std::size_t j = 0; j < code_str.size(); ++j)
-            if (!std::isdigit(code_str[j]))
-                return server.err = ERROR_INVALID_ERROR_PAGE, server;
-        int code = std::atoi(code_str.c_str());
-        if (code < 300 || code > 599)
-            return server.err = ERROR_INVALID_ERROR_PAGE, server;
-        server.error_page[code] = vals.back();
-    }
-    server.err = ERROR_NONE;
-    return server;
+	for (std::size_t i = 0; i < vals.size() - 1; ++i)
+	{
+		const std::string &code_str = vals[i];
+		for (std::size_t j = 0; j < code_str.size(); ++j)
+			if (!std::isdigit(code_str[j]))
+				return server.err = ERROR_INVALID_ERROR_PAGE, server;
+		int code = std::atoi(code_str.c_str());
+		if (code < 300 || code > 599)
+			return server.err = ERROR_INVALID_ERROR_PAGE, server;
+		server.error_page[code] = vals.back();
+	}
+	server.err = ERROR_NONE;
+	return server;
 }
 
 ConfigBlock	validate_location(const Directive &location)
