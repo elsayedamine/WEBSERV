@@ -35,5 +35,6 @@ void	Server::run() const
 	// pipe(fd);
 	// write(fd[1], http_request, strlen(http_request));
 	// close(fd[1]);
-	handleConnection(1);
+	// handleConnection(1);
+
 }
