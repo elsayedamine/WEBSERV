@@ -9,7 +9,7 @@ Request::Request(const string& m, const string& t, const string& v) : headerCoun
 
 void Request::setHeader(const string& key, const string& value) {
 	// insert allowing duplicates; increment headerCount only if no existing key present
-	auto range = headers.equal_range(key);
+	pair<mmap_it, mmap_it> range = headers.equal_range(key);
 	if (range.first == range.second)
 		this->headerCount++;
 	headers.insert(make_pair(key, value));
@@ -36,7 +36,7 @@ const multimap<string, string>& Request::getHeaders() const {
 }
 
 string Request::getHeader(const string& key) const {  
-	auto it = headers.find(key);
+	mmap_it it = headers.find(key);
 	return it != headers.end() ? it->second : "";
 }
 

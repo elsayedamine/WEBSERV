@@ -1,17 +1,6 @@
 #include <main.hpp>
 #include <Request.hpp>
 
-string	strtrim(const string &s)
-{
-	size_t start = 0;
-	while (start < s.size() && isspace((unsigned char)(s[start])))
-		++start;
-	size_t end = s.size();
-	while (end > start && isspace((unsigned char)(s[end - 1])))
-		--end;
-	return s.substr(start, end - start);
-}
-
 vector<string> tokenize(string &line) {
 	stringstream stream(line);
 	string token;

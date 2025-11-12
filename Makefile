@@ -1,4 +1,4 @@
-CXX:= c++
+CXX:= g++
 CFLAGS:= -Wall -Wextra -Werror -g -std=c++98
 NAME:= webserv
 INC= -I./includes
@@ -21,7 +21,7 @@ vpath %.cpp $(dir $(SRC))
 all: $(NAME)
 
 $(NAME): $(OBJ)
-	$(CXX) $(CFLAGS) $(INC) -o $@
+	$(CXX) $(CFLAGS) $(INC) -o $@ $(OBJ)
 
 $(BIN_DIR)/%.o: %.cpp $(INCLUDES) | $(BIN_DIR)
 	$(CXX) $(CFLAGS) $(INC) -o $@ -c $<

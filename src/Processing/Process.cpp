@@ -1,5 +1,18 @@
 #include <main.hpp>
 
+string intToString(int n) {
+	std::ostringstream oss;
+	oss << n;
+	return oss.str();
+}
+
+int stringToInt(string str) {
+	size_t n = 0;
+	std::istringstream iss(str);
+	iss >> n;
+	return (n);
+}
+
 string getCodeMessage(int code) {
 	static map<int, string> messages;
 	if (messages.empty()) {
@@ -32,15 +45,19 @@ string buildResponse(Response &response) {
 
 	{ // Status line
 		data = "HTTP/1.1 ";
-		data += to_string(response.getCode()) + ' ';
+		data += intToString(response.getCode()) + ' ';
 		data += getCodeMessage(response.getCode()) + "\r\n";
 	}
 	{ // Headers
-		for (map<string, string>::const_iterator it = response.getHeaders().begin(); 
-			it != response.getHeaders().end(); ++it) {
+		map<string, string> headers = response.getHeaders();
+
+		map_it it = headers.begin();
+		while (1) {
 			data += it->first + ": " + it->second;
-			if (next(it) != response.getHeaders().end())
-				data += "\r\n";
+			++it;
+			if (it == headers.end())
+				break;
+			data += "\r\n";
 		}
 	}
 	{
@@ -54,11 +71,11 @@ string buildResponse(Response &response) {
 int validateHeader(string key, string value) {
 	if (key.empty())
 		return (0);
-	for (int i = 0; i < key.length(); i++) {
+	for (int i = 0; (size_t)i < key.length(); i++) {
 		if (!isalnum(key[i]) && key[i] != '-')
 			return (0);
 	}
-	for (int i = 0; i < value.length(); i++) {
+	for (int i = 0; (size_t)i < value.length(); i++) {
 		if (value[i] < 32 || value[i] > 126)
 			return (0);
 	}
@@ -71,10 +88,10 @@ Response *validateRequest(Request &request) {
 			return (new Response(400));
 	}
 	{ // Headers
-		const multimap<string,string>& hdrs = request.getHeaders();
+		const multimap<string,string>& headers = request.getHeaders();
 
-		for (auto it = hdrs.begin(); it != hdrs.end(); ++it) {
-			auto range = hdrs.equal_range(it->first);
+		for (mmap_it it = headers.begin(); it != headers.end(); ++it) {
+			pair<mmap_it, mmap_it> range = headers.equal_range(it->first);
 			if (distance(range.first, range.second) > 1)
 				return new Response(400);
 		}
@@ -87,7 +104,7 @@ Response *validateRequest(Request &request) {
 				return (new Response(400));
 			return (NULL);
 		}
-		if (request.getBody().length() != stoi(request.getHeader("Content-Length")))
+		if (request.getBody().length() != (size_t)stringToInt(request.getHeader("Content-Length")))
 			return (new Response(400));
 	}
 	return (NULL);

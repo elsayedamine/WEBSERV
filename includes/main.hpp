@@ -13,6 +13,7 @@ vector<string> tokenize(string& line);
 pair<string, string> parseHeader(string& header);
 Request* parseRequest(string& data);
 void handleConnection(int fd);
+std::string	strtrim(const std::string &s);
 
 Response *processRequest(Request& request);
 
