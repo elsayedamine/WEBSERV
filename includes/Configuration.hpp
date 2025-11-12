@@ -21,6 +21,7 @@ class Configuration
 	public:
 		Configuration() {}
 		Configuration(const Directive& directive);
+		const std::vector<ConfigBlock> & getServers() const { return this->servers; };
 		e_error	err;
 };
 
