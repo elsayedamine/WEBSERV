@@ -1,25 +1,26 @@
-#include "main.hpp"
+#include <main.hpp>
 
 string getCodeMessage(int code) {
-	static map<int, string> messages = {
-		{200, "OK"},
-		{201, "Created"},
-		{204, "No Content"},
-		{301, "Moved Permanently"},
-		{302, "Found"},
-		{304, "Not Modified"},
-		{400, "Bad Request"},
-		{403, "Forbidden"},
-		{404, "Not Found"},
-		{405, "Method Not Allowed"},
-		{411, "Length Required"},
-		{413, "Payload Too Large"},
-		{414, "URI Too Long"},
-		{415, "Unsupported Media Type"},
-		{500, "Internal Server Error"},
-		{501, "Not Implemented"},
-		{502, "Bad Gateway"}
-	};
+	static map<int, string> messages;
+	if (messages.empty()) {
+		messages[200] = "OK";
+		messages[201] = "Created";
+		messages[204] = "No Content";
+		messages[301] = "Moved Permanently";
+		messages[302] = "Found";
+		messages[304] = "Not Modified";
+		messages[400] = "Bad Request";
+		messages[403] = "Forbidden";
+		messages[404] = "Not Found";
+		messages[405] = "Method Not Allowed";
+		messages[411] = "Length Required";
+		messages[413] = "Payload Too Large";
+		messages[414] = "URI Too Long";
+		messages[415] = "Unsupported Media Type";
+		messages[500] = "Internal Server Error";
+		messages[501] = "Not Implemented";
+		messages[502] = "Bad Gateway";
+	}
 
 	if (messages.find(code) == messages.end())
 		return ("");

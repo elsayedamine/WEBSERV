@@ -5,8 +5,8 @@
 #include <fstream>
 #include <cstring>
 #include <unistd.h>
-#include "Request.hpp"
-#include "Response.hpp"
+#include <Request.hpp>
+#include <Response.hpp>
 
 // Function prototypes
 vector<string> tokenize(string& line);

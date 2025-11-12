@@ -1,4 +1,4 @@
-#include "Directive.hpp"
+#include <Directive.hpp>
 
 std::string AddSpacesAroundDelimiters(const std::string &str)
 {

@@ -1,5 +1,5 @@
-#include "main.hpp"
-#include "Request.hpp"
+#include <main.hpp>
+#include <Request.hpp>
 
 string	strtrim(const string &s)
 {
@@ -103,7 +103,8 @@ void handleConnection(int fd) {
 		request = parseRequest(data);
 	}
 	{ // Process request
-		if (processRequest(*request))
+		response = processRequest(*request);
+		if (response)
 			cout << "error in request\n";
 		else
 			cout << *request << endl;

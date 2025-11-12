@@ -1,5 +1,5 @@
-#include "Configuration/Directive.hpp"
-#include "Configuration/Configuration.hpp"
+#include <Directive.hpp>
+#include <Configuration.hpp>
 
 int main(int ac, char **av)
 {

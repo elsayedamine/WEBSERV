@@ -1,4 +1,4 @@
-#include "../Configuration/Directive.hpp"
+#include <Directive.hpp>
 
 std::string	strtrim(const std::string &s)
 {

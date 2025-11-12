@@ -1,4 +1,4 @@
-#include "Configuration.hpp"
+#include <Configuration.hpp>
 
 void	fill_errors(std::map<e_error, std::string> &error)
 {

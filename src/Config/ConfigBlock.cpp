@@ -1,4 +1,4 @@
-#include "Configuration.hpp"
+#include <Configuration.hpp>
 
 ConfigBlock	validate_cgi_path(const Directive &cgi) { (void)cgi; return ConfigBlock(); }
 

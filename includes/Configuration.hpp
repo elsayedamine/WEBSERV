@@ -10,8 +10,8 @@
 #include <map>
 #include <cstdlib>
 
-#include "Directive.hpp"
-#include "ConfigBlock.hpp"
+#include <Directive.hpp>
+#include <ConfigBlock.hpp>
 
 class Configuration
 {
