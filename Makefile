@@ -8,6 +8,7 @@ SRC:=	src/Config/Configuration.cpp \
 		src/Config/Directive.cpp \
 		src/Processing/Parse.cpp \
 		src/Processing/Process.cpp \
+		src/Processing/Validate.cpp \
 		src/Processing/Response.cpp \
 		src/Processing/Request.cpp \
 		src/Server/Server.cpp \

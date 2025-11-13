@@ -7,20 +7,29 @@
 
 using namespace std;
 
-class Request {																
+enum Method {
+	UNKNOWN,
+	GET,
+	POST,
+	PUT,
+	DELETE
+};
+
+class Request {
 	private: 
 		string method;
 		string target;
 		string version;
 		multimap<string, string> headers; 
 		string body; 
-																
+
 	public:
 		int headerCount;
 		Request(const string &m, const string &t, const string &v);
 		void setHeader(const string &key, const string &value);
 		void setBody(const string &b);
 		const string &getMethod() const;
+		Method getMethodEnum() const;
 		const string &getTarget() const;
 		const string &getVersion() const;
 		const multimap<string, string> &getHeaders() const;

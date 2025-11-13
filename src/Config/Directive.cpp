@@ -59,7 +59,7 @@ Directive	Directive::DirectiveBuilder(string_it &it, const string_it &end)
 	return Main;
 }
 
-void	ValidateTokens(const std::vector<std::string> & tokens)
+void	ValidateTokens(const std::vector<std::string> &tokens)
 {
 	if (tokens.empty())
 		throw ConfigException("Config file is empty.");

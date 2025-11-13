@@ -1,4 +1,5 @@
 #include <Request.hpp>
+#include <main.hpp>
 
 // Request class method implementations
 Request::Request(const string& m, const string& t, const string& v) : headerCount(0) {
@@ -22,6 +23,19 @@ void Request::setBody(const string& b) {
 const string &Request::getMethod() const { 
 	return method;
 }
+
+Method Request::getMethodEnum() const {
+	if (method == "GET")
+		return (GET);
+	if (method == "POST")
+		return (POST);
+	if (method == "PUT")
+		return (PUT);
+	if (method == "DELETE")
+		return (DELETE);
+	return (UNKNOWN);
+}
+
 
 const string& Request::getTarget() const { 
 	return target;

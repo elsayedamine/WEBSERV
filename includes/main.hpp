@@ -7,14 +7,15 @@
 #include <unistd.h>
 #include <Request.hpp>
 #include <Response.hpp>
+#include <Server.hpp>
 
-// Function prototypes
 vector<string> tokenize(string& line);
 pair<string, string> parseHeader(string& header);
 Request* parseRequest(string& data);
-void handleConnection(int fd);
+Response *validateRequest(Request &request);
+void handleConnection(int fd, const ConfigBlock &server);
 std::string	strtrim(const std::string &s);
 
-Response *processRequest(Request& request);
+Response *processRequest(Request& request, const ConfigBlock &server);
 
 #endif // MAIN_HPP

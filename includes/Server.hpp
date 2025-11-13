@@ -8,7 +8,7 @@
 
 class Server 
 {
-    private:
+    public:
         Configuration   config;
         // my variables
     public:

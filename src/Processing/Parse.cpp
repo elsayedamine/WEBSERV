@@ -1,5 +1,6 @@
 #include <main.hpp>
 #include <Request.hpp>
+#include <Server.hpp>
 
 vector<string> tokenize(string &line) {
 	stringstream stream(line);
@@ -75,7 +76,7 @@ Request *parseRequest(string &data) {
 	return (request);
 }
 
-void handleConnection(int fd) {
+void handleConnection(int fd, const ConfigBlock &server) {
 	string data;
 	char buffer[1024];
 	Request *request;
@@ -92,10 +93,8 @@ void handleConnection(int fd) {
 		request = parseRequest(data);
 	}
 	{ // Process request
-		response = processRequest(*request);
+		response = processRequest(*request, server);
 		if (response)
 			cout << "error in request\n";
-		else
-			cout << *request << endl;
 	}
 }

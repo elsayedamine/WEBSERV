@@ -1,127 +1,103 @@
 #include <main.hpp>
+#include <Server.hpp>
 
-string intToString(int n) {
-	std::ostringstream oss;
-	oss << n;
-	return oss.str();
+// Helper to print string vectors
+static std::ostream &printVector(std::ostream &os, const std::vector<std::string> &v) {
+	os << "[";
+	for (size_t i = 0; i < v.size(); ++i) {
+		if (i) os << ", ";
+		os << v[i];
+	}
+	os << "]";
+	return os;
 }
 
-int stringToInt(string str) {
-	size_t n = 0;
-	std::istringstream iss(str);
-	iss >> n;
-	return (n);
-}
-
-string getCodeMessage(int code) {
-	static map<int, string> messages;
-	if (messages.empty()) {
-		messages[200] = "OK";
-		messages[201] = "Created";
-		messages[204] = "No Content";
-		messages[301] = "Moved Permanently";
-		messages[302] = "Found";
-		messages[304] = "Not Modified";
-		messages[400] = "Bad Request";
-		messages[403] = "Forbidden";
-		messages[404] = "Not Found";
-		messages[405] = "Method Not Allowed";
-		messages[411] = "Length Required";
-		messages[413] = "Payload Too Large";
-		messages[414] = "URI Too Long";
-		messages[415] = "Unsupported Media Type";
-		messages[500] = "Internal Server Error";
-		messages[501] = "Not Implemented";
-		messages[502] = "Bad Gateway";
-	}
-
-	if (messages.find(code) == messages.end())
-		return ("");
-	return (messages[code]);
-}
-
-string buildResponse(Response &response) {
-	string data;
-
-	{ // Status line
-		data = "HTTP/1.1 ";
-		data += intToString(response.getCode()) + ' ';
-		data += getCodeMessage(response.getCode()) + "\r\n";
-	}
-	{ // Headers
-		map<string, string> headers = response.getHeaders();
-
-		map_it it = headers.begin();
-		while (1) {
-			data += it->first + ": " + it->second;
-			++it;
-			if (it == headers.end())
-				break;
-			data += "\r\n";
-		}
-	}
+// Stream output for ConfigBlock for debugging
+std::ostream &operator<<(std::ostream &os, const ConfigBlock &cb) {
+	os << "ConfigBlock {\n";
+	os << "  err: " << cb.err << "\n";
+	os << "  port: " << cb.port << "\n";
+	os << "  host: " << cb.host << "\n";
+	os << "  server_name: "; printVector(os, cb.server_name); os << "\n";
+	os << "  prefix: " << cb.prefix << "\n";
+	os << "  cgi_path: "; printVector(os, cb.cgi_path); os << "\n";
+	os << "  autoindex: " << cb.autoindex << "\n";
+	os << "  upload_enable: " << cb.upload_enable << "\n";
+	os << "  root: " << cb.root << "\n";
+	os << "  upload_path: " << cb.upload_path << "\n";
+	os << "  client_max_body_size: " << cb.client_max_body_size << "\n";
+	os << "  error_page: {";
 	{
-		if (response.getBody().empty())
-			return (data);
-		data += "\r\n" + response.getBody();
-	}
-	return (data);
-}
-
-int validateHeader(string key, string value) {
-	if (key.empty())
-		return (0);
-	for (int i = 0; (size_t)i < key.length(); i++) {
-		if (!isalnum(key[i]) && key[i] != '-')
-			return (0);
-	}
-	for (int i = 0; (size_t)i < value.length(); i++) {
-		if (value[i] < 32 || value[i] > 126)
-			return (0);
-	}
-	return (1);
-}
-
-Response *validateRequest(Request &request) {
-	{ // Request line
-		if (request.getTarget().empty() || request.getVersion().empty() || request.getMethod().empty())
-			return (new Response(400));
-	}
-	{ // Headers
-		const multimap<string,string>& headers = request.getHeaders();
-
-		for (mmap_it it = headers.begin(); it != headers.end(); ++it) {
-			pair<mmap_it, mmap_it> range = headers.equal_range(it->first);
-			if (distance(range.first, range.second) > 1)
-				return new Response(400);
+		bool first = true;
+		for (std::map<int, std::string>::const_iterator it = cb.error_page.begin(); it != cb.error_page.end(); ++it) {
+			if (!first) os << ", ";
+			os << it->first << ":" << it->second;
+			first = false;
 		}
-		if (request.getHeader("Host").empty())
-			return (new Response(400));
 	}
-	{ // Body
-		if (request.getHeader("Content-Length").empty()) {
-			if (request.getMethod() == "POST" || request.getMethod() == "PUT")
-				return (new Response(400));
-			return (NULL);
-		}
-		if (request.getBody().length() != (size_t)stringToInt(request.getHeader("Content-Length")))
-			return (new Response(400));
+	os << "}\n";
+	os << "  redirect: (" << cb.redirect.first << ", " << cb.redirect.second << ")\n";
+	os << "  index: "; printVector(os, cb.index); os << "\n";
+	os << "  methods: "; printVector(os, cb.methods); os << "\n";
+	os << "  locations: [\n";
+	for (size_t i = 0; i < cb.locations.size(); ++i) {
+		os << "    " << cb.locations[i] << (i + 1 < cb.locations.size() ? ",\n" : "\n");
 	}
-	return (NULL);
+	os << "  ]\n";
+	os << "}\n";
+	return os;
 }
 
-Response *processRequest(Request &request) {
+// Response *handleGet(Request &request) {
+// 	(void)request;
+// 	return (NULL);
+// }
+
+// Response *handlePost(Request &request) {
+// 	(void)request;
+// 	return (NULL);
+// }
+
+// Response *handlePut(Request &request) {
+// 	(void)request;
+// 	return (NULL);
+// }
+
+// Response *handleDelete(Request &request) {
+// 	(void)request;
+// 	return (NULL);
+// }
+
+// Response *handleRequest(Request &request) {
+// 	Response *response;
+
+// 	switch (request.getMethodEnum())
+// 	{
+// 		case GET:
+// 			response = handleGet(request);
+// 		case POST:
+// 			response = handlePost(request);
+// 		case PUT:
+// 			response = handlePut(request);
+// 		case DELETE:
+// 			response = handleDelete(request);
+// 		default:
+// 			response = new Response(501);
+// 	}
+// 	return (response);
+// }
+
+Response *processRequest(Request &request, const ConfigBlock &server) {
 	Response *response;
 
 	{ // Validate request
 		response = validateRequest(request);
-		// If this function returns a response, it's an error reponse to be
-		// Sent immediately. Otherwise, if it's null, continue processing request
 		if (response)
 			return (response);
 	}
 	{ // Actually process the request
-
+		// response = handleRequest(request);
+		cout << server << endl;
 	}
-	return (NULL);
+	return (response);
 }
