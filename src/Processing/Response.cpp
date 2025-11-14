@@ -1,11 +1,10 @@
 #include <Response.hpp>
 
-// Response class method implementations
 Response::Response(int c) : code(c) {
 
 }
 
-void Response::setHeader(string& key, string& value) {
+void Response::setHeader(const string& key, const string& value) {
 	headers[key] = value;
 }
 

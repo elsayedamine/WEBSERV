@@ -1,62 +1,95 @@
 #include <main.hpp>
 #include <Server.hpp>
+#include <fcntl.h>
+#include <algorithm>
 
-// Helper to print string vectors
-static std::ostream &printVector(std::ostream &os, const std::vector<std::string> &v) {
-	os << "[";
-	for (size_t i = 0; i < v.size(); ++i) {
-		if (i) os << ", ";
-		os << v[i];
+const string getMimeType(const string &file) {
+	static map<string, string> types;
+	if (types.empty()) {
+		types["html"] =  "text/html";
+		types["htm"] =   "text/html";
+		types["css"] =   "text/css";
+		types["js"] =    "application/javascript";
+		types["mjs"] =   "application/javascript";
+		types["json"] =  "application/json";
+		types["txt"] =   "text/plain";
+		types["xml"] =   "application/xml";
+		types["jpg"] =   "image/jpeg";
+		types["jpeg"] =  "image/jpeg";
+		types["png"] =   "image/png";
+		types["gif"] =   "image/gif";
+		types["svg"] =   "image/svg+xml";
+		types["ico"] =   "image/vnd.microsoft.icon";
+		types["bmp"] =   "image/bmp";
+		types["webp"] =  "image/webp";
+		types["mp4"] =   "video/mp4";
+		types["mpeg"] =  "video/mpeg";
+		types["mp3"] =   "audio/mpeg";
+		types["wav"] =   "audio/wav";
+		types["ogg"] =   "audio/ogg";
+		types["pdf"] =   "application/pdf";
+		types["zip"] =   "application/zip";
+		types["tar"] =   "application/x-tar";
+		types["gz"] =    "application/gzip";
+		types["7z"] =    "application/x-7z-compressed";
+		types["csv"] =   "text/csv";
+		types["woff"] =  "font/woff";
+		types["woff2"] = "font/woff2";
+		types["ttf"] =   "font/ttf";
 	}
-	os << "]";
-	return os;
-}
-
-// Stream output for ConfigBlock for debugging
-std::ostream &operator<<(std::ostream &os, const ConfigBlock &cb) {
-	os << "ConfigBlock {\n";
-	os << "  err: " << cb.err << "\n";
-	os << "  port: " << cb.port << "\n";
-	os << "  host: " << cb.host << "\n";
-	os << "  server_name: "; printVector(os, cb.server_name); os << "\n";
-	os << "  prefix: " << cb.prefix << "\n";
-	os << "  cgi_path: "; printVector(os, cb.cgi_path); os << "\n";
-	os << "  autoindex: " << cb.autoindex << "\n";
-	os << "  upload_enable: " << cb.upload_enable << "\n";
-	os << "  root: " << cb.root << "\n";
-	os << "  upload_path: " << cb.upload_path << "\n";
-	os << "  client_max_body_size: " << cb.client_max_body_size << "\n";
-	os << "  error_page: {";
+	
 	{
-		bool first = true;
-		for (std::map<int, std::string>::const_iterator it = cb.error_page.begin(); it != cb.error_page.end(); ++it) {
-			if (!first) os << ", ";
-			os << it->first << ":" << it->second;
-			first = false;
-		}
+		size_t dot = file.find_last_of('.');
+
+		if (dot == file.npos)
+			return ("application/octet-stream");
+		string ext = file.substr(dot + 1);
+		if (types.find(ext) == types.end())
+			return ("application/octet-stream");
+		return (types[ext]);
 	}
-	os << "}\n";
-	os << "  redirect: (" << cb.redirect.first << ", " << cb.redirect.second << ")\n";
-	os << "  index: "; printVector(os, cb.index); os << "\n";
-	os << "  methods: "; printVector(os, cb.methods); os << "\n";
-	os << "  locations: [\n";
-	for (size_t i = 0; i < cb.locations.size(); ++i) {
-		os << "    " << cb.locations[i] << (i + 1 < cb.locations.size() ? ",\n" : "\n");
-	}
-	os << "  ]\n";
-	os << "}\n";
-	return os;
 }
 
-// Response *handleGet(Request &request) {
-// 	(void)request;
-// 	return (NULL);
-// }
+int findResource(const vector<ConfigBlock> locations, const string &resource) {
+	if (!access(resource.c_str(), F_OK))
+		return (open(resource.c_str(), O_RDONLY));
+	for (vector<ConfigBlock>::iterator it; it != locations.end(); ++it) {
+		string path = it->prefix + resource;
+		if (!access(path.c_str(), F_OK))
+			return (open(path.c_str(), O_RDONLY));
+	}
+	return (-1);
+}
+
+Response *handleGet(Request &request, const ConfigBlock &server) {
+	int fd;
+
+	fd = findResource(server.locations, request.getTarget());
+	if (fd == -1) {
+		if (errno == EACCES)
+			return (new Response(403));
+		return (new Response(404));
+	}
+	{
+		char buffer[1024];
+		ssize_t readSize;
+		string body;
+		Response *response;
+
+		while ((readSize = read(fd, buffer, 1024)) > 0)
+			body.append(buffer, readSize);
+		response = new Response(200);
+		response->setBody(body);
+		response->setHeader("Content-Type", getMimeType(request.getTarget()));
+		response->setHeader("Content-Length", num_to_string(response->getBody().size()));
+		return (response);
+	}
+}
 
 // Response *handlePost(Request &request) {
 // 	(void)request;
 // 	return (NULL);
-// }
+// }	
 
 // Response *handlePut(Request &request) {
 // 	(void)request;
@@ -68,24 +101,25 @@ std::ostream &operator<<(std::ostream &os, const ConfigBlock &cb) {
 // 	return (NULL);
 // }
 
-// Response *handleRequest(Request &request) {
-// 	Response *response;
+Response *handleRequest(Request &request, const ConfigBlock &server) {
+	Response *response;
 
-// 	switch (request.getMethodEnum())
-// 	{
-// 		case GET:
-// 			response = handleGet(request);
-// 		case POST:
-// 			response = handlePost(request);
-// 		case PUT:
-// 			response = handlePut(request);
-// 		case DELETE:
-// 			response = handleDelete(request);
-// 		default:
-// 			response = new Response(501);
-// 	}
-// 	return (response);
-// }
+	switch (request.getMethodEnum())
+	{
+		case GET:
+			response = handleGet(request, server);
+		// case POST:
+		// 	response = handlePost(request);
+		// case PUT:
+		// 	response = handlePut(request);
+		// case DELETE:
+		// 	response = handleDelete(request);
+			break;
+		default:
+			response = new Response(501);
+	}
+	return (response);
+}
 
 Response *processRequest(Request &request, const ConfigBlock &server) {
 	Response *response;
@@ -96,8 +130,7 @@ Response *processRequest(Request &request, const ConfigBlock &server) {
 			return (response);
 	}
 	{ // Actually process the request
-		// response = handleRequest(request);
-		cout << server << endl;
+		response = handleRequest(request, server);
 	}
 	return (response);
 }

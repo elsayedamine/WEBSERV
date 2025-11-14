@@ -18,12 +18,11 @@ class Response {
 		Response(int c);
 		
 		// Setters
-		void setHeader(string& key, string& value);
+		void setHeader(const string& key, const string& value);
 		void setBody(const string& b);
 		
 		// Getters
 		int getCode() const;
-		const string& getMessage() const;
 		const map<string, string>& getHeaders() const;
 		const string& getBody() const;
 }; 
