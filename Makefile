@@ -14,6 +14,8 @@ SRC:=	src/Config/Configuration.cpp \
 		src/Server/Server.cpp \
 		src/utils/prints.cpp \
 		src/utils/strings.cpp \
+		src/Methods/Get.cpp \
+		src/Methods/Post.cpp \
 		src/main.cpp
 
 OBJ:= $(patsubst %.cpp, $(BIN_DIR)/%.o, $(notdir $(SRC)))
