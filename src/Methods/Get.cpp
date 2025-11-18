@@ -1,5 +1,7 @@
 #include <fcntl.h>
+#include <sys/stat.h>
 #include <main.hpp>
+#include <dirent.h>
 
 const string getMimeType(const string &file) {
 	static map<string, string> types;
@@ -48,34 +50,66 @@ const string getMimeType(const string &file) {
 	}
 }
 
-int findResource(const vector<ConfigBlock> locations, const string &resource) {
-	if (!access(resource.c_str(), F_OK))
-		return (open(resource.c_str(), O_RDONLY));
+string autoIndex(string path) {
+	DIR *dir = opendir(path.c_str());
+	struct dirent *ent;
+	string body = 
+		"<!doctype html>\n"
+		"<html>\n<head>\n<meta charset=\"utf-8\">\n"
+		"<title>Index of " + path + "</title>\n</head>\n<body>\n"
+		"<h1>Index of " + path + "</h1>\n"
+		"<ul>\n";
+
+	while (1) {
+		ent = readdir(dir);
+		if (!ent)
+			break;
+		string name(ent->d_name);
+		if (name == ".")
+			continue;
+		body += "<li>" + name + "</li>\n";
+	}
+	body += "</ul>\n</body>\n</html>";
+}
+
+pair<string, int> findResource(const vector<ConfigBlock> locations, const string &resource) {
+	struct stat st;
+	pair<string, int> ret;
+	
+	if (stat(resource.c_str(), &st)) {
+		ret.first = resource;
+		if (S_ISDIR(st.st_mode)) {
+			ret.second = 2;
+			return (ret);
+		}
+		ret.second = 1;
+		return (ret);
+	}
 	for (vector<ConfigBlock>::iterator it; it != locations.end(); ++it) {
 		string path = it->prefix + resource;
-		if (!access(path.c_str(), F_OK))
-			return (open(path.c_str(), O_RDONLY));
+		if (stat(path.c_str(), &st)) {
+			ret.first = path;
+			if (S_ISDIR(st.st_mode)) {
+				ret.second = 2;
+				return (ret);
+			}
+			ret.second = 1;
+			return (ret);
+		}
 	}
-	return (-1);
+	return (make_pair("", -1));
 }
 
 Response *handleGet(Request &request, const ConfigBlock &server) {
-	int fd;
+	pair<string, int> resource;
 
-	fd = findResource(server.locations, request.getTarget());
-	if (fd == -1) {
-		if (errno == EACCES)
-			return (new Response(403));
-		return (new Response(404));
-	}
+	resource = findResource(server.locations, request.getTarget());
 	{
 		char buffer[1024];
 		ssize_t readSize;
 		string body;
 		Response *response;
 
-		while ((readSize = read(fd, buffer, 1024)) > 0)
-			body.append(buffer, readSize);
 		response = new Response(200);
 		response->setBody(body);
 		response->setHeader("Content-Type", getMimeType(request.getTarget()));

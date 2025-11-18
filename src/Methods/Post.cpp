@@ -9,7 +9,7 @@ string getPath(string dir, const vector<ConfigBlock> locations) {
 
 	for (vector<ConfigBlock>::iterator it; it != locations.end(); ++it) {
 		string path = it->prefix + dir;
-		if (!stat(path.c_str(), &st)) {
+		if (!stat(path.c_str(), &st) && S_ISDIR(st.st_mode)) {
 			if (entries.find(dir) == entries.end())
 				entries[dir] = 0;
 			entries[dir]++;
