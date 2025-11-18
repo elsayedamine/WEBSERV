@@ -100,6 +100,11 @@ pair<string, int> findResource(const vector<ConfigBlock> locations, const string
 	return (make_pair("", -1));
 }
 
+// Normalize target (remove "." and "..", remove multiple /)
+// Match target against locations and choose the longest
+// If there's a trailing /, treat as a directory. otherwise, still check if it's either and apply logic accordingly
+// Remove location prefix and process the remainder in the root directory of the location
+
 Response *handleGet(Request &request, const ConfigBlock &server) {
 	pair<string, int> resource;
 
