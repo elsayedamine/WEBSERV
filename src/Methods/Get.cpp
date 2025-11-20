@@ -75,7 +75,7 @@ string autoIndex(string path) {
 
 string processDir(const string &path, const string &target, const ConfigBlock &location) {
 	if (location.index.empty())
-		
+	
 }
 
 const ConfigBlock *findLocation(const vector<ConfigBlock> &locations, const string &target) {
