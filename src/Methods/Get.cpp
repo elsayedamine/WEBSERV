@@ -2,6 +2,7 @@
 #include <sys/stat.h>
 #include <main.hpp>
 #include <dirent.h>
+#include <algorithm>
 
 const string getMimeType(const string &file) {
 	static map<string, string> types;
@@ -72,32 +73,22 @@ string autoIndex(string path) {
 	body += "</ul>\n</body>\n</html>";
 }
 
-pair<string, int> findResource(const vector<ConfigBlock> locations, const string &resource) {
-	struct stat st;
-	pair<string, int> ret;
-	
-	if (stat(resource.c_str(), &st)) {
-		ret.first = resource;
-		if (S_ISDIR(st.st_mode)) {
-			ret.second = 2;
-			return (ret);
-		}
-		ret.second = 1;
-		return (ret);
+string processDir(const string &path, const string &target, const ConfigBlock &location) {
+	if (location.index.empty())
+		
+}
+
+const ConfigBlock *findLocation(const vector<ConfigBlock> &locations, const string &target) {
+	vector<ConfigBlock>::const_iterator it = locations.begin();
+
+	while (it == locations.end()) {
+		if (!target.compare(0, it->prefix.size(), it->prefix))
+			break;
+		++it;
 	}
-	for (vector<ConfigBlock>::iterator it; it != locations.end(); ++it) {
-		string path = it->prefix + resource;
-		if (stat(path.c_str(), &st)) {
-			ret.first = path;
-			if (S_ISDIR(st.st_mode)) {
-				ret.second = 2;
-				return (ret);
-			}
-			ret.second = 1;
-			return (ret);
-		}
-	}
-	return (make_pair("", -1));
+	if (it == locations.end())
+		return (NULL);
+	return (&locations[it - locations.begin()]);
 }
 
 // Normalize target (remove "." and "..", remove multiple /)
@@ -105,20 +96,75 @@ pair<string, int> findResource(const vector<ConfigBlock> locations, const string
 // If there's a trailing /, treat as a directory. otherwise, still check if it's either and apply logic accordingly
 // Remove location prefix and process the remainder in the root directory of the location
 
-Response *handleGet(Request &request, const ConfigBlock &server) {
-	pair<string, int> resource;
-
-	resource = findResource(server.locations, request.getTarget());
-	{
-		char buffer[1024];
-		ssize_t readSize;
-		string body;
-		Response *response;
-
-		response = new Response(200);
-		response->setBody(body);
-		response->setHeader("Content-Type", getMimeType(request.getTarget()));
-		response->setHeader("Content-Length", num_to_string(response->getBody().size()));
-		return (response);
+bool normalizeTarget(string &target) {
+	if (target[0] != '/')
+		return (false);
+	while (1) {
+		size_t pos = target.find("/./");
+		if (pos == string::npos)
+			pos = target.find("/../");
+		if (pos == string::npos)
+			break;
+		target.erase(pos, 2 + (target[pos + 2] == '.'));
 	}
+	while (1) {
+		size_t pos = target.find("//");
+		if (pos == string::npos)
+			break;
+		target.erase(pos, 1);
+	}
+	return (true);
+}
+
+static size_t depthPrefix(const string &prefix) {
+	size_t count = 0;
+	size_t i = 0;
+	while (i < prefix.size()) {
+		while (i < prefix.size() && prefix[i] == '/')
+			++i;
+		if (i >= prefix.size())
+			break;
+		size_t j = prefix.find('/', i);
+		if (j == string::npos) {
+			++count;
+			break;
+		}
+		++count;
+		i = j + 1;
+	}
+	return (count);
+}
+
+bool compare(const ConfigBlock &a, const ConfigBlock &b) {
+	size_t da = depthPrefix(a.prefix);
+	size_t db = depthPrefix(b.prefix);
+	if (da != db)
+		return (da > db);
+	return (a.prefix.size() > b.prefix.size());
+}
+
+Response *handleGet(Request &request, const ConfigBlock &server) {
+	vector<ConfigBlock> locations = server.locations;
+	string body;
+
+	stable_sort(locations.begin(), locations.end(), compare);
+	{
+		const ConfigBlock *location;
+		string target = request.getTarget();
+		string path;
+		
+		normalizeTarget(target);
+		location = findLocation(locations, target);
+		if (!location)
+			return (new Response(404));
+		path = location->root + target.substr(location->prefix.size());
+		if (path[path.size() - 1] == '/')
+			body = processDir(path, target, *location);
+		// else
+			// body = 
+	}
+	{
+
+	}
+	return (NULL);
 }

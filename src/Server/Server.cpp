@@ -15,7 +15,7 @@ void	Server::run() const
 {
 	int fd[2];
 	const char* http_request =
-		"POST /users HTTP/1.1\r\n"
+		"GET /users HTTP/1.1\r\n"
 		"Host: example.com\r\n"
 		"Content-Type: application/json\r\n"
 		"Content-Length: 175\r\n"
