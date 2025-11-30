@@ -73,9 +73,33 @@ string autoIndex(string path) {
 	body += "</ul>\n</body>\n</html>";
 }
 
+string getResource(const string path) {
+	int fd;
+	char buf[1024];
+	ssize_t readSize;
+	string resource;
+
+	fd = open(path.c_str(), O_RDONLY);
+	if (fd == -1)
+		return ("");
+	while ((readSize = read(fd, buf, 1024)) > 0)
+		resource.append(buf);
+	return (resource);
+}
+
 string processDir(const string &path, const string &target, const ConfigBlock &location) {
-	if (location.index.empty())
+	if (!location.index.empty()) {
+		vector<string>::const_iterator it = location.index.begin();
 	
+		while (it == location.index.end()) {
+			string index = path + *it;
+			if (!access(index.c_str(), F_OK))
+				return (getResource(index));
+		}
+	}
+	if (location.autoindex)
+		return (autoIndex(path));
+	return ("");
 }
 
 const ConfigBlock *findLocation(const vector<ConfigBlock> &locations, const string &target) {
@@ -158,13 +182,18 @@ Response *handleGet(Request &request, const ConfigBlock &server) {
 		if (!location)
 			return (new Response(404));
 		path = location->root + target.substr(location->prefix.size());
-		if (path[path.size() - 1] == '/')
+		if (path[path.size() - 1] == '/') {
 			body = processDir(path, target, *location);
-		// else
-			// body = 
+		} else
+			body = getResource(path);
 	}
 	{
+		Response *response;
 
+		if (body.empty())
+			return (new Response(404));
+		response = new Response(200);
+		response->setBody(body);
 	}
 	return (NULL);
 }
