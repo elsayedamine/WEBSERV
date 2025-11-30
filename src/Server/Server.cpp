@@ -96,4 +96,5 @@ int	Server::accept_new_connection(int listener)
 	else
 		std::cout << "New connection on FD: " << client << std::endl;
 	return (true);
+	// add some redundant maps or shit to link btwn the fds and port and classes/structs
 }
