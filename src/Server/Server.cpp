@@ -70,9 +70,8 @@ void	Server::run()
 					continue ;
 			}
 			else
-			{
-				handleConnection(curr, );
-			}
+				handleConnection(curr, (config.getServers())[0]);
+				// khliti lcall makamlach 3mrth ghi bah nrunni lcode
 		}
 
 	}

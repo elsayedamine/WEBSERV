@@ -1,6 +1,5 @@
 #include <Server.hpp>
 
-
 void	Server::run() 
 {
 	int epoll_fd;
