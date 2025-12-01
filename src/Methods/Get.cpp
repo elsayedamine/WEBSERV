@@ -66,7 +66,7 @@ string autoIndex(string path) {
 		if (!ent)
 			break;
 		string name(ent->d_name);
-		if (name == ".")
+		if (name == "." || name == "..")
 			continue;
 		body += "<li>" + name + "</li>\n";
 	}
@@ -74,7 +74,7 @@ string autoIndex(string path) {
 	return (body);
 }
 
-string getResource(const string path) {
+pair<string, int> getResource(const string path) {
 	int fd;
 	char buf[1024];
 	ssize_t readSize;
@@ -82,25 +82,35 @@ string getResource(const string path) {
 
 	fd = open(path.c_str(), O_RDONLY);
 	if (fd == -1)
-		return ("");
+		return (make_pair("", (errno == EACCES) + 2 * (errno == ENOENT)));
 	while ((readSize = read(fd, buf, 1024)) > 0)
 		resource.append(buf);
-	return (resource);
+	return (make_pair(resource, 0));
 }
 
-string processDir(const string &path, const ConfigBlock &location) {
+pair<string, int> processDir(const string &path, const ConfigBlock &location) {
 	if (!location.index.empty()) {
 		vector<string>::const_iterator it = location.index.begin();
 	
-		while (it == location.index.end()) {
+		while (it != location.index.end()) {
 			string index = path + *it;
 			if (!access(index.c_str(), F_OK))
 				return (getResource(index));
 		}
 	}
 	if (location.autoindex)
-		return (autoIndex(path));
-	return ("");
+		return (make_pair(autoIndex(path), 0));
+	return (make_pair("", 1));
+}
+
+pair<string, int> processPath(const string &path, const ConfigBlock &location) {
+	struct stat st;
+
+	if (!stat(path.c_str(), &st))
+		return (make_pair("", (errno == EACCES) + 2 * (errno == ENOENT)));
+	if (S_ISDIR(st.st_mode))
+		return (processDir(path, location));
+	return (getResource(path));
 }
 
 const ConfigBlock *findLocation(const vector<ConfigBlock> &locations, const string &target) {
@@ -115,11 +125,6 @@ const ConfigBlock *findLocation(const vector<ConfigBlock> &locations, const stri
 		return (NULL);
 	return (&locations[it - locations.begin()]);
 }
-
-// Normalize target (remove "." and "..", remove multiple /)
-// Match target against locations and choose the longest
-// If there's a trailing /, treat as a directory. otherwise, still check if it's either and apply logic accordingly
-// Remove location prefix and process the remainder in the root directory of the location
 
 bool normalizeTarget(string &target) {
 	if (target[0] != '/')
@@ -170,7 +175,7 @@ bool compare(const ConfigBlock &a, const ConfigBlock &b) {
 
 Response *handleGet(Request &request, const ConfigBlock &server) {
 	vector<ConfigBlock> locations = server.locations;
-	string body;
+	pair<string, int> body;
 	Response *response;
 
 	stable_sort(locations.begin(), locations.end(), compare);
@@ -187,14 +192,14 @@ Response *handleGet(Request &request, const ConfigBlock &server) {
 		if (path[path.size() - 1] == '/') {
 			body = processDir(path, *location);
 		} else
-			body = getResource(path);
+			body = processPath(path, *location);
 	}
 	{
-		if (body.empty())
-			return (new Response(404));
+		if (body.first.empty())
+			return (new Response(402 + body.second));
 		response = new Response(200);
-		response->setBody(body);
-		response->setHeader("Content-Length", num_to_string(body.size()));
+		response->setBody(body.first);
+		response->setHeader("Content-Length", num_to_string(body.first.size()));
 		response->setHeader("Content-Type", getMimeType(request.getTarget()));
 		return (response);
 	}

@@ -5,7 +5,8 @@ server {
     client_max_body_size 10M;
     location /test {
         root /home/mchetoui/cursus/webserv;
-        autoindex on;
+        index index.html
+        autoindex off;
         allow_methods GET;
     }
     location / {

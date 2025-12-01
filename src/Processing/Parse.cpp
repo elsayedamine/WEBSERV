@@ -92,7 +92,7 @@ void sendResponse(int fd, Response &response) {
 			++it;
 		}
 	}
-	{ // Body
+	if (!response.getBody().empty()) { // Body
 		text.append("\r\n");
 		text.append(response.getBody());
 	}
