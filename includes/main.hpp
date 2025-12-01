@@ -16,6 +16,7 @@ Response *validateRequest(Request &request);
 void handleConnection(int fd, const ConfigBlock &server);
 std::string	strtrim(const std::string &s);
 Response *processRequest(Request& request, const ConfigBlock &server);
+string getCodeMessage(int code);
 
 Response *handleGet(Request &request, const ConfigBlock &server);
 Response *handlePost(Request &request, const ConfigBlock &server);

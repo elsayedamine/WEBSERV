@@ -71,6 +71,7 @@ string autoIndex(string path) {
 		body += "<li>" + name + "</li>\n";
 	}
 	body += "</ul>\n</body>\n</html>";
+	return (body);
 }
 
 string getResource(const string path) {
@@ -87,7 +88,7 @@ string getResource(const string path) {
 	return (resource);
 }
 
-string processDir(const string &path, const string &target, const ConfigBlock &location) {
+string processDir(const string &path, const ConfigBlock &location) {
 	if (!location.index.empty()) {
 		vector<string>::const_iterator it = location.index.begin();
 	
@@ -105,7 +106,7 @@ string processDir(const string &path, const string &target, const ConfigBlock &l
 const ConfigBlock *findLocation(const vector<ConfigBlock> &locations, const string &target) {
 	vector<ConfigBlock>::const_iterator it = locations.begin();
 
-	while (it == locations.end()) {
+	while (it != locations.end()) {
 		if (!target.compare(0, it->prefix.size(), it->prefix))
 			break;
 		++it;
@@ -170,6 +171,7 @@ bool compare(const ConfigBlock &a, const ConfigBlock &b) {
 Response *handleGet(Request &request, const ConfigBlock &server) {
 	vector<ConfigBlock> locations = server.locations;
 	string body;
+	Response *response;
 
 	stable_sort(locations.begin(), locations.end(), compare);
 	{
@@ -183,17 +185,17 @@ Response *handleGet(Request &request, const ConfigBlock &server) {
 			return (new Response(404));
 		path = location->root + target.substr(location->prefix.size());
 		if (path[path.size() - 1] == '/') {
-			body = processDir(path, target, *location);
+			body = processDir(path, *location);
 		} else
 			body = getResource(path);
 	}
 	{
-		Response *response;
-
 		if (body.empty())
 			return (new Response(404));
 		response = new Response(200);
 		response->setBody(body);
+		response->setHeader("Content-Length", num_to_string(body.size()));
+		response->setHeader("Content-Type", getMimeType(request.getTarget()));
+		return (response);
 	}
-	return (NULL);
 }
