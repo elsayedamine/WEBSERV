@@ -37,8 +37,6 @@ class Request {
 		const string &getBody() const;
 };
 
-ostream &operator<<(ostream &os, const Request &req);
-
 typedef multimap<string, string>::const_iterator mmap_it;
 typedef map<string, string>::const_iterator map_it;
 

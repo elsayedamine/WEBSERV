@@ -21,4 +21,4 @@ string getCodeMessage(int code);
 Response *handleGet(Request &request, const ConfigBlock &server);
 Response *handlePost(Request &request, const ConfigBlock &server);
 
-#endif // MAIN_HPP
+#endif

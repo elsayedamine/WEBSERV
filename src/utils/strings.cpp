@@ -18,3 +18,10 @@ std::string num_to_string(std::size_t num)
 	ss << num;
 	return ss.str();
 }
+
+int stringToInt(string str) {
+	size_t n = 0;
+	std::istringstream iss(str);
+	iss >> n;
+	return (n);
+}

@@ -3,53 +3,7 @@
 #include <main.hpp>
 #include <dirent.h>
 #include <algorithm>
-
-const string getMimeType(const string &file) {
-	static map<string, string> types;
-	if (types.empty()) {
-		types["html"] =  "text/html";
-		types["htm"] =   "text/html";
-		types["css"] =   "text/css";
-		types["js"] =    "application/javascript";
-		types["mjs"] =   "application/javascript";
-		types["json"] =  "application/json";
-		types["txt"] =   "text/plain";
-		types["xml"] =   "application/xml";
-		types["jpg"] =   "image/jpeg";
-		types["jpeg"] =  "image/jpeg";
-		types["png"] =   "image/png";
-		types["gif"] =   "image/gif";
-		types["svg"] =   "image/svg+xml";
-		types["ico"] =   "image/vnd.microsoft.icon";
-		types["bmp"] =   "image/bmp";
-		types["webp"] =  "image/webp";
-		types["mp4"] =   "video/mp4";
-		types["mpeg"] =  "video/mpeg";
-		types["mp3"] =   "audio/mpeg";
-		types["wav"] =   "audio/wav";
-		types["ogg"] =   "audio/ogg";
-		types["pdf"] =   "application/pdf";
-		types["zip"] =   "application/zip";
-		types["tar"] =   "application/x-tar";
-		types["gz"] =    "application/gzip";
-		types["7z"] =    "application/x-7z-compressed";
-		types["csv"] =   "text/csv";
-		types["woff"] =  "font/woff";
-		types["woff2"] = "font/woff2";
-		types["ttf"] =   "font/ttf";
-	}
-	
-	{
-		size_t dot = file.find_last_of('.');
-
-		if (dot == file.npos)
-			return ("application/octet-stream");
-		string ext = file.substr(dot + 1);
-		if (types.find(ext) == types.end())
-			return ("application/octet-stream");
-		return (types[ext]);
-	}
-}
+#include <Methods.hpp>
 
 string autoIndex(string path) {
 	DIR *dir = opendir(path.c_str());
