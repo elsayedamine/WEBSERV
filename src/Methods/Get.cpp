@@ -47,8 +47,8 @@ pair<string, int> processDir(const string &path, const ConfigBlock &location) {
 		vector<string>::const_iterator it = location.index.begin();
 	
 		while (it != location.index.end()) {
-			string index = path + *it;
-			cout << *it << endl;
+			string index = path + '/' + *it;
+			cout << index << endl;
 			if (!access(index.c_str(), F_OK))
 				return (getResource(index));
 			++it;
