@@ -1,33 +1,6 @@
 #include <Methods.hpp>
 #include <Utils.hpp>
 
-std::string getCodeMessage(int code) {
-	static map<int, std::string> messages;
-	if (messages.empty()) {
-		messages[200] = "OK";
-		messages[201] = "Created";
-		messages[204] = "No Content";
-		messages[301] = "Moved Permanently";
-		messages[302] = "Found";
-		messages[304] = "Not Modified";
-		messages[400] = "Bad Request";
-		messages[403] = "Forbidden";
-		messages[404] = "Not Found";
-		messages[405] = "Method Not Allowed";
-		messages[411] = "Length Required";
-		messages[413] = "Payload Too Large";
-		messages[414] = "URI Too Long";
-		messages[415] = "Unsupported Media Type";
-		messages[500] = "Internal Server Error";
-		messages[501] = "Not Implemented";
-		messages[502] = "Bad Gateway";
-	}
-
-	if (messages.find(code) == messages.end())
-		return ("");
-	return (messages[code]);
-}
-
 std::string buildResponse(Response &response) {
 	std::string data;
 
@@ -101,4 +74,36 @@ const std::string getMimeType(const std::string &file) {
 			return ("application/octet-stream");
 		return (types[ext]);
 	}
+}
+
+bool normalizeTarget(string &target) {
+	if (target[0] != '/')
+		return (false);
+	while (1) {
+		size_t pos = target.find("/./");
+		if (pos == string::npos)
+			pos = target.find("/../");
+		if (pos == string::npos)
+			break;
+		target.erase(pos, 2 + (target[pos + 2] == '.'));
+	}
+	while (1) {
+		size_t pos = target.find("//");
+		if (pos == string::npos)
+			break;
+		target.erase(pos, 1);
+	}
+	return (true);
+}
+
+const ConfigBlock *findLocation(const vector<ConfigBlock> &locations, const string &target) {
+	vector<ConfigBlock>::const_iterator it = locations.begin();
+
+	for (; it != locations.end(); ++it) {
+		if (target.size() < it->prefix.size())
+			continue;
+		if (!target.compare(0, it->prefix.size(), it->prefix) || target[it->prefix.size()] == '/')
+			return &locations[it - locations.begin()];
+	}
+	return (NULL);
 }

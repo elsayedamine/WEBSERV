@@ -4,6 +4,33 @@
 #include <unistd.h>
 #include <main.hpp>
 
+std::string getCodeMessage(int code) {
+	static map<int, std::string> messages;
+	if (messages.empty()) {
+		messages[200] = "OK";
+		messages[201] = "Created";
+		messages[204] = "No Content";
+		messages[301] = "Moved Permanently";
+		messages[302] = "Found";
+		messages[304] = "Not Modified";
+		messages[400] = "Bad Request";
+		messages[403] = "Forbidden";
+		messages[404] = "Not Found";
+		messages[405] = "Method Not Allowed";
+		messages[411] = "Length Required";
+		messages[413] = "Payload Too Large";
+		messages[414] = "URI Too Long";
+		messages[415] = "Unsupported Media Type";
+		messages[500] = "Internal Server Error";
+		messages[501] = "Not Implemented";
+		messages[502] = "Bad Gateway";
+	}
+
+	if (messages.find(code) == messages.end())
+		return ("");
+	return (messages[code]);
+}
+
 void sendResponse(int fd, Response &response) {
 	string text = "HTTP/1.1 ";
 

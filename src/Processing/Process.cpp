@@ -35,13 +35,8 @@ Response *handleRequest(Request &request, const ConfigBlock &server) {
 Response *processRequest(Request &request, const ConfigBlock &server) {
 	Response *response;
 
-	{ // Validate request
-		response = validateRequest(request);
-		if (response)
-			return (response);
-	}
-	{ // Actually process the request
-		response = handleRequest(request, server);
-	}
-	return (response);
+	response = validateRequest(request);
+	if (response)
+		return (response);
+	return (handleRequest(request, server));
 }

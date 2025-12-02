@@ -48,8 +48,10 @@ pair<string, int> processDir(const string &path, const ConfigBlock &location) {
 	
 		while (it != location.index.end()) {
 			string index = path + *it;
+			cout << *it << endl;
 			if (!access(index.c_str(), F_OK))
 				return (getResource(index));
+			++it;
 		}
 	}
 	if (location.autoindex)
@@ -60,44 +62,11 @@ pair<string, int> processDir(const string &path, const ConfigBlock &location) {
 pair<string, int> processPath(const string &path, const ConfigBlock &location) {
 	struct stat st;
 
-	if (!stat(path.c_str(), &st))
+	if (stat(path.c_str(), &st) == -1)
 		return (make_pair("", (errno == EACCES) + 2 * (errno == ENOENT)));
 	if (S_ISDIR(st.st_mode))
 		return (processDir(path, location));
 	return (getResource(path));
-}
-
-const ConfigBlock *findLocation(const vector<ConfigBlock> &locations, const string &target) {
-	vector<ConfigBlock>::const_iterator it = locations.begin();
-
-	while (it != locations.end()) {
-		if (!target.compare(0, it->prefix.size(), it->prefix))
-			break;
-		++it;
-	}
-	if (it == locations.end())
-		return (NULL);
-	return (&locations[it - locations.begin()]);
-}
-
-bool normalizeTarget(string &target) {
-	if (target[0] != '/')
-		return (false);
-	while (1) {
-		size_t pos = target.find("/./");
-		if (pos == string::npos)
-			pos = target.find("/../");
-		if (pos == string::npos)
-			break;
-		target.erase(pos, 2 + (target[pos + 2] == '.'));
-	}
-	while (1) {
-		size_t pos = target.find("//");
-		if (pos == string::npos)
-			break;
-		target.erase(pos, 1);
-	}
-	return (true);
 }
 
 static size_t depthPrefix(const string &prefix) {
@@ -133,7 +102,7 @@ Response *handleGet(Request &request, const ConfigBlock &server) {
 	Response *response;
 
 	stable_sort(locations.begin(), locations.end(), compare);
-	{
+	{ // Find location and process path
 		const ConfigBlock *location;
 		string target = request.getTarget();
 		string path;
@@ -143,12 +112,12 @@ Response *handleGet(Request &request, const ConfigBlock &server) {
 		if (!location)
 			return (new Response(404));
 		path = location->root + target.substr(location->prefix.size());
-		if (path[path.size() - 1] == '/') {
+		if (path[path.size() - 1] == '/')
 			body = processDir(path, *location);
-		} else
+		else
 			body = processPath(path, *location);
 	}
-	{
+	{ // Form response
 		if (body.first.empty())
 			return (new Response(402 + body.second));
 		response = new Response(200);

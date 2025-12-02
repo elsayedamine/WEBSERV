@@ -1,4 +1,6 @@
 #include <main.hpp>
+#include <algorithm>
+#include <Methods.hpp>
 #include <dirent.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -20,22 +22,21 @@ string getPath(string dir, const vector<ConfigBlock> locations) {
 }
 
 Response *handlePost(Request &request, const ConfigBlock &server) {
-	string path;
-	Response *response;
+	vector<ConfigBlock> locations = server.locations;
+	pair<string, int> body;
+	Response *response = NULL;
 
-	path = getPath(request.getTarget(), server.locations);
-	if (path.empty()) {
-		if (errno == EACCES)
-			return (new Response(403));
-		return (new Response(404));
-	}
-	{
-		int fd = open(path.c_str(), O_WRONLY);
-		write(fd, request.getBody().c_str(), request.getBody().length());
-		response = new Response(201);
-		response->setBody(path);
-		response->setHeader("Content-Type", "text/plain");
-		response->setHeader("Content-Length", num_to_string(response->getBody().size()));
+	stable_sort(locations.begin(), locations.end(), compare);
+	{ // Find location and process path
+		const ConfigBlock *location;
+		string target = request.getTarget();
+		string path;
+		
+		normalizeTarget(target);
+		location = findLocation(locations, target);
+		if (!location)
+			return (new Response(404));
+		path = location->root + target.substr(location->prefix.size());
 	}
 	return (response);
 }

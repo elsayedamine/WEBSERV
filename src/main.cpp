@@ -5,7 +5,7 @@
 void testServer(Configuration &config) {
 	int fd[2];
 	const char* http_request =
-		"GET /test/ HTTP/1.1\r\n"
+		"GET /test HTTP/1.1\r\n"
 		"Host: example.com\r\n";
 		// "Content-Type: application/json\r\n"
 		// "Content-Length: 175\r\n"
