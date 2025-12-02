@@ -96,10 +96,9 @@ bool compare(const ConfigBlock &a, const ConfigBlock &b) {
 	return (a.prefix.size() > b.prefix.size());
 }
 
-Response *handleGet(Request &request, const ConfigBlock &server) {
+Response handleGet(Request &request, const ConfigBlock &server) {
 	vector<ConfigBlock> locations = server.locations;
 	pair<string, int> body;
-	Response *response;
 
 	stable_sort(locations.begin(), locations.end(), compare);
 	{ // Find location and process path
@@ -110,7 +109,7 @@ Response *handleGet(Request &request, const ConfigBlock &server) {
 		normalizeTarget(target);
 		location = findLocation(locations, target);
 		if (!location)
-			return (new Response(404));
+			return (Response(404));
 		path = location->root + target.substr(location->prefix.size());
 		if (path[path.size() - 1] == '/')
 			body = processDir(path, *location);
@@ -118,12 +117,13 @@ Response *handleGet(Request &request, const ConfigBlock &server) {
 			body = processPath(path, *location);
 	}
 	{ // Form response
+		Response response(200);
+		
 		if (body.first.empty())
-			return (new Response(402 + body.second));
-		response = new Response(200);
-		response->setBody(body.first);
-		response->setHeader("Content-Length", num_to_string(body.first.size()));
-		response->setHeader("Content-Type", getMimeType(request.getTarget()));
+			return (Response(402 + body.second));
+		response.setBody(body.first);
+		response.setHeader("Content-Length", num_to_string(body.first.size()));
+		response.setHeader("Content-Type", getMimeType(request.getTarget()));
 		return (response);
 	}
 }

@@ -1,0 +1,11 @@
+{
+	"user": {
+		"name": "Alice Johnson",
+		"email": "alice.johnson@example.com",
+		"age": 28,
+		"preferences": {
+			"theme": "dark",
+			"notifications": true
+		}
+	}
+}

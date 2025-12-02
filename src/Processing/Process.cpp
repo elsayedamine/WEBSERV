@@ -1,4 +1,5 @@
 #include <main.hpp>
+#include <Methods.hpp>
 #include <Server.hpp>
 #include <fcntl.h>
 
@@ -12,8 +13,8 @@
 // 	return (NULL);
 // }
 
-Response *handleRequest(Request &request, const ConfigBlock &server) {
-	Response *response;
+Response handleRequest(Request &request, const ConfigBlock &server) {
+	Response response;
 
 	switch (request.getMethodEnum())
 	{
@@ -27,16 +28,16 @@ Response *handleRequest(Request &request, const ConfigBlock &server) {
 		// 	response = handleDelete(request);
 
 		default:
-			response = new Response(501);
+			response = Response(501);
 	}
 	return (response);
 }
 
-Response *processRequest(Request &request, const ConfigBlock &server) {
-	Response *response;
+Response processRequest(Request &request, const ConfigBlock &server) {
+	int invalid;
 
-	response = validateRequest(request);
-	if (response)
-		return (response);
+	invalid = validateRequest(request);
+	if (invalid)
+		return (Response(invalid));
 	return (handleRequest(request, server));
 }

@@ -16,7 +16,7 @@ enum Method {
 };
 
 class Request {
-	private: 
+	private:
 		string method;
 		string target;
 		string version;
@@ -25,6 +25,7 @@ class Request {
 
 	public:
 		int headerCount;
+		Request() {};
 		Request(const string &m, const string &t, const string &v);
 		void setHeader(const string &key, const string &value);
 		void setBody(const string &b);

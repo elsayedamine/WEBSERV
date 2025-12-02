@@ -15,10 +15,10 @@ int validateHeader(string key, string value) {
 	return (1);
 }
 
-Response *validateRequest(Request &request) {
+int validateRequest(Request &request) {
 	{ // Request line
 		if (request.getTarget().empty() || request.getVersion().empty() || request.getMethod().empty())
-			return (new Response(400));
+			return (400);
 	}
 	{ // Headers
 		const multimap<string,string>& headers = request.getHeaders();
@@ -26,19 +26,19 @@ Response *validateRequest(Request &request) {
 		for (mmap_it it = headers.begin(); it != headers.end(); ++it) {
 			pair<mmap_it, mmap_it> range = headers.equal_range(it->first);
 			if (distance(range.first, range.second) > 1)
-				return new Response(400);
+				return (400);
 		}
 		if (request.getHeader("Host").empty())
-			return (new Response(400));
+			return (400);
 	}
 	{ // Body
 		if (request.getHeader("Content-Length").empty()) {
 			if (request.getMethod() == "POST" || request.getMethod() == "PUT")
-				return (new Response(400));
-			return (NULL);
+				return (400);
+			return (0);
 		}
 		if (request.getBody().length() != (size_t)stringToInt(request.getHeader("Content-Length")))
-			return (new Response(400));
+			return (400);
 	}
-	return (NULL);
+	return (0);
 }

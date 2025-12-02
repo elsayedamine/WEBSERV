@@ -57,8 +57,8 @@ void sendResponse(int fd, Response &response) {
 
 void handleConnection(int fd, const ConfigBlock &server) {
 	string data;
-	Request *request;
-	Response *response;
+	Request request;
+	Response response;
 
 	{ // Read from fd into a string object
 		char buffer[1024];
@@ -71,9 +71,9 @@ void handleConnection(int fd, const ConfigBlock &server) {
 		request = parseRequest(data);
 	}
 	{ // Process request
-		response = processRequest(*request, server);
+		response = processRequest(request, server);
 	}
 	{ // Send response
-		sendResponse(fd, *response);
+		sendResponse(fd, response);
 	}
 }

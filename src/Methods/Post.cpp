@@ -5,26 +5,26 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-string getPath(string dir, const vector<ConfigBlock> locations) {
+string createResource(const string &path, const string &target, const string &body) {
 	static map<string, int> entries;
-	struct stat st;
 
-	for (vector<ConfigBlock>::iterator it; it != locations.end(); ++it) {
-		string path = it->prefix + dir;
-		if (!stat(path.c_str(), &st) && S_ISDIR(st.st_mode)) {
-			if (entries.find(dir) == entries.end())
-				entries[dir] = 0;
-			entries[dir]++;
-			return (path + num_to_string(entries[dir]));
-		}
+	if (entries.find(target) == entries.end())
+		entries[target] = 0;
+	entries[target]++;
+	{
+		string filename = path + '/' + num_to_string(entries[target]);
+		int fd = open(filename.c_str(), O_WRONLY | O_CREAT);
+
+		if (fd == -1)
+			return ("");
+		write(fd, body.c_str(), body.size());
 	}
-	return ("");
+	return (target + '/' + num_to_string(entries[target]));
 }
 
-Response *handlePost(Request &request, const ConfigBlock &server) {
+Response handlePost(Request &request, const ConfigBlock &server) {
 	vector<ConfigBlock> locations = server.locations;
-	pair<string, int> body;
-	Response *response = NULL;
+	string body;
 
 	stable_sort(locations.begin(), locations.end(), compare);
 	{ // Find location and process path
@@ -35,8 +35,18 @@ Response *handlePost(Request &request, const ConfigBlock &server) {
 		normalizeTarget(target);
 		location = findLocation(locations, target);
 		if (!location)
-			return (new Response(404));
+			return (Response(404));
 		path = location->root + target.substr(location->prefix.size());
+		body = createResource(path, target, request.getBody());
 	}
-	return (response);
+	{ // Form response
+		Response response(201);
+
+		if (body.empty())
+			cout << "test\n";
+		response.setBody(body);
+		response.setHeader("Content-Length", num_to_string(body.size()));
+		response.setHeader("Content-Type", getMimeType(request.getTarget()));
+		return (response);
+	}
 }

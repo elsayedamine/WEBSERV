@@ -17,8 +17,8 @@ pair<string, int> processPath(const string &path, const ConfigBlock &location);
 const ConfigBlock *findLocation(const vector<ConfigBlock> &locations, const string &target);
 bool normalizeTarget(string &target);
 bool compare(const ConfigBlock &a, const ConfigBlock &b);
-Response *handleGet(Request &request, const ConfigBlock &server);
+Response handleGet(Request &request, const ConfigBlock &server);
 string getPath(string dir, const vector<ConfigBlock> locations);
-Response *handlePost(Request &request, const ConfigBlock &server);
+Response handlePost(Request &request, const ConfigBlock &server);
 
 #endif

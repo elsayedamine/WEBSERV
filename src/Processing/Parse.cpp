@@ -25,10 +25,10 @@ pair<string, string> parseHeader(string &header) {
 	return (pair);
 }
 
-Request *parseRequest(string &data) {
+Request parseRequest(string &data) {
 	stringstream stream(data);
 	int cr = 0;
-	Request *request;
+	Request request;
 	
 	{ // Request line
 		string reqline;
@@ -41,8 +41,8 @@ Request *parseRequest(string &data) {
 		}
 		tokens = tokenize(reqline);
 		if (tokens.size() != 3 || reqline[reqline.length() - 1] == ' ')
-			return (new Request("", "", ""));
-		request = new Request(tokens[0], tokens[1], tokens[2]);
+			return (Request("", "", ""));
+		request = Request(tokens[0], tokens[1], tokens[2]);
 	}
 	{ // Headers
 		string header;
@@ -52,17 +52,17 @@ Request *parseRequest(string &data) {
 			if (header.length() == (size_t)cr)
 				break ;
 			if ((header[header.length() - 1] == '\r') != cr) {
-				request->headerCount = -1;
+				request.headerCount = -1;
 				return (request);
 			}
 			if (cr)
 				header = header.substr(0, header.length() - 1);
 			pair = parseHeader(header);
 			if (pair.first.empty()) {
-				request->headerCount = -1;
+				request.headerCount = -1;
 				return (request);
 			}
-			request->setHeader(pair.first, pair.second);
+			request.setHeader(pair.first, pair.second);
 		}
 	}
 	{ // Body
@@ -71,7 +71,7 @@ Request *parseRequest(string &data) {
 
 		while (stream.get(ch))
 			body.push_back(ch);
-		request->setBody(body);
+		request.setBody(body);
 	}
 	return (request);
 }

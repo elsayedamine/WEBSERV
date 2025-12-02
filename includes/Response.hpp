@@ -15,6 +15,7 @@ class Response {
 
 	public:
 		// Constructor
+		Response() {};
 		Response(int c);
 		
 		// Setters
