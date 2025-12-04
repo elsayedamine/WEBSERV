@@ -64,10 +64,10 @@ ConfigBlock	validate_clients(const Directive &clients)
 	long long size = std::atoll(value.c_str());
 	if (size <= 0)
 		return server.err = ERROR_INVALID_CLIENT_MAX_BODY_SIZE, server;
-	if (unit == 'K')
-		size *= 1024;
-	else if (unit == 'M')
-		size *= 1024 * 1024;
+	if (unit == 'K' || unit == 'k')
+		size *= 1000;
+	else if (unit == 'M' || unit == 'm')
+		size *= 1000 * 1000;
 	else if (unit)
 		return server.err = ERROR_INVALID_CLIENT_MAX_BODY_SIZE, server;
 	server.client_max_body_size = size;
@@ -272,7 +272,7 @@ ConfigBlock	validate_location(const Directive &location)
 		ConfigBlock tmp = it->second(d);
 		if (tmp.err) { LocationContainer.err = tmp.err; return LocationContainer ;}
 		if (!tmp.root.empty()) loc.root = tmp.root;
-		if (!tmp.client_max_body_size.empty()) loc.client_max_body_size = tmp.client_max_body_size;
+		if (!tmp.client_max_body_size) loc.client_max_body_size = tmp.client_max_body_size;
 		if (!tmp.upload_path.empty()) loc.upload_path = tmp.upload_path;
 		if (!tmp.methods.empty()) loc.methods = tmp.methods;
 		if (!tmp.redirect.second.empty()) loc.redirect = tmp.redirect;
@@ -313,7 +313,7 @@ ConfigBlock::ConfigBlock(const Directive &server) : err((e_error)0), port(0), au
 		if (tmp.port) this->port = tmp.port;
 		if (!tmp.host.empty()) this->host = tmp.host;
 		if (!tmp.root.empty()) this->root = tmp.root;
-		if (!tmp.client_max_body_size.empty()) this->client_max_body_size = tmp.client_max_body_size;
+		if (!tmp.client_max_body_size) this->client_max_body_size = tmp.client_max_body_size;
 		if (!tmp.upload_path.empty()) this->upload_path = tmp.upload_path;
 		if (!tmp.methods.empty()) this->methods = tmp.methods ;
 		if (!tmp.redirect.second.empty()) this->redirect = tmp.redirect;

@@ -18,7 +18,6 @@ const ConfigBlock *findLocation(const vector<ConfigBlock> &locations, const stri
 bool normalizeTarget(string &target);
 bool compare(const ConfigBlock &a, const ConfigBlock &b);
 Response handleGet(Request &request, const ConfigBlock &server);
-string getPath(string dir, const vector<ConfigBlock> locations);
 Response handlePost(Request &request, const ConfigBlock &server);
 
 #endif

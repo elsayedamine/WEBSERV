@@ -24,10 +24,9 @@ std::string getCodeMessage(int code) {
 		messages[500] = "Internal Server Error";
 		messages[501] = "Not Implemented";
 		messages[502] = "Bad Gateway";
+		messages[505] = "HTTP Version Not Supported";
 	}
 
-	if (messages.find(code) == messages.end())
-		return ("");
 	return (messages[code]);
 }
 
@@ -67,13 +66,7 @@ void handleConnection(int fd, const ConfigBlock &server) {
 		while ((readSize = read(fd, buffer, 1024)) > 0)
 			data.append(buffer, readSize);
 	}
-	{ // Parse request
-		request = parseRequest(data);
-	}
-	{ // Process request
-		response = processRequest(request, server);
-	}
-	{ // Send response
-		sendResponse(fd, response);
-	}
+	request = parseRequest(data);
+	response = processRequest(request, server);
+	sendResponse(fd, response);
 }

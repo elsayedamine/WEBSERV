@@ -61,7 +61,7 @@ void	Configuration::resolve_config()
 		for (size_t j = 0; j < server.locations.size(); ++j) {
 			ConfigBlock &location = server.locations[j];
 			if (location.root.empty()) location.root = server.root;
-			if (location.client_max_body_size.empty()) location.client_max_body_size = server.client_max_body_size;
+			if (location.client_max_body_size == -1) location.client_max_body_size = server.client_max_body_size;
 			if (location.upload_path.empty()) location.upload_path = server.upload_path;
 			if (location.autoindex == -1) location.autoindex = server.autoindex;
 			if (location.upload_enable == -1) location.upload_enable = server.upload_enable;

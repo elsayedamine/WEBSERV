@@ -36,7 +36,7 @@ Response handleRequest(Request &request, const ConfigBlock &server) {
 Response processRequest(Request &request, const ConfigBlock &server) {
 	int invalid;
 
-	invalid = validateRequest(request);
+	invalid = validateRequest(request, server);
 	if (invalid)
 		return (Response(invalid));
 	return (handleRequest(request, server));

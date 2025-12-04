@@ -42,7 +42,7 @@ struct ConfigBlock
 	int				upload_enable;
 	std::string		root;
 	std::string		upload_path;
-	std::string		client_max_body_size;
+	long		client_max_body_size;
 	std::map<int,std::string> error_page;
 	std::pair<int,std::string> redirect;
 	std::vector<std::string>	index;
