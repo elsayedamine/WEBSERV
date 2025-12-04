@@ -2,6 +2,7 @@
 #include <Utils.hpp>
 
 #define MAX_BODY 10 * 1000 * 1000
+#define MAX_URI 10 * 1000 * 1000
 
 int validateHeader(string key, string value) {
 	if (key.empty())
@@ -30,8 +31,10 @@ int validateRequest(Request &request, const ConfigBlock &server) {
 	{ // Request line
 		int validVer;
 
-		if (request.getTarget().empty() || request.getVersion().empty() || request.getMethod().empty())
+		if (request.getTarget().empty() || request.getMethod().empty())
 			return (400);
+		if (request.getTarget().length() > MAX_URI)
+			return (414);
 		validVer = checkVersion(request.getVersion());
 		if (validVer)
 			return (validVer);
@@ -55,8 +58,9 @@ int validateRequest(Request &request, const ConfigBlock &server) {
 				return (411);
 			return (0);
 		}
-		// if ((long)request.getBody().length() > server.client_max_body_size) {
-		if ((long)request.getBody().length() > MAX_BODY) {
+		if ((long)request.getBody().length() > server.client_max_body_size) {
+			cout << server.client_max_body_size << endl;
+		// if ((long)request.getBody().length() > MAX_BODY) {
 			return (413);
 		}
 		if (request.getBody().length() != (size_t)stringToInt(request.getHeader("Content-Length")))
