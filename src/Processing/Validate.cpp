@@ -23,6 +23,8 @@ int validateRequest(Request &request) {
 	{ // Headers
 		const multimap<string,string>& headers = request.getHeaders();
 
+		if (request.headerCount == -1)
+			return (400);
 		for (mmap_it it = headers.begin(); it != headers.end(); ++it) {
 			pair<mmap_it, mmap_it> range = headers.equal_range(it->first);
 			if (distance(range.first, range.second) > 1)

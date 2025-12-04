@@ -1,29 +1,33 @@
 #include <Directive.hpp>
 #include <Configuration.hpp>
 #include <Server.hpp>
+#include <fstream>
+#include <sstream>
+#include <iostream>
 
 void testServer(Configuration &config) {
 	int fd[2];
-	const char* http_request =
-		"POST /uploads HTTP/1.1\r\n"
-		"Host: example.com\r\n"
-		"Content-Type: application/json\r\n"
-		"Content-Length: 175\r\n"
-		"\r\n"
-		"{\r\n"
-		"\t\"user\": {\r\n"
-		"\t\t\"name\": \"Alice Johnson\",\r\n"
-		"\t\t\"email\": \"alice.johnson@example.com\",\r\n"
-		"\t\t\"age\": 28,\r\n"
-		"\t\t\"preferences\": {\r\n"
-		"\t\t\t\"theme\": \"dark\",\r\n"
-		"\t\t\t\"notifications\": true\r\n"
-		"\t\t}\r\n"
-		"\t}\r\n"
-		"}";
 
-	pipe(fd);
-	write(fd[1], http_request, strlen(http_request));
+	// Read the raw HTTP request from a file (relative to the working directory).
+	const char *request_file = "testing/requests/1";
+	std::ifstream in(request_file, std::ios::in | std::ios::binary);
+	if (!in.is_open()) {
+		std::cerr << "testServer: failed to open request file '" << request_file << "'\n";
+		return;
+	}
+	std::ostringstream buf;
+	buf << in.rdbuf();
+	std::string http_request = buf.str();
+
+	if (pipe(fd) == -1) {
+		std::cerr << "testServer: pipe() failed\n";
+		return;
+	}
+	ssize_t to_write = static_cast<ssize_t>(http_request.size());
+	ssize_t written = write(fd[1], http_request.c_str(), to_write);
+	if (written != to_write) {
+		std::cerr << "testServer: write() wrote " << written << " of " << to_write << " bytes\n";
+	}
 	close(fd[1]);
 	handleConnection(fd[0], (config.getServers())[0]);
 }

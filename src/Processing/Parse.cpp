@@ -20,6 +20,8 @@ pair<string, string> parseHeader(string &header) {
 	size_t mid;
 
 	mid = header.find(':');
+	if (mid == string::npos)
+		return (make_pair("", ""));
 	pair.first = strtrim(header.substr(0, mid));
 	pair.second = strtrim(header.substr(mid + 1));
 	return (pair);

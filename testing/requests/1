@@ -1,3 +1,8 @@
+POST /uploads HTTP/1.1
+Host: example.com
+Content-Type: application/json
+Content-Length: 165
+
 {
 	"user": {
 		"name": "Alice Johnson",
@@ -7,7 +12,5 @@
 			"theme": "dark",
 			"notifications": true
 		}
-	}
-}		}
 	}
 }
