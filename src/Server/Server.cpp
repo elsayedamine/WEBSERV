@@ -33,15 +33,15 @@ void	Server::SetupSockets()
 		if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 			throw std::runtime_error("socket() failed.");
 
-		setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)); // for timeout
+		setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
 		if (fcntl(sock, F_SETFL, O_NONBLOCK) < 0)
 			throw std::runtime_error("fcntl() failed.");
 
 		struct sockaddr_in addr;
-		memset(&addr, 0, sizeof(addr)); 
+		memset(&addr, 0, sizeof(addr));
 		addr.sin_family = AF_INET;
-		addr.sin_port = htons(port); // ??
+		addr.sin_port = htons(port);
 		addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
 		if (bind(sock, (struct sockaddr*)&addr, sizeof(addr)) < 0)
@@ -70,10 +70,12 @@ void	Server::run()
 					continue ;
 			}
 			else
-				handleConnection(curr, (config.getServers())[0]);
-				// khliti lcall makamlach 3mrth ghi bah nrunni lcode
+			{
+				int port = client_fd_to_port[curr];
+				std::vector<ConfigBlock>& candidates = config_map[port];
+				handleConnection(curr, candidates[0]);
+			}
 		}
-
 	}
 }
 
@@ -91,9 +93,12 @@ int	Server::accept_new_connection(int listener)
 	if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client, &client_event) < 0) {
 		std::cerr << "Failed to add client to epoll" << std::endl;
 		close(client);
+		return (false);
 	}
-	else
-		std::cout << "New connection on FD: " << client << std::endl;
+
+	std::cout << "New connection on FD: " << client << std::endl;
+	int port = sockets_to_ports[listener];
+	this->client_fd_to_port[client] = port;
+	// this->client_request_buffer[client] = "";
 	return (true);
-	// add some redundant maps or shit to link btwn the fds and port and classes/structs
 }
