@@ -29,7 +29,7 @@ void testServer(Configuration &config) {
 		std::cerr << "testServer: write() wrote " << written << " of " << to_write << " bytes\n";
 	}
 	close(fd[1]);
-	handleConnection(fd[0], (config.getServers())[0]);
+	handleConnection(fd[0], config.getServers());
 }
 
 int main(int ac, char **av)
@@ -45,7 +45,7 @@ int main(int ac, char **av)
 	Server Serv;
 	try { Serv = Server(Conf); }
 	catch (std::exception &e) { std::cerr << e.what() << std::endl; return 1; }
-	// Serv.run();
-	testServer(Conf);
+	Serv.run();
+	// testServer(Conf);
 	return 0;
 }

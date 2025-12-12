@@ -54,7 +54,16 @@ void sendResponse(int fd, Response &response) {
 	write(fd, text.c_str(), text.size());
 }
 
-void handleConnection(int fd, const ConfigBlock &server) {
+int getServer(const std::vector<ConfigBlock> &candidates, Request &request) {
+
+	for (size_t i = 0; i < candidates.size(); i++) {
+		if (candidates[i].server_name[0] == request.getHeader("Host"))
+			return (i);
+	}
+	return (-1);
+}
+
+void handleConnection(int fd, const std::vector<ConfigBlock> &candidates) {
 	string data;
 	Request request;
 	Response response;
@@ -66,7 +75,16 @@ void handleConnection(int fd, const ConfigBlock &server) {
 		while ((readSize = read(fd, buffer, 1024)) > 0)
 			data.append(buffer, readSize);
 	}
-	request = parseRequest(data);
-	response = processRequest(request, server);
+	{
+		int index;
+
+		request = parseRequest(data);
+		index = getServer(candidates, request);
+		if (index == -1)
+			response = Response(400);
+		else
+			response = processRequest(request, candidates[index]);
+	}
 	sendResponse(fd, response);
+	close(fd);
 }

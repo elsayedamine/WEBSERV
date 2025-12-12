@@ -13,7 +13,7 @@ vector<string> tokenize(string& line);
 pair<string, string> parseHeader(string& header);
 Request parseRequest(string& data);
 int validateRequest(Request &request, const ConfigBlock &server);
-void handleConnection(int fd, const ConfigBlock &server);
+void handleConnection(int fd, const std::vector<ConfigBlock> &candidates);
 std::string	strtrim(const std::string &s);
 Response processRequest(Request& request, const ConfigBlock &server);
 string getCodeMessage(int code);

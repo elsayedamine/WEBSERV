@@ -73,7 +73,7 @@ void	Server::run()
 			{
 				int port = client_fd_to_port[curr];
 				std::vector<ConfigBlock>& candidates = config_map[port];
-				handleConnection(curr, candidates[0]);
+				handleConnection(curr, candidates);
 			}
 		}
 	}
