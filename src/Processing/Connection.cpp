@@ -50,7 +50,6 @@ void sendResponse(int fd, Response &response) {
 		text.append("\r\n");
 		text.append(response.getBody());
 	}
-	cout << text << endl;
 	write(fd, text.c_str(), text.size());
 }
 

@@ -132,21 +132,21 @@ ConfigBlock	validate_server_name(const Directive &server_name)
 	for (std::size_t i = 0; i < server_name.getValues().size(); ++i)
 	{
 		std::string name = server_name.getValues()[i];
-		if (name.empty())
-			{ server.err = ERROR_INVALID_SERVER_NAME; break; }
-		std::stringstream ss(name);
-		std::string segment;
-		while (std::getline(ss, segment, '.'))
-		{
-			if (segment.empty() || segment.size() > 63 || segment[0] == '-' || \
-				segment[segment.size() - 1] == '-')
-				{ server.err = ERROR_INVALID_SERVER_NAME; break; }
-			for (std::size_t i = 0; i < segment.size(); ++i)
-				if (!std::isalnum(segment[i]) && segment[i] != '-')
-					{ server.err = ERROR_INVALID_SERVER_NAME; break; }
-		}
-		if (server.err == ERROR_INVALID_SERVER_NAME)
-			break ;
+		// if (name.empty())
+		// 	{ server.err = ERROR_INVALID_SERVER_NAME; break; }
+		// std::stringstream ss(name);
+		// std::string segment;
+		// while (std::getline(ss, segment, '.'))
+		// {
+		// 	if (segment.empty() || segment.size() > 63 || segment[0] == '-' || \
+		// 		segment[segment.size() - 1] == '-')
+		// 		{ server.err = ERROR_INVALID_SERVER_NAME; break; }
+		// 	for (std::size_t i = 0; i < segment.size(); ++i)
+		// 		if (!std::isalnum(segment[i]) && segment[i] != '-')
+		// 			{ server.err = ERROR_INVALID_SERVER_NAME; break; }
+		// }
+		// if (server.err == ERROR_INVALID_SERVER_NAME)
+		// 	break ;
 		server.server_name.push_back(name);
 	}
 	return server;

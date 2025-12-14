@@ -10,6 +10,7 @@ amine:
 				|
 				|
 		a gls lard galak
+		wa chof l dik jiha galak 
 
 	don't forget to handle comments
 
