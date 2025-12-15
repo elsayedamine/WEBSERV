@@ -22,23 +22,11 @@ string createResource(const string &path, const string &target, const string &bo
 	return (target + '/' + num_to_string(entries[target]));
 }
 
-Response handlePost(Request &request, const ConfigBlock &server) {
-	vector<ConfigBlock> locations = server.locations;
+Response handlePost(Request &request, const string &path, const ConfigBlock &location) {
+	(void)location;
 	string body;
 
-	stable_sort(locations.begin(), locations.end(), compare);
-	{ // Find location and process path
-		const ConfigBlock *location;
-		string target = request.getTarget();
-		string path;
-		
-		normalizeTarget(target);
-		location = findLocation(locations, target);
-		if (!location)
-			return (Response(404));
-		path = location->root + target.substr(location->prefix.size());
-		body = createResource(path, target, request.getBody());
-	}
+	body = createResource(path, request.getTarget(), request.getBody());
 	{ // Form response
 		Response response(201);
 

@@ -14,15 +14,24 @@
 // 	return (NULL);
 // }
 
-Response handleRequest(Request &request, const ConfigBlock &server) {
+Response handleRequest(Request &request, vector<ConfigBlock> locations) {
 	Response response;
+	const ConfigBlock *location;
+	string path;
+	string target = request.getTarget();
 
+	stable_sort(locations.begin(), locations.end(), compare);
+	normalizeTarget(target);
+	location = findLocation(locations, target);
+	if (!location)
+		return (Response(404));
+	path = location->root + target.substr(location->prefix.size());
 	switch (request.getMethodEnum())
 	{
 		case GET:
-			response = handleGet(request, server); break;
+			response = handleGet(request, path, *location); break;
 		case POST:
-			response = handlePost(request, server); break;
+			response = handlePost(request, path, *location); break;
 		// case PUT:
 		// 	response = handlePut(request);
 		// case DELETE:
@@ -78,5 +87,5 @@ Response processRequest(Request &request, const ConfigBlock &server) {
 	if (ctx.invalid)
 		return (Response(invalid));
 	// pass the ctx to the handlers
-	return (handleRequest(request, server));
+	return (handleRequest(request, server.locations));
 }

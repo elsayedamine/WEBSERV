@@ -96,25 +96,14 @@ bool compare(const ConfigBlock &a, const ConfigBlock &b) {
 	return (a.prefix.size() > b.prefix.size());
 }
 
-Response handleGet(Request &request, const ConfigBlock &server) {
-	vector<ConfigBlock> locations = server.locations;
+Response handleGet(Request &request, const string &path, const ConfigBlock &location) {
 	pair<string, int> body;
 
-	stable_sort(locations.begin(), locations.end(), compare);
 	{ // Find location and process path
-		const ConfigBlock *location;
-		string target = request.getTarget();
-		string path;
-		
-		normalizeTarget(target);
-		location = findLocation(locations, target);
-		if (!location)
-			return (Response(404));
-		path = location->root + target.substr(location->prefix.size());
 		if (path[path.size() - 1] == '/')
-			body = processDir(path, *location);
+			body = processDir(path, location);
 		else
-			body = processPath(path, *location);
+			body = processPath(path, location);
 	}
 	{ // Form response
 		Response response(200);
