@@ -10,10 +10,33 @@ amine:
 				|
 				|
 		a gls lard galak
-		wa chof l dik jiha galak 
+		wa chof l dik jiha galak
+		*seriously la rah parsing is already fast enough we don't need threads it's just a waste of time*
 
 	don't forget to handle comments
 
 	chof m3ak client_max_body_size rah makhdamach
 
 	server_name can have any value, for example 127.0.0.1:8080 or localhost:8080
+
+----------- NEW TO DO LIST -----------
+amine:
+	low priority:
+	- double check the old to do list first
+	- handle redirections
+	high priority:
+	- PUT and DELETE requests
+	- handle CGI
+	- path resolution (we need this asap :pray:)
+
+youssef:
+	low priority:
+	- session management
+	- default error pages
+	high priorty:
+	- finish GET and POST requests (naming uploaded files, response headers)
+	- chunked transfer encoding
+
+anyone:
+- allowed methods
+- reorganize codebase
