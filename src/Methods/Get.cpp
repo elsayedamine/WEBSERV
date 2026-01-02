@@ -83,7 +83,7 @@ string setType(const string &path, const ConfigBlock &location) {
 		}
 		return ("text/html");
 	} else
-		getMimeType(path);
+		return (getMimeType(path));
 	return("application/octet-stream");
 }
 

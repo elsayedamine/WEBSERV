@@ -5,21 +5,54 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-string createResource(const string &path, const string &target, const string &body) {
-	static map<string, int> entries;
+string getFilename(const string &path) {
+	string last_file;
+	int file_num;
 
-	if (entries.find(target) == entries.end())
-		entries[target] = 0;
-	entries[target]++;
-	{
-		string filename = path + '/' + num_to_string(entries[target]);
-		int fd = open(filename.c_str(), O_WRONLY | O_CREAT);
-
-		if (fd == -1)
-			return ("");
-		write(fd, body.c_str(), body.size());
+	{ // Find most recent file
+		DIR *d = opendir(path.c_str());
+		struct dirent *ent;
+		time_t most_recent = 0;
+	
+		while ((ent = readdir(d)) != NULL) {
+			string curr = path + '/' + ent->d_name;
+			struct stat st;
+	
+			if (ent->d_name[0] == '.') continue;
+			if (stat(curr.c_str(), &st) != 0) continue;
+			if (last_file.empty() || st.st_mtime > most_recent) {
+				last_file = ent->d_name;
+				most_recent = st.st_mtime;
+			}
+		}
+		closedir(d);
 	}
-	return (target + '/' + num_to_string(entries[target]));
+	{ // Turn filename into int
+		size_t end;
+		string name;
+		
+		if (last_file.empty())
+			file_num = 0;
+		else {
+			end = last_file.find_first_of('.');
+			if (end == string::npos)
+				end = last_file.size();
+			name = last_file.substr(0, end);
+			file_num = stringToInt(name);
+		}
+	}
+	return (num_to_string(file_num + 1));
+}
+
+string createResource(const string &path, const string &target, const string &body) {
+	string filepath = path + '/' + getFilename(path);
+
+	(void)target;
+	int fd = open(filepath.c_str(), O_WRONLY | O_CREAT, 0644);
+	if (fd == -1)
+		return ("");
+	write(fd, body.c_str(), body.size());
+	return (filepath);
 }
 
 Response handlePost(Request &request, const string &path, const ConfigBlock &location) {
@@ -30,8 +63,6 @@ Response handlePost(Request &request, const string &path, const ConfigBlock &loc
 	{ // Form response
 		Response response(201);
 
-		if (body.empty())
-			cout << "test\n";
 		response.setBody(body);
 		response.setHeader("Content-Length", num_to_string(body.size()));
 		response.setHeader("Content-Type", getMimeType(request.getTarget()));

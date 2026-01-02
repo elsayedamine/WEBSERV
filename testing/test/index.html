@@ -1,5 +1,12 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-	<head>index.html</head>
-	<body>this is webserv</body>
+<head><meta charset="utf-8"><title>POST test</title></head>
+<body>
+  <h1>Simple POST (x-www-form-urlencoded)</h1>
+  <form method="post" action="http://127.0.0.1:8080/uploads">
+    <input name="name" placeholder="name"><br>
+    <textarea name="data" placeholder="body"></textarea><br>
+    <button type="submit">Send</button>
+  </form>
+</body>
 </html>
