@@ -5,6 +5,43 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+const std::string getExtension(const std::string &type) {
+	static map<std::string, std::string> types;
+	if (types.empty()) {
+		types["text/html"] = "html";
+		types["text/css"] = "css";
+		types["application/javascript"] = "js";
+		types["application/json"] = "json";
+		types["text/plain"] = "txt";
+		types["application/xml"] = "xml";
+		types["image/jpeg"] = "jpg";
+		types["image/png"] = "png";
+		types["image/gif"] = "gif";
+		types["image/svg+xml"] = "svg";
+		types["image/vnd.microsoft.icon"] = "ico";
+		types["image/bmp"] = "bmp";
+		types["image/webp"] = "webp";
+		types["video/mp4"] = "mp4";
+		types["video/mpeg"] = "mpeg";
+		types["audio/mpeg"] = "mp3";
+		types["audio/wav"] = "wav";
+		types["audio/ogg"] = "ogg";
+		types["application/pdf"] = "pdf";
+		types["application/zip"] = "zip";
+		types["application/x-tar"] = "tar";
+		types["application/gzip"] = "gz";
+		types["application/x-7z-compressed"] = "7z";
+		types["text/csv"] = "csv";
+		types["font/woff"] = "woff";
+		types["font/woff2"] = "woff2";
+		types["font/ttf"] = "ttf";
+	}
+
+	if (types.find(type) == types.end())
+		return ("");
+	return ('.' + types[type]);
+}
+
 string getFilename(const string &path) {
 	string last_file;
 	int file_num;
@@ -44,10 +81,10 @@ string getFilename(const string &path) {
 	return (num_to_string(file_num + 1));
 }
 
-string createResource(const string &path, const string &target, const string &body) {
-	string filepath = path + '/' + getFilename(path);
+string createResource(const string &path, const Request &request, const string &body) {
+	string filepath;
 
-	(void)target;
+	filepath = path + '/' + getFilename(path) + getExtension(request.getHeader("Content-Type"));
 	int fd = open(filepath.c_str(), O_WRONLY | O_CREAT, 0644);
 	if (fd == -1)
 		return ("");
@@ -59,13 +96,14 @@ Response handlePost(Request &request, const string &path, const ConfigBlock &loc
 	(void)location;
 	string body;
 
-	body = createResource(path, request.getTarget(), request.getBody());
+	body = createResource(path, request, request.getBody());
 	{ // Form response
 		Response response(201);
 
 		response.setBody(body);
 		response.setHeader("Content-Length", num_to_string(body.size()));
-		response.setHeader("Content-Type", getMimeType(request.getTarget()));
+		response.setHeader("Location", body);
+		response.setHeader("Content-Type", "text/plain");
 		return (response);
 	}
 }
