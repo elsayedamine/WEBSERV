@@ -48,7 +48,6 @@ pair<string, int> processDir(const string &path, const ConfigBlock &location) {
 	
 		while (it != location.index.end()) {
 			string index = path + '/' + *it;
-			cout << index << endl;
 			if (!access(index.c_str(), F_OK))
 				return (getResource(index));
 			++it;
@@ -69,36 +68,29 @@ pair<string, int> processPath(const string &path, const ConfigBlock &location) {
 	return (getResource(path));
 }
 
-static size_t depthPrefix(const string &prefix) {
-	size_t count = 0;
-	size_t i = 0;
-	while (i < prefix.size()) {
-		while (i < prefix.size() && prefix[i] == '/')
-			++i;
-		if (i >= prefix.size())
-			break;
-		size_t j = prefix.find('/', i);
-		if (j == string::npos) {
-			++count;
-			break;
-		}
-		++count;
-		i = j + 1;
-	}
-	return (count);
-}
+string setType(const string &path, const ConfigBlock &location) {
+	struct stat st;
 
-bool compare(const ConfigBlock &a, const ConfigBlock &b) {
-	size_t da = depthPrefix(a.prefix);
-	size_t db = depthPrefix(b.prefix);
-	if (da != db)
-		return (da > db);
-	return (a.prefix.size() > b.prefix.size());
+	stat(path.c_str(), &st);
+	if (S_ISDIR(st.st_mode)) {
+		vector<string>::const_iterator it = location.index.begin();
+
+		while (!location.index.empty() && it != location.index.end()) {
+			string index = path + '/' + *it;
+			if (!access(index.c_str(), F_OK))
+				return (getMimeType(index));
+			++it;
+		}
+		return ("text/html");
+	} else
+		getMimeType(path);
+	return("application/octet-stream");
 }
 
 Response handleGet(Request &request, const string &path, const ConfigBlock &location) {
 	pair<string, int> body;
-
+	
+	(void)request;
 	{ // Find location and process path
 		if (path[path.size() - 1] == '/')
 			body = processDir(path, location);
@@ -112,7 +104,7 @@ Response handleGet(Request &request, const string &path, const ConfigBlock &loca
 			return (Response(402 + body.second));
 		response.setBody(body.first);
 		response.setHeader("Content-Length", num_to_string(body.first.size()));
-		response.setHeader("Content-Type", getMimeType(request.getTarget()));
+		response.setHeader("Content-Type", setType(path, location));
 		return (response);
 	}
 }

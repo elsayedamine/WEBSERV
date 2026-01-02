@@ -138,7 +138,7 @@ ConfigBlock	validate_server_name(const Directive &server_name)
 		// std::string segment;
 		// while (std::getline(ss, segment, '.'))
 		// {
-		// 	if (segment.empty() || segment.size() > 63 || segment[0] == '-' || \
+		// 	if (segment.empty() || segment.size() > 63 || segment[0] == '-' || 
 		// 		segment[segment.size() - 1] == '-')
 		// 		{ server.err = ERROR_INVALID_SERVER_NAME; break; }
 		// 	for (std::size_t i = 0; i < segment.size(); ++i)
