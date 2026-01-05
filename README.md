@@ -31,11 +31,11 @@ amine:
 
 youssef:
 	low priority:
-	- session management
+	- chunked transfer encoding
 	- default error pages
 	high priorty:
 	- finish GET and POST requests (naming uploaded files, response headers)
-	- chunked transfer encoding
+	- session management
 
 anyone:
 - allowed methods

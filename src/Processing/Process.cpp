@@ -42,13 +42,13 @@ Response handleRequest(Request &request, vector<ConfigBlock> locations) {
 	location = findLocation(locations, target);
 	if (!location)
 		return (Response(404));
-	path = location->root + target.substr(location->prefix.size());
+	path = location->root + "/" + target.substr(location->prefix.size());
 	switch (request.getMethodEnum())
 	{
 		case GET:
 			response = handleGet(request, path, *location); break;
 		case POST:
-			response = handlePost(request, path, *location); break;
+			response = handlePost(request, path, location->prefix); break;
 		// case PUT:
 		// 	response = handlePut(request);
 		// case DELETE:
@@ -60,39 +60,6 @@ Response handleRequest(Request &request, vector<ConfigBlock> locations) {
 	return (response);
 }
 
-struct ResolvedContext {
-	const ConfigBlock* location;
-	std::string path;
-	int invalid;
-	ResolvedContext(): invalid(0) {};
-};
-
-ResolvedContext resolveRequest(const Request &request, const ConfigBlock &server)
-{
-	ResolvedContext ctx;
-
-	std::vector<ConfigBlock> locations = server.locations;
-	std::stable_sort(locations.begin(), locations.end(), compare);
-
-	std::string target = request.getTarget();
-	normalizeTarget(target);
-
-	const ConfigBlock* location = findLocation(locations, target);
-	if (!location) {
-		ctx.location = NULL;
-		ctx.path = "";
-		ctx.invalid = 404;
-		return ctx; // should handle 404
-	}
-	ctx.location = location;
-
-	ctx.path = location->root + target.substr(location->prefix.size());
-
-	// we should not go outside the root
-	
-	return ctx;
-}
-
 Response processRequest(Request &request, const ConfigBlock &server) {
 	int invalid;
 
@@ -100,9 +67,9 @@ Response processRequest(Request &request, const ConfigBlock &server) {
 	if (invalid)
 		return (Response(invalid));
 	
-	ResolvedContext ctx = resolveRequest(request, server);
-	if (ctx.invalid)
-		return (Response(invalid));
+	// ResolvedContext ctx = resolveRequest(request, server);
+	// if (ctx.invalid)
+	// 	return (Response(invalid));
 	// pass the ctx to the handlers
 	return (handleRequest(request, server.locations));
 }

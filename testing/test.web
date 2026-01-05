@@ -3,24 +3,24 @@ server {
     server_name 127.0.0.1:8080 localhost:8080;
     error_page 404 /errors/404.html;
     client_max_body_size 10M;
-    location /test {
-        root /home/gnxrly/WEBSERV/testing/test;
+    location / {
+        root /home/gnxrly/WEBSERV/testing;
         index index.html;
         autoindex off;
         allow_methods GET;
     }
-    location / {
-        root /home/gnxrly/WEBSERV/testing;
+    location /resources {
+        root /home/gnxrly/WEBSERV/testing/resources;
         autoindex on;
-        allow_methods GET POST;
-    }
-    location /redirect {
-        return 301 http://google.com;
+        allow_methods GET;
     }
     location /uploads {
         root /home/gnxrly/WEBSERV/testing/uploads;
         upload_enable on;
         upload_store /home/gnxrly/WEBSERV/testing/uploads;
         allow_methods POST GET;
+    }
+    location /redirect {
+        return 301 http://google.com;
     }
 }

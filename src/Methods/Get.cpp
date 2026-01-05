@@ -38,7 +38,7 @@ pair<string, int> getResource(const string path) {
 	if (fd == -1)
 		return (make_pair("", (errno == EACCES) + 2 * (errno == ENOENT)));
 	while ((readSize = read(fd, buf, 1024)) > 0)
-		resource.append(buf);
+		resource.append(buf, static_cast<size_t>(readSize));
 	return (make_pair(resource, 0));
 }
 

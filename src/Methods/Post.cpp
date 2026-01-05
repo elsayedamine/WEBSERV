@@ -81,22 +81,28 @@ string getFilename(const string &path) {
 	return (num_to_string(file_num + 1));
 }
 
-string createResource(const string &path, const Request &request, const string &body) {
+string createResource(const string &path, const Request &request, const string &body, const string &prefix) {
 	string filepath;
+	string filename;
+	string uri = prefix;
 
-	filepath = path + '/' + getFilename(path) + getExtension(request.getHeader("Content-Type"));
+	filename = getFilename(path) + getExtension(request.getHeader("Content-Type"));
+	filepath = path + '/' + filename;
 	int fd = open(filepath.c_str(), O_WRONLY | O_CREAT, 0644);
 	if (fd == -1)
 		return ("");
 	write(fd, body.c_str(), body.size());
-	return (filepath);
+	close(fd);
+	if (uri[uri.size() - 1] != '/')
+		uri += '/';
+	uri += filename;
+	return (uri);
 }
 
-Response handlePost(Request &request, const string &path, const ConfigBlock &location) {
-	(void)location;
+Response handlePost(Request &request, const string &path, const string &prefix) {
 	string body;
 
-	body = createResource(path, request, request.getBody());
+	body = createResource(path, request, request.getBody(), prefix);
 	{ // Form response
 		Response response(201);
 

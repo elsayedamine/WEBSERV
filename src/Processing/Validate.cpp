@@ -59,11 +59,8 @@ int validateRequest(Request &request, const ConfigBlock &server) {
 			return (0);
 		}
 		// this line may be wrong later
-		if ((long)request.getBody().length() > server.client_max_body_size) {
-			cout << server.client_max_body_size << endl;
-		// if ((long)request.getBody().length() > MAX_BODY) {
+		if ((long)request.getBody().length() > MAX_BODY)
 			return (413);
-		}
 		if (request.getBody().length() != (size_t)stringToInt(request.getHeader("Content-Length")))
 			return (400);
 	}
