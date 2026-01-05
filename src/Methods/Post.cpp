@@ -14,7 +14,7 @@ const std::string getExtension(const std::string &type) {
 		types["application/json"] = "json";
 		types["text/plain"] = "txt";
 		types["application/xml"] = "xml";
-		types["image/jpeg"] = "jpg";
+		types["image/jpg"] = "jpg";
 		types["image/png"] = "png";
 		types["image/gif"] = "gif";
 		types["image/svg+xml"] = "svg";

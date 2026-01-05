@@ -5,30 +5,55 @@
 #include <algorithm>
 #include <Methods.hpp>
 
-string autoIndex(string path) {
-	DIR *dir = opendir(path.c_str());
-	struct dirent *ent;
-	string body = 
-		"<!doctype html>\n"
-		"<html>\n<head>\n<meta charset=\"utf-8\">\n"
-		"<title>Index of " + path + "</title>\n</head>\n<body>\n"
-		"<h1>Index of " + path + "</h1>\n"
-		"<ul>\n";
+#define AUTOINDEX
 
-	while (1) {
-		ent = readdir(dir);
-		if (!ent)
-			break;
-		string name(ent->d_name);
-		if (name == "." || name == "..")
-			continue;
-		body += "<li>" + name + "</li>\n";
-	}
-	body += "</ul>\n</body>\n</html>";
-	return (body);
+
+string autoindexMakeEntry(const string &name, const string &prefix) {
+	string entry = "<a class=\"text-3xl my-3 hover:text-blue-400\" href=\"";
+
+	entry += prefix + (prefix[prefix.size() - 1] != '/' ? "/" : "") + name + "\">" + name + "</a>\n";
+	return (entry);
 }
 
-pair<string, int> getResource(const string path) {
+string autoIndex(const string &path, const string &prefix) {
+	DIR *dir = opendir(path.c_str());
+	if (!dir)
+		return std::string(); // caller will map error to 403/404
+
+	struct dirent *ent;
+	std::string body = std::string(
+		"<!DOCTYPE html>"
+		"<html lang=\"en\">"
+		"<head>"
+		"<meta charset=\"UTF-8\" />"
+		"<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />"
+		"<script src=\"https://cdn.tailwindcss.com\"></script>"
+		"<title>autoindex</title>"
+		"</head>"
+		"<body class=\"bg-gray-200 text-center\">"
+		"<div class=\"mx-auto min-h-screen max-w-3xl bg-blue-100 py-10 border-l-4 border-r-4 border-black px-6\">"
+		"<h1 class=\"font-bold text-8xl\">Index of</h1>"
+		"<h1 class=\"font-bold text-5xl my-8\">") + prefix + std::string(
+		"</h1>"
+		"<div class=\"flex flex-col bg-white max-w-xl mx-auto border-2 border-black rounded-2xl\">"
+	);
+
+	int count = 0;
+	while ((ent = readdir(dir)) != NULL) {
+		std::string name(ent->d_name);
+		if (name == "." || name == "..")
+			continue;
+		body += autoindexMakeEntry(name, prefix);
+		++count;
+	}
+	if (!count)
+		body += "<p class=\"text-3xl my-3\">This directory is empty</p>";
+	closedir(dir);
+	body += "</div></div></body></html>";
+	return body;
+}
+
+pair<string, int> getResource(const string &path) {
 	int fd;
 	char buf[1024];
 	ssize_t readSize;
@@ -54,7 +79,7 @@ pair<string, int> processDir(const string &path, const ConfigBlock &location) {
 		}
 	}
 	if (location.autoindex)
-		return (make_pair(autoIndex(path), 0));
+		return (make_pair(autoIndex(path, location.prefix), 0));
 	return (make_pair("", 1));
 }
 

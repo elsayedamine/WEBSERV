@@ -5,8 +5,7 @@ server {
     client_max_body_size 10M;
     location / {
         root /home/gnxrly/WEBSERV/testing;
-        index index.html;
-        autoindex off;
+        autoindex on;
         allow_methods GET;
     }
     location /resources {
@@ -18,6 +17,7 @@ server {
         root /home/gnxrly/WEBSERV/testing/uploads;
         upload_enable on;
         upload_store /home/gnxrly/WEBSERV/testing/uploads;
+        autoindex on;
         allow_methods POST GET;
     }
     location /redirect {
