@@ -26,14 +26,14 @@ amine:
 	high priority:
 	- PUT and DELETE requests
 	- handle CGI
+	- session management
 	- path resolution (we need this asap :pray:)
 
 youssef:
 	high priorty:
-	- handle redirections
 	- response post processing (default error pages, response headers)
-	- session management
+	- handle redirections
+	- allowed methods
 
 anyone:
-- allowed methods
 - reorganize codebase
