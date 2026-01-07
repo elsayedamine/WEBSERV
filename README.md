@@ -30,11 +30,8 @@ amine:
 	- path resolution (we need this asap :pray:)
 
 youssef:
-	low priority:
-	- chunked transfer encoding
-	- default error pages
 	high priorty:
-	- finish GET and POST requests (naming uploaded files, response headers)
+	- response post processing (default error pages, response headers)
 	- session management
 
 anyone:
