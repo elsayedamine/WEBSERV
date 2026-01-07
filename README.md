@@ -23,7 +23,6 @@ amine:
 amine:
 	low priority:
 	- double check the old to do list first
-	- handle redirections
 	high priority:
 	- PUT and DELETE requests
 	- handle CGI
@@ -31,6 +30,7 @@ amine:
 
 youssef:
 	high priorty:
+	- handle redirections
 	- response post processing (default error pages, response headers)
 	- session management
 
