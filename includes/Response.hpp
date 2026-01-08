@@ -15,17 +15,17 @@ class Response {
 
 	public:
 		// Constructor
-		Response() {};
-		Response(int c);
+		Response() {}
+		Response(int c) : code(c) {}
 		
 		// Setters
-		void setHeader(const string& key, const string& value);
-		void setBody(const string& b);
+		void setHeader(const string& key, const string& value) { headers[key] = value; }
+		void setBody(const string& b) { body = b; }
 		
 		// Getters
-		int getCode() const;
-		const map<string, string>& getHeaders() const;
-		const string& getBody() const;
+		int getCode() const { return code; }
+		const map<string, string>& getHeaders() const { return headers; }
+		const string& getBody() const { return body; }
 }; 
 
 #endif

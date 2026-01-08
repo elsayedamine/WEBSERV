@@ -21,6 +21,6 @@ server {
         allow_methods POST GET;
     }
     location /redirect {
-        return 301 http://google.com;
+        return 301 /;
     }
 }

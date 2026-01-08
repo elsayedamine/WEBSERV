@@ -8,10 +8,9 @@ SRC:=	src/Config/Configuration.cpp \
 		src/Config/Directive.cpp \
 		src/Processing/Parse.cpp \
 		src/Processing/Process.cpp \
-		src/Processing/Validate.cpp \
-		src/Processing/Response.cpp \
-		src/Processing/Request.cpp \
+		src/Processing/PreProcess.cpp \
 		src/Processing/Connection.cpp \
+		src/Processing/Compare.cpp \
 		src/Server/Server.cpp \
 		src/utils/prints.cpp \
 		src/utils/strings.cpp \

@@ -4,45 +4,30 @@
 #include <fcntl.h>
 #include <algorithm>
 
-static size_t depthPrefix(const string &prefix) {
-	size_t count = 0;
-	size_t i = 0;
-	while (i < prefix.size()) {
-		while (i < prefix.size() && prefix[i] == '/')
-			++i;
-		if (i >= prefix.size())
-			break;
-		size_t j = prefix.find('/', i);
-		if (j == string::npos) {
-			++count;
-			break;
-		}
-		++count;
-		i = j + 1;
-	}
-	return (count);
-}
+Response handleRedirect(const pair<int, string> &redirect) {
+	Response response(redirect.first);
 
-bool compare(const ConfigBlock &a, const ConfigBlock &b) {
-	size_t da = depthPrefix(a.prefix);
-	size_t db = depthPrefix(b.prefix);
-	if (da != db)
-		return (da > db);
-	return (a.prefix.size() > b.prefix.size());
+	response.setHeader("Location", redirect.second);
+	return (response);
 }
 
 Response handleRequest(Request &request, vector<ConfigBlock> locations) {
 	Response response;
 	const ConfigBlock *location;
 	string path;
-	string target = request.getTarget();
+	
+	{ // Resolve path
+		string target = request.getTarget();
 
-	stable_sort(locations.begin(), locations.end(), compare);
-	normalizeTarget(target);
-	location = findLocation(locations, target);
-	if (!location)
-		return (Response(404));
-	path = location->root + "/" + target.substr(location->prefix.size());
+		stable_sort(locations.begin(), locations.end(), compare);
+		normalizeTarget(target);
+		location = findLocation(locations, target);
+		if (!location)
+			return (Response(404));
+		if (location->redirect.first)
+			return (handleRedirect(location->redirect));
+		path = location->root + "/" + target.substr(location->prefix.size());
+	}
 	switch (request.getMethodEnum())
 	{
 		case GET:
@@ -66,10 +51,5 @@ Response processRequest(Request &request, const ConfigBlock &server) {
 	invalid = validateRequest(request, server);
 	if (invalid)
 		return (Response(invalid));
-	
-	// ResolvedContext ctx = resolveRequest(request, server);
-	// if (ctx.invalid)
-	// 	return (Response(invalid));
-	// pass the ctx to the handlers
 	return (handleRequest(request, server.locations));
 }

@@ -100,16 +100,13 @@ string createResource(const string &path, const Request &request, const string &
 }
 
 Response handlePost(Request &request, const string &path, const string &prefix) {
-	string body;
+	string location;
 
-	body = createResource(path, request, request.getBody(), prefix);
+	location = createResource(path, request, request.getBody(), prefix);
 	{ // Form response
 		Response response(201);
 
-		response.setBody(body);
-		response.setHeader("Content-Length", num_to_string(body.size()));
-		response.setHeader("Location", body);
-		response.setHeader("Content-Type", "text/plain");
+		response.setHeader("Location", location);
 		return (response);
 	}
 }
