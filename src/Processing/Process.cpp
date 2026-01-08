@@ -83,13 +83,26 @@ string dateTimeGMT() {
 	return oss.str();
 }
 
-Response processResponse(const Request &request, Response &response) {
-	if (!request.getHeader("Accept").empty())
+Response processResponse(const Request &request, Response &response, const ConfigBlock &server) {
+	if (!request.getHeader("Accept").empty()) {
 		if (!validateType(request.getHeader("Accept"), response.getHeader("Content-Type")))
 			response = Response(406);
-	response.setHeader("Connection", request.getHeader("Connection"));
-	response.setHeader("Date", dateTimeGMT());
-	response.setHeader("Server", "WEBSERV");
+	}
+	if (response.getCode() >= 400) { // Check for error pages
+		map<int, string>::const_iterator it = server.error_page.find(response.getCode());
+
+		if (it != server.error_page.end()) {
+			response.setBody(getResource(it->second).first);
+			response.setHeader("Content-Type", "text/html");
+		}
+	}
+	{ // Finalize response
+		response.setHeader("Connection", request.getHeader("Connection"));
+		response.setHeader("Date", dateTimeGMT());
+		response.setHeader("Server", "WEBSERV");
+		if (!response.getBody().empty())
+			response.setHeader("Content-Length", num_to_string(response.getBody().size()));
+	}	
 	return (response);
 }
 
@@ -101,5 +114,5 @@ Response processRequest(Request &request, const ConfigBlock &server) {
 	if (invalid)
 		return (Response(invalid));
 	response = handleRequest(request, server.locations);
-	return (processResponse(request, response));
+	return (processResponse(request, response, server));
 }
