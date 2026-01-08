@@ -128,7 +128,6 @@ Response handleGet(Request &request, const string &path, const ConfigBlock &loca
 		if (body.first.empty())
 			return (Response(402 + body.second));
 		response.setBody(body.first);
-		response.setHeader("Content-Length", num_to_string(body.first.size()));
 		response.setHeader("Content-Type", setType(path, location));
 		return (response);
 	}

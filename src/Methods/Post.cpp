@@ -106,7 +106,9 @@ Response handlePost(Request &request, const string &path, const string &prefix) 
 	{ // Form response
 		Response response(201);
 
+		response.setBody(location);
 		response.setHeader("Location", location);
+		response.setHeader("Content-Type", "text/plain");
 		return (response);
 	}
 }
