@@ -31,9 +31,6 @@ amine:
 
 youssef:
 	high priorty:
-	- response post processing (default error pages, response headers)
-	- handle redirections
-	- allowed methods
 
 anyone:
 - reorganize codebase
