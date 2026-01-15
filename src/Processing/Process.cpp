@@ -37,7 +37,7 @@ Response handleRequest(Request &request, vector<ConfigBlock> locations) {
 		case GET:
 			response = handleGet(request, path, *location); break;
 		case POST:
-			response = handlePost(request, path, location->prefix); break;
+			response = handlePost(request, path, *location); break;
 		// case PUT:
 		// 	response = handlePut(request);
 		// case DELETE:
@@ -84,10 +84,10 @@ string dateTimeGMT() {
 }
 
 Response processResponse(const Request &request, Response &response, const ConfigBlock &server) {
-	if (!request.getHeader("Accept").empty()) {
-		if (!validateType(request.getHeader("Accept"), response.getHeader("Content-Type")))
-			response = Response(406);
-	}
+	// if (!request.getHeader("Accept").empty()) {
+	// 	if (!validateType(request.getHeader("Accept"), response.getHeader("Content-Type")))
+	// 		response = Response(406);
+	// }
 	if (response.getCode() >= 400) { // Check for error pages
 		map<int, string>::const_iterator it = server.error_page.find(response.getCode());
 

@@ -4,19 +4,19 @@ server {
     error_page 404 /errors/404.html;
     client_max_body_size 10M;
     location / {
-        root /home/gnxrly/WEBSERV/testing;
+        root /home/mchetoui/cursus/webserv/testing;
         autoindex on;
         allow_methods GET;
     }
     location /resources {
-        root /home/gnxrly/WEBSERV/testing/resources;
+        root /home/mchetoui/cursus/webserv/testing/resources;
         autoindex on;
         allow_methods GET;
     }
     location /uploads {
-        root /home/gnxrly/WEBSERV/testing/uploads;
+        root /home/mchetoui/cursus/webserv/testing/uploads;
         upload_enable on;
-        upload_store /home/gnxrly/WEBSERV/testing/uploads;
+        upload_store /home/mchetoui/cursus/webserv/testing/uploads;
         autoindex on;
         allow_methods POST GET;
     }

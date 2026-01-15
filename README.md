@@ -26,11 +26,10 @@ amine:
 	high priority:
 	- PUT and DELETE requests
 	- handle CGI
-	- session management
-	- path resolution (we need this asap :pray:)
 
 youssef:
 	high priorty:
+	- session management
 
 anyone:
 - reorganize codebase

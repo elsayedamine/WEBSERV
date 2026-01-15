@@ -18,6 +18,6 @@ const ConfigBlock *findLocation(const vector<ConfigBlock> &locations, const stri
 bool normalizeTarget(string &target);
 bool compare(const ConfigBlock &a, const ConfigBlock &b);
 Response handleGet(Request &request, const string &path, const ConfigBlock &location);
-Response handlePost(Request &request, const string &path, const string &target);
+Response handlePost(Request &request, const string &path, const ConfigBlock &location);
 
 #endif
