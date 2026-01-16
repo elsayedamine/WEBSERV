@@ -99,15 +99,17 @@ string createResource(const string &path, const Request &request, const string &
 	return (uri);
 }
 
-Response handlePost(Request &request, const string &path, const string &prefix) {
-	string location;
+Response handlePost(Request &request, const string &path, const ConfigBlock &location) {
+	string name;
 
-	location = createResource(path, request, request.getBody(), prefix);
+	if (!location.upload_enable)
+		return (Response(403));
+	name = createResource(path, request, request.getBody(), location.prefix);
 	{ // Form response
 		Response response(201);
 
-		response.setBody(location);
-		response.setHeader("Location", location);
+		response.setBody(name);
+		response.setHeader("Location", name);
 		response.setHeader("Content-Type", "text/plain");
 		return (response);
 	}
