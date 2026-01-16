@@ -95,6 +95,7 @@ Response processResponse(const Request &request, Response &response, const Confi
 	if (response.getCode() >= 400) { // Check for error pages
 		map<int, string>::const_iterator it = server.error_page.find(response.getCode());
 
+		cout << it->second << endl;
 		if (it != server.error_page.end()) {
 			response.setBody(getResource(it->second).first);
 			response.setHeader("Content-Type", "text/html");

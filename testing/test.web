@@ -1,22 +1,22 @@
 server {
     listen 127.0.0.1:8080;
     server_name 127.0.0.1:8080 localhost:8080;
-    error_page 404 /errors/404.html;
+    error_page 404 /home/mchetoui/webserv/testing/errors/404.html;
     client_max_body_size 10M;
     location / {
-        root /home/mchetoui/cursus/webserv/testing;
+        root /home/mchetoui/webserv/testing;
         autoindex on;
         allow_methods GET;
     }
     location /resources {
-        root /home/mchetoui/cursus/webserv/testing/resources;
+        root /home/mchetoui/webserv/testing/resources;
         autoindex on;
         allow_methods GET;
     }
     location /uploads {
-        root /home/mchetoui/cursus/webserv/testing/uploads;
+        root /home/mchetoui/webserv/testing/uploads;
         upload_enable on;
-        upload_store /home/mchetoui/cursus/webserv/testing/uploads;
+        upload_store /home/mchetoui/webserv/testing/uploads;
         autoindex on;
         allow_methods POST GET;
     }
