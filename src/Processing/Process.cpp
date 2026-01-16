@@ -6,10 +6,14 @@
 #include <sstream>
 #include <iomanip>
 
-Response handleRedirect(const pair<int, string> &redirect) {
-	Response response(redirect.first);
+Response handleReturn(const pair<int, string> &ret) {
+	Response response(ret.first);
 
-	response.setHeader("Location", redirect.second);
+	if (ret.second.empty())
+		return (response);
+	response.setBody(ret.second);
+	if (ret.first % 300 <= 99)
+		response.setHeader("Location", ret.second);
 	return (response);
 }
 
@@ -29,7 +33,7 @@ Response handleRequest(Request &request, vector<ConfigBlock> locations) {
 		if (find(location->methods.begin(), location->methods.end(), request.getMethod()) == location->methods.end())
 			return (405);
 		if (location->redirect.first)
-			return (handleRedirect(location->redirect));
+			return (handleReturn(location->redirect));
 		path = location->root + "/" + target.substr(location->prefix.size());
 	}
 	switch (request.getMethodEnum())
