@@ -5,14 +5,6 @@ amine:
 
 	also need to seperate with the newlines and not ignore them
 
-	use the threads to parse the config file faster (ha 3ya9a)
-				^
-				|
-				|
-		a gls lard galak
-		wa chof l dik jiha galak
-		*seriously la rah parsing is already fast enough we don't need threads it's just a waste of time*
-
 	don't forget to handle comments
 
 	chof m3ak client_max_body_size rah makhdamach
