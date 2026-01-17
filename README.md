@@ -7,7 +7,6 @@ amine:
 
 	don't forget to handle comments
 
-	chof m3ak client_max_body_size rah makhdamach
 
 
 ----------- NEW TO DO LIST -----------

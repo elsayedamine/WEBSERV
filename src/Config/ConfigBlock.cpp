@@ -289,7 +289,7 @@ ConfigBlock	validate_location(const Directive &location)
 		ConfigBlock tmp = it->second(d);
 		if (tmp.err) { LocationContainer.err = tmp.err; return LocationContainer ;}
 		if (!tmp.root.empty()) loc.root = tmp.root;
-		if (!tmp.client_max_body_size) loc.client_max_body_size = tmp.client_max_body_size;
+		if (tmp.client_max_body_size != -1) loc.client_max_body_size = tmp.client_max_body_size;
 		if (!tmp.upload_path.empty()) loc.upload_path = tmp.upload_path;
 		if (!tmp.methods.empty()) loc.methods = tmp.methods;
 		if (!tmp.ret.second.empty()) loc.ret = tmp.ret;
@@ -330,15 +330,15 @@ ConfigBlock::ConfigBlock(const Directive &server) : err((e_error)0), port(0), au
 		if (tmp.port) this->port = tmp.port;
 		if (!tmp.host.empty()) this->host = tmp.host;
 		if (!tmp.root.empty()) this->root = tmp.root;
-		if (!tmp.client_max_body_size) this->client_max_body_size = tmp.client_max_body_size;
+		if (tmp.client_max_body_size != -1) this->client_max_body_size = tmp.client_max_body_size;
 		if (!tmp.upload_path.empty()) this->upload_path = tmp.upload_path;
-		if (!tmp.methods.empty()) this->methods = tmp.methods ;
+		if (!tmp.methods.empty()) this->methods = tmp.methods;
 		if (!tmp.ret.second.empty()) this->ret = tmp.ret;
 		if (!tmp.server_name.empty()) this->server_name = tmp.server_name;
 		if (!tmp.index.empty()) this->index = tmp.index;
 		if (tmp.autoindex != -1) this->autoindex = tmp.autoindex; 
 		if (tmp.upload_enable != -1) this->upload_enable = tmp.upload_enable; 
 		if (!tmp.locations.empty()) this->locations.insert(this->locations.end(), tmp.locations.begin(), tmp.locations.end());
-		//dont forget to overload the operator= for these ifs
+		// check (overload the operator= for these ifs)
 	}
 }

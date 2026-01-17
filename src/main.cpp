@@ -34,7 +34,7 @@ void testServer(Configuration &config) {
 
 int main(int ac, char **av)
 {
-	// open file correctly
+	// check (open file correctly)
 	Directive Dir;
 	try { Dir =  Directive(av[ac -1]); }
 	catch (std::exception &e) { std::cerr << e.what() << std::endl; return 1; }

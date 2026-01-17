@@ -50,7 +50,7 @@ struct ConfigBlock
 	// --- For Nesting ---
 	std::vector<ConfigBlock> locations; 
 
-	ConfigBlock() : err((e_error)0), port(0), autoindex(-1), upload_enable(-1) {}
+	ConfigBlock() : err((e_error)0), port(0), autoindex(-1), upload_enable(-1), client_max_body_size(-1) {}
 	ConfigBlock(const Directive &);
 };
 
