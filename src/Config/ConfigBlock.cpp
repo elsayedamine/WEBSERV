@@ -197,25 +197,42 @@ ConfigBlock	validate_upload_store(const Directive &upload_store)
 	return server;
 }
 
-ConfigBlock	validate_return(const Directive &ret)
+ConfigBlock validate_return(const Directive &ret)
 {
 	ConfigBlock server;
+	const std::vector<std::string>& values = ret.getValues();
+	size_t size = values.size();
 
-	if (ret.getValues().size() != 2 || !ret.getChildren().empty())
-		return server.err = ERROR_INVALID_REDIRECT, server;
+	if (size < 1 || size > 2 || !ret.getChildren().empty())
+		return server.err = ERROR_INVALID_RETURN, server;
 
-	std::string code_str = ret.getValues()[0];
-	std::string url = ret.getValues()[1];
+	std::string val1 = values[0];
+	
+	bool is_numeric = !val1.empty();
+	for (size_t i = 0; i < val1.size(); ++i) {
+		if (!std::isdigit(val1[i])) { is_numeric = false; break; } }
 
-	for (std::size_t i = 0; i < code_str.size(); ++i)
-		if (!std::isdigit(code_str[i]))
-			return server.err = ERROR_INVALID_REDIRECT, server;
-	int code = std::atoi(code_str.c_str());
-	if (code < 300 || code > 399 || url.empty())
-		return server.err = ERROR_INVALID_REDIRECT, server;
+	if (is_numeric)
+	{
+		int code = std::atoi(val1.c_str());
+		if (code < 100 || code > 599)
+			return server.err = ERROR_INVALID_RETURN, server;
 
-	server.redirect.first = code;
-	server.redirect.second = url;
+		server.ret.first = code;
+
+		server.ret.second = "";
+		if (size == 2)
+			server.ret.second = values[1];
+	}
+	else
+	{
+		if (size > 1) 
+			return server.err = ERROR_INVALID_RETURN, server;
+
+		server.ret.first = 302;
+		server.ret.second = val1;
+	}
+
 	server.err = ERROR_NONE;
 	return server;
 }
@@ -275,7 +292,7 @@ ConfigBlock	validate_location(const Directive &location)
 		if (!tmp.client_max_body_size) loc.client_max_body_size = tmp.client_max_body_size;
 		if (!tmp.upload_path.empty()) loc.upload_path = tmp.upload_path;
 		if (!tmp.methods.empty()) loc.methods = tmp.methods;
-		if (!tmp.redirect.second.empty()) loc.redirect = tmp.redirect;
+		if (!tmp.ret.second.empty()) loc.ret = tmp.ret;
 		if (!tmp.index.empty()) loc.index = tmp.index;
 		if (tmp.autoindex != -1) loc.autoindex = tmp.autoindex;
 		if (tmp.upload_enable != -1) loc.upload_enable = tmp.upload_enable;
@@ -316,7 +333,7 @@ ConfigBlock::ConfigBlock(const Directive &server) : err((e_error)0), port(0), au
 		if (!tmp.client_max_body_size) this->client_max_body_size = tmp.client_max_body_size;
 		if (!tmp.upload_path.empty()) this->upload_path = tmp.upload_path;
 		if (!tmp.methods.empty()) this->methods = tmp.methods ;
-		if (!tmp.redirect.second.empty()) this->redirect = tmp.redirect;
+		if (!tmp.ret.second.empty()) this->ret = tmp.ret;
 		if (!tmp.server_name.empty()) this->server_name = tmp.server_name;
 		if (!tmp.index.empty()) this->index = tmp.index;
 		if (tmp.autoindex != -1) this->autoindex = tmp.autoindex; 

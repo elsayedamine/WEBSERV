@@ -20,7 +20,7 @@ enum e_error {
 	ERROR_INVALID_INDEX, ERROR_INVALID_ALLOWED_METHODS,
 	ERROR_INVALID_ROOT, ERROR_INVALID_ERROR_PAGE,
 	ERROR_INVALID_CLIENT_MAX_BODY_SIZE, ERROR_INVALID_LOCATION,
-	ERROR_INVALID_PREFIX, ERROR_INVALID_REDIRECT,
+	ERROR_INVALID_PREFIX, ERROR_INVALID_RETURN,
 	ERROR_INVALID_CGI_PATH, ERROR_INVALID_AUTOINDEX,
 	ERROR_INVALID_UPLOAD_PATH, ERROR_INVALID_UPLOAD_STATE,
 	ERROR_INVALID_KEY_IN_LOCATION
@@ -44,7 +44,7 @@ struct ConfigBlock
 	std::string		upload_path;
 	long		client_max_body_size;
 	std::map<int,std::string> error_page;
-	std::pair<int,std::string> redirect;
+	std::pair<int,std::string> ret;
 	std::vector<std::string>	index;
 	std::vector<std::string>	methods;
 	// --- For Nesting ---

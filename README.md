@@ -11,7 +11,7 @@ amine:
 
 	server_name can have any value, for example 127.0.0.1:8080 or localhost:8080
 
-	redirect should be renamed to return (or ret lamakhlawkch dir return) and the second value can be empty
+	redirect should be renamed to return and  (or ret lamakhlawkch dir return) and the second value can be empty
 
 ----------- NEW TO DO LIST -----------
 amine:
@@ -20,6 +20,7 @@ amine:
 	high priority:
 	- PUT and DELETE requests
 	- handle CGI
+	- handle the signals (reminder ysf cant do them hhhh)
 
 youssef:
 	high priorty:

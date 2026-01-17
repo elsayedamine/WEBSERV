@@ -74,6 +74,8 @@ void	Server::run()
 				int port = client_fd_to_port[curr];
 				std::vector<ConfigBlock>& candidates = config_map[port];
 				handleConnection(curr, candidates);
+				// epoll_ctl(DEL) should be called inside the fct for cleaning
+				// and better use the recv for the sockets
 			}
 		}
 	}
@@ -99,6 +101,5 @@ int	Server::accept_new_connection(int listener)
 	std::cout << "New connection on FD: " << client << std::endl;
 	int port = sockets_to_ports[listener];
 	this->client_fd_to_port[client] = port;
-	// this->client_request_buffer[client] = "";
 	return (true);
 }

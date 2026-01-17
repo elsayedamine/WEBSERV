@@ -1,25 +1,25 @@
 server {
     listen 127.0.0.1:8080;
     server_name 127.0.0.1:8080 localhost:8080;
-    error_page 404 /home/mchetoui/webserv/testing/errors/404.html;
+    error_page 404 /home/aelsayed/webserv/testing/errors/404.html;
     client_max_body_size 10M;
     location / {
         return 301 /desc;
         allow_methods GET;
     }
     location /desc {
-        root /home/gnxrly/webserv/testing/desc;
+        root /home/aelsayed/webserv/testing/desc;
         index index.html;
         allow_methods GET;
     }
     location /tests {
-        root /home/gnxrly/webserv/testing/tests;
+        root /home/aelsayed/webserv/testing/tests;
         index index.html;
         allow_methods GET;
     }
     location /uploads {
-        root /home/gnxrly/webserv/testing/uploads;
-        upload_store /home/gnxrly/webserv/testing/uploads;
+        root /home/aelsayed/webserv/testing/uploads;
+        upload_store /home/aelsayed/webserv/testing/uploads;
         upload_enable on;
         autoindex on;
         allow_methods POST GET;

@@ -32,8 +32,8 @@ Response handleRequest(Request &request, vector<ConfigBlock> locations) {
 			return (Response(404));
 		if (find(location->methods.begin(), location->methods.end(), request.getMethod()) == location->methods.end())
 			return (405);
-		if (location->redirect.first)
-			return (handleReturn(location->redirect));
+		if (location->ret.first)
+			return (handleReturn(location->ret));
 		path = location->root + "/" + target.substr(location->prefix.size());
 	}
 	switch (request.getMethodEnum())

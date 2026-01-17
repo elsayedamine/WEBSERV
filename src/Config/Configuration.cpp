@@ -16,7 +16,7 @@ void	fill_errors(std::map<e_error, std::string> &error)
 	error[ERROR_INVALID_CLIENT_MAX_BODY_SIZE] = "ERROR_INVALID_CLIENT_MAX_BODY_SIZE";
 	error[ERROR_INVALID_LOCATION] = "ERROR_INVALID_LOCATION";
 	error[ERROR_INVALID_PREFIX] = "ERROR_INVALID_PREFIX";
-	error[ERROR_INVALID_REDIRECT] = "ERROR_INVALID_REDIRECT";
+	error[ERROR_INVALID_RETURN] = "ERROR_INVALID_RETURN";
 	error[ERROR_INVALID_CGI_PATH] = "ERROR_INVALID_CGI_PATH";
 	error[ERROR_INVALID_AUTOINDEX] = "ERROR_INVALID_AUTOINDEX";
 	error[ERROR_INVALID_UPLOAD_PATH] = "ERROR_INVALID_UPLOAD_PATH";
@@ -68,7 +68,7 @@ void	Configuration::resolve_config()
 			if (location.index.empty()) location.index = server.index;
 			if (location.methods.empty()) location.methods = server.methods;
 			if (location.error_page.empty()) location.error_page = server.error_page;
-			if (location.redirect.second.empty()) location.redirect = server.redirect;
+			if (location.ret.second.empty()) location.ret = server.ret;
 		}
 	}
 }
