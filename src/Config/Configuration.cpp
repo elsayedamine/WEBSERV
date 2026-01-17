@@ -69,8 +69,6 @@ void	Configuration::resolve_config()
 			if (location.methods.empty()) location.methods = server.methods;
 			if (location.error_page.empty()) location.error_page = server.error_page;
 			if (location.ret.second.empty()) location.ret = server.ret;
-			std::cout << location.client_max_body_size << std::endl;
-
 		}
 	}
 }
