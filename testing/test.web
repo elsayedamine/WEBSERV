@@ -1,5 +1,5 @@
 server {
-    listen 127.0.0.1:8080;
+    listen 8081;
     server_name 127.0.0.1:8080 localhost:8080;
     error_page 404 /home/aelsayed/webserv/testing/errors/404.html;
     client_max_body_size 10M;

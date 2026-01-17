@@ -12,10 +12,19 @@ ConfigBlock	validate_listen(const Directive &listen)
 	std::string host, str_port;
 	std::string value = listen.getValues().front();
 	size_t pos = value.find(':');
+
 	if (pos != std::string::npos)
 		{ host = value.substr(0, pos); str_port = value.substr(pos + 1); }
 	else
-		str_port = value;
+		{ str_port = value; host = "0.0.0.0"; }
+	
+	if (host == "localhost") host = "127.0.0.1";
+	if (host.empty() || host == "*") host = "0.0.0.0";
+	if (pos == std::string::npos && str_port.find('.') != std::string::npos)
+		{ host = str_port; str_port = "80"; }
+	if (str_port.empty())
+        return server.err = ERROR_INVALID_PORT, server;
+
 	for (std::size_t i = 0; i < str_port.size(); ++i)
 		if (!std::isdigit(str_port[i]))
 			return server.err = ERROR_INVALID_PORT, server;
@@ -38,11 +47,12 @@ ConfigBlock	validate_listen(const Directive &listen)
 		if (n < 0 || n > 255)
 			{ invalid = true; break; }
 	}
-	if (!host.empty() && host != "*" && (count != 4 || invalid))
+	if (!host.empty() && (count != 4 || invalid))
 		return server.err = ERROR_INVALID_HOST, server;
 	server.port = port;
 	server.host = host;
-	return server.err = ERROR_NONE, server;
+	server.err = ERROR_NONE;
+	return server;
 }
 
 ConfigBlock	validate_clients(const Directive &clients)
@@ -122,31 +132,21 @@ ConfigBlock	validate_upload_enable(const Directive &up)
 	return server;
 }
 
-ConfigBlock	validate_server_name(const Directive &server_name)
+ConfigBlock validate_server_name(const Directive &server_name)
 {
 	ConfigBlock server;
-
 	server.err = ERROR_NONE;
-	if (server_name.getValues().empty() || !server_name.getChildren().empty())
+	const std::vector<std::string>& values = server_name.getValues();
+
+	if (values.empty() || !server_name.getChildren().empty())
 		return server.err = ERROR_INVALID_SERVER_NAME, server;
-	for (std::size_t i = 0; i < server_name.getValues().size(); ++i)
+
+	for (std::size_t i = 0; i < values.size(); ++i)
 	{
-		std::string name = server_name.getValues()[i];
-		// if (name.empty())
-		// 	{ server.err = ERROR_INVALID_SERVER_NAME; break; }
-		// std::stringstream ss(name);
-		// std::string segment;
-		// while (std::getline(ss, segment, '.'))
-		// {
-		// 	if (segment.empty() || segment.size() > 63 || segment[0] == '-' || 
-		// 		segment[segment.size() - 1] == '-')
-		// 		{ server.err = ERROR_INVALID_SERVER_NAME; break; }
-		// 	for (std::size_t i = 0; i < segment.size(); ++i)
-		// 		if (!std::isalnum(segment[i]) && segment[i] != '-')
-		// 			{ server.err = ERROR_INVALID_SERVER_NAME; break; }
-		// }
-		// if (server.err == ERROR_INVALID_SERVER_NAME)
-		// 	break ;
+		std::string name = values[i];
+		if (name.empty() || name.size() > 253)
+			return server.err = ERROR_INVALID_SERVER_NAME, server;
+
 		server.server_name.push_back(name);
 	}
 	return server;

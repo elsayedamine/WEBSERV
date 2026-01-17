@@ -6,7 +6,7 @@ Server::Server(const Configuration & conf) : config(conf)
 
 	for (std::size_t i = 0; i < servers.size(); ++i) {
 		int port = servers[i].port;
-		std::string host = servers[i].host;
+		std::string host = servers[i].host; // to check (gotta sort no only with port but also with ip)
 		config_map[port].push_back(servers[i]);
 	}
 	SetupSockets();
