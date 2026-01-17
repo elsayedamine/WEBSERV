@@ -5,10 +5,10 @@ Server::Server(const Configuration & conf) : config(conf)
 	const std::vector<ConfigBlock> &servers = config.getServers();
 
 	for (std::size_t i = 0; i < servers.size(); ++i) {
-		int port = servers[i].port;
-		std::string host = servers[i].host; // to check (gotta sort no only with port but also with ip)
-		config_map[port].push_back(servers[i]);
+		check_duplicate_servers(servers[i]);
+		config_map[servers[i].port].push_back(servers[i]);
 	}
+
 	SetupSockets();
 
 	if ((epoll_fd = epoll_create1(0)) < 0)
@@ -20,6 +20,30 @@ Server::Server(const Configuration & conf) : config(conf)
 		ep.data.fd = it->first;
 		if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, ep.data.fd, &ep) < 0)
  			throw std::runtime_error("epoll_ctl failed to add listener.");
+	}
+}
+
+void Server::check_duplicate_servers(const ConfigBlock &entering_server)
+{
+	int port = entering_server.port;
+	std::string host = entering_server.host;
+
+	if (config_map.find(port) != config_map.end())
+	{
+		std::vector<ConfigBlock> &existing_servers = config_map[port];
+		for (size_t j = 0; j < existing_servers.size(); ++j)
+		{
+			if (existing_servers[j].host == host)
+			{
+				if (existing_servers[j].server_name == entering_server.server_name)
+					throw std::runtime_error("Duplicate server block");
+
+				for (size_t k = 0; k < entering_server.server_name.size(); ++k)
+					for (size_t l = 0; l < existing_servers[j].server_name.size(); ++l)
+						if (entering_server.server_name[k] == existing_servers[j].server_name[l])
+							throw std::runtime_error("Conflict: server_name '" + entering_server.server_name[k] + "' already bound to this host/port");
+			}
+		}
 	}
 }
 

@@ -14,14 +14,12 @@ class Server
 {
 	public:
 		Configuration   config;
-		// my variables
 	public:
 		Server() {}
 		~Server() {} // clear the project ig && close fds
 		Server(const Configuration &);
 		void    run( void );
 	private:
-		// the main functions to run the server
 		std::map<int, std::vector<ConfigBlock> > config_map;
 		std::map<int, int> sockets_to_ports;
 		std::map<int, int> client_fd_to_port;
@@ -29,7 +27,7 @@ class Server
 		
 		void	SetupSockets();
 		int		accept_new_connection(int listener_fd);
-
+		void	check_duplicate_servers(const ConfigBlock &new_server);
 };
 
 #endif
