@@ -1,12 +1,9 @@
-amine:
-	anything i want to return to has a comment under "// to check"
-	also need to seperate with the newlines and not ignore them
-	don't forget to handle comments
-
------------ NEW TO DO LIST -----------
+# ----------- NEW TO DO LIST -----------
 amine:
 	low priority:
-	- double check the old to do list first
+	- comments under "// to check"
+	- handle comments
+	- seperate with the newlines and not ignore them
 	high priority:
 	- PUT and DELETE requests
 	- handle CGI
