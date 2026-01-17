@@ -35,7 +35,7 @@ void testServer(Configuration &config) {
 int main(int ac, char **av)
 {
 	// check (extension)
-	std::string ConfigFile = "webserv.conf";
+	std::string ConfigFile = "testing/webserv.conf";
 	if (ac == 2)
 		ConfigFile = av[1];
 	else if (ac > 2)
