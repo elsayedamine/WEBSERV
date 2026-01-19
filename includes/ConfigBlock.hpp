@@ -21,7 +21,7 @@ enum e_error {
 	ERROR_INVALID_ROOT, ERROR_INVALID_ERROR_PAGE,
 	ERROR_INVALID_CLIENT_MAX_BODY_SIZE, ERROR_INVALID_LOCATION,
 	ERROR_INVALID_PREFIX, ERROR_INVALID_RETURN,
-	ERROR_INVALID_CGI_PATH, ERROR_INVALID_AUTOINDEX,
+	ERROR_INVALID_CGI, ERROR_INVALID_AUTOINDEX,
 	ERROR_INVALID_UPLOAD_PATH, ERROR_INVALID_UPLOAD_STATE,
 	ERROR_INVALID_KEY_IN_LOCATION
 };
@@ -36,7 +36,7 @@ struct ConfigBlock
 	std::vector<std::string> server_name;
 	// --- Location-Only ---
 	std::string		prefix;
-	std::vector<std::string> cgi_path;
+	std::map<std::string, std::string> cgi;
 	// --- Shared Fields ---
 	int				autoindex;
 	int				upload_enable;
@@ -66,7 +66,7 @@ ConfigBlock	validate_autoindex(const Directive &);
 ConfigBlock	validate_upload_store(const Directive &);
 ConfigBlock	validate_upload_enable(const Directive &);
 ConfigBlock	validate_return(const Directive &);
-ConfigBlock	validate_cgi_path(const Directive &);
+ConfigBlock	validate_cgi(const Directive &);
 
 typedef     ConfigBlock (*Validators)(const Directive &);
 void		fill_location_keys(std::map<std::string, Validators> &location_keys);

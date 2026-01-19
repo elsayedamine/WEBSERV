@@ -9,6 +9,8 @@
 #include <cctype>
 #include <map>
 #include <cstdlib>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #include <Directive.hpp>
 #include <ConfigBlock.hpp>

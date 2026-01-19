@@ -17,7 +17,7 @@ void	fill_errors(std::map<e_error, std::string> &error)
 	error[ERROR_INVALID_LOCATION] = "ERROR_INVALID_LOCATION";
 	error[ERROR_INVALID_PREFIX] = "ERROR_INVALID_PREFIX";
 	error[ERROR_INVALID_RETURN] = "ERROR_INVALID_RETURN";
-	error[ERROR_INVALID_CGI_PATH] = "ERROR_INVALID_CGI_PATH";
+	error[ERROR_INVALID_CGI] = "ERROR_INVALID_CGI";
 	error[ERROR_INVALID_AUTOINDEX] = "ERROR_INVALID_AUTOINDEX";
 	error[ERROR_INVALID_UPLOAD_PATH] = "ERROR_INVALID_UPLOAD_PATH";
 	error[ERROR_INVALID_UPLOAD_STATE] = "ERROR_INVALID_UPLOAD_STATE";
@@ -51,7 +51,7 @@ void	fill_location_keys(std::map<std::string, Validators> &location_keys)
     location_keys["error_page"] = &validate_error_page;
     location_keys["client_max_body_size"] = &validate_clients;
     location_keys["allow_methods"] = &validate_allowed_methods;
-	// location_keys["cgi_path"] = &validate_cgi_path;
+	location_keys["cgi"] = &validate_cgi;
 }
 
 void	Configuration::resolve_config()

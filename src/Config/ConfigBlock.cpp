@@ -1,7 +1,5 @@
 #include <Configuration.hpp>
 
-ConfigBlock	validate_cgi_path(const Directive &cgi) { (void)cgi; return ConfigBlock(); }
-
 ConfigBlock	validate_listen(const Directive &listen)
 {
 	ConfigBlock server;
@@ -23,7 +21,7 @@ ConfigBlock	validate_listen(const Directive &listen)
 	if (pos == std::string::npos && str_port.find('.') != std::string::npos)
 		{ host = str_port; str_port = "80"; }
 	if (str_port.empty())
-        return server.err = ERROR_INVALID_PORT, server;
+		return server.err = ERROR_INVALID_PORT, server;
 
 	for (std::size_t i = 0; i < str_port.size(); ++i)
 		if (!std::isdigit(str_port[i]))
@@ -256,6 +254,27 @@ ConfigBlock	validate_error_page(const Directive &error_page)
 			return server.err = ERROR_INVALID_ERROR_PAGE, server;
 		server.error_page[code] = vals.back();
 	}
+	server.err = ERROR_NONE;
+	return server;
+}
+
+ConfigBlock	validate_cgi(const Directive &cgi)
+{
+	ConfigBlock server;
+
+	if (!cgi.getChildren().empty() || cgi.getValues().size() != 2)
+		return server.err = ERROR_INVALID_CGI, server;
+
+	const std::string &extension = cgi.getValues()[0];
+	const std::string &interpreter = cgi.getValues()[1];
+
+	if (extension[0] != '.' || interpreter.empty())
+		return server.err = ERROR_INVALID_CGI, server;
+
+	struct stat s;
+	if (stat(interpreter.c_str(), &s) != 0 || !S_ISREG(s.st_mode) || access(interpreter.c_str(), X_OK) != 0)
+		return server.err = ERROR_INVALID_CGI, server;
+	server.cgi[extension] = interpreter;
 	server.err = ERROR_NONE;
 	return server;
 }
