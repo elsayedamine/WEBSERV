@@ -105,8 +105,12 @@ void	ValidateTokens(const std::vector<std::string> &tokens)
 Directive::Directive(const char *conf)
 {
 	std::ifstream file(conf);
-	if (!file.is_open()) {
-		std::cerr << "Failed to open config file: " << conf << std::endl; return;}
+	if (!file.is_open())
+	{
+		std::string file(conf);
+		std::string error = str("Failed to open config file: ") + file;
+		throw std::runtime_error(error);
+	}
 
 	std::stringstream buffer;
 	std::string	content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
