@@ -15,11 +15,7 @@ string autoindexMakeEntry(const string &name, const string &prefix) {
 	return (entry);
 }
 
-string autoIndex(const string &path, const string &prefix) {
-	DIR *dir = opendir(path.c_str());
-	if (!dir)
-		return std::string(); // caller will map error to 403/404
-
+string autoIndex(DIR *dir, const string &prefix) {
 	struct dirent *ent;
 	std::string body = std::string(
 		"<!DOCTYPE html>"
@@ -78,8 +74,13 @@ pair<string, int> processDir(const string &path, const ConfigBlock &location) {
 			++it;
 		}
 	}
-	if (location.autoindex)
-		return (make_pair(autoIndex(path, location.prefix), 0));
+	if (location.autoindex) {
+		DIR *dir = opendir(path.c_str());
+
+		if (!dir)
+			return (make_pair("", 2));
+		return (make_pair(autoIndex(dir, location.prefix), 0));
+	}
 	return (make_pair("", 1));
 }
 

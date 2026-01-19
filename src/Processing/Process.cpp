@@ -30,6 +30,8 @@ Response handleRequest(Request &request, vector<ConfigBlock> locations) {
 		location = findLocation(locations, target);
 		if (!location)
 			return (Response(404));
+		if (location->root.empty())
+			return (Response(403));
 		if (find(location->methods.begin(), location->methods.end(), request.getMethod()) == location->methods.end())
 			return (405);
 		if (location->ret.first)
