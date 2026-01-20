@@ -98,6 +98,11 @@ std::string CGI::handleCGI(const Request &request, const std::string &script, co
 		while ((bytes = read(pipe_out[0], buffer, sizeof(buffer))) > 0)
 			result.append(buffer, bytes);
 		// check this needs to be added to the multiplexer; any read or write should pass by epoll();
+		// this is completely wrong for the subject
+		// also the timeout needs to be handled outside
+		// i need to add the event struct to the class
+
+		// TL;DR I/O operations maghadarch hnaya
 		close(pipe_out[0]);
 		waitpid(pid, NULL, 0);
 		freeEnvp();

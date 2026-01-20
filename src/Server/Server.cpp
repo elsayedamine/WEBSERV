@@ -98,7 +98,7 @@ void	Server::run()
 				int port = client_fd_to_port[curr];
 				std::vector<ConfigBlock>& candidates = config_map[port];
 				handleConnection(curr, candidates);
-				// epoll_ctl(DEL) should be called inside the fct for cleaning
+				// check epoll_ctl(DEL) should be called inside the fct for cleaning
 				// and better use the recv for the sockets
 			}
 		}
