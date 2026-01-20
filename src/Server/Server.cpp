@@ -23,7 +23,7 @@ Server::Server(const Configuration & conf) : config(conf)
 	}
 }
 
-void Server::check_duplicate_servers(const ConfigBlock &entering_server)
+void	Server::check_duplicate_servers(const ConfigBlock &entering_server)
 {
 	int port = entering_server.port;
 	std::string host = entering_server.host;
@@ -77,6 +77,49 @@ void	Server::SetupSockets()
 		std::cout << "Server listening on port " << port << "..." << std::endl;
 	}
 }
+void handle_cgi_write(int pipe_fd)
+{
+    int client_fd = Server::pipe_to_client[pipe_fd];
+
+    // write request body to CGI stdin
+    ssize_t n = write(pipe_fd,
+                      Server::client_body[client_fd].data(),
+                      Server::client_body[client_fd].size());
+
+    if (n > 0)
+    {
+        // remove written part
+        Server::client_body[client_fd].erase(0, n);
+
+        if (Server::client_body[client_fd].empty())
+        {
+            close(pipe_fd);
+            epoll_ctl(Server::epoll_fd, EPOLL_CTL_DEL, pipe_fd, NULL);
+        }
+    }
+}
+void handle_cgi_read(int pipe_fd)
+{
+    char buf[4096];
+    int client_fd = Server::pipe_to_client[pipe_fd];
+
+    ssize_t n = read(pipe_fd, buf, sizeof(buf));
+    if (n > 0)
+    {
+        Server::cgi_output[client_fd].append(buf, n);
+    }
+    else if (n == 0)
+    {
+        close(pipe_fd);
+        epoll_ctl(Server::epoll_fd, EPOLL_CTL_DEL, pipe_fd, NULL);
+
+        pid_t pid = Server::pipe_to_pid[pipe_fd];
+        waitpid(pid, NULL, WNOHANG);
+
+        // now CGI response is complete
+        // build_http_response(client_fd);
+    }
+}
 
 void	Server::run()
 {
@@ -86,19 +129,25 @@ void	Server::run()
 	{
 		int nevents = epoll_wait(epoll_fd, events, 128, -1);
 		if (nevents < 0) continue;
-		for (int i = 0; i < nevents; ++i) {
+		for (int i = 0; i < nevents; ++i)
+		{
 			int curr = events[i].data.fd;
-			if (sockets_to_ports.find(curr) != sockets_to_ports.end())
+			// if (events[i].events & (EPOLLERR | EPOLLHUP | EPOLLRDHUP))
+				// { closeConnection(fd); continue; }
+			if (Server::pipe_to_client.count(curr))
 			{
-				if (accept_new_connection(curr) == false)
-					continue ;
+				if (events[i].events & EPOLLOUT)
+					handle_cgi_write(curr);
+				if (events[i].events & EPOLLIN)
+					handle_cgi_read(curr);
+				continue;
 			}
+			else if (sockets_to_ports.find(curr) != sockets_to_ports.end())
+				accept_new_connection(curr);
 			else
 			{
 				int port = client_fd_to_port[curr];
-				std::vector<ConfigBlock>& candidates = config_map[port];
-				handleConnection(curr, candidates);
-				// check epoll_ctl(DEL) should be called inside the fct for cleaning
+				handleConnection(curr, config_map[port]);
 				// and better use the recv for the sockets
 			}
 		}

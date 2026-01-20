@@ -90,22 +90,31 @@ std::string CGI::handleCGI(const Request &request, const std::string &script, co
 	{
 		close(pipe_in[0]);
 		close(pipe_out[1]);
-		write(pipe_in[1], request.getBody().c_str(), request.getBody().size());
-		close(pipe_in[1]);
-		char buffer[10000];
-		std::string result;
-		ssize_t bytes;
-		while ((bytes = read(pipe_out[0], buffer, sizeof(buffer))) > 0)
-			result.append(buffer, bytes);
-		// check this needs to be added to the multiplexer; any read or write should pass by epoll();
-		// this is completely wrong for the subject
-		// also the timeout needs to be handled outside
-		// i need to add the event struct to the class
 
-		// TL;DR I/O operations maghadarch hnaya
-		close(pipe_out[0]);
-		waitpid(pid, NULL, 0);
+		fcntl(pipe_in[1], F_SETFL, O_NONBLOCK);
+		fcntl(pipe_out[0], F_SETFL, O_NONBLOCK);
+
+		// adding the pipe ends to the epoll()
+		struct epoll_event ev;
+		ev.events = EPOLLOUT; 
+		ev.data.fd = pipe_in[1];
+		epoll_ctl(Server::epoll_fd, EPOLL_CTL_ADD, pipe_in[1], &ev);
+
+		ev.events = EPOLLIN;
+		ev.data.fd = pipe_out[0];
+		epoll_ctl(Server::epoll_fd, EPOLL_CTL_ADD, pipe_out[0], &ev);
+
+		Server::pipe_to_client[pipe_in[1]] = Server::client_fd; // write
+		Server::pipe_to_client[pipe_out[0]] = Server::client_fd; // reed
+		Server::pipe_to_pid[pipe_out[0]] = pid;
+
 		freeEnvp();
-		return result;
+		return "";
 	}
 }
+
+// major steps for cgi
+// variables creation
+// envp convertion
+// pipe + fork + execve(child)
+// non-block + epoll()

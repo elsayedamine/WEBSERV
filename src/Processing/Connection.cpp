@@ -62,7 +62,7 @@ int getServer(const std::vector<ConfigBlock> &candidates, Request &request) {
 	return (-1);
 }
 
-void handleConnection(int fd, const std::vector<ConfigBlock> &candidates) {
+void Server::handleConnection(int fd, const std::vector<ConfigBlock> &candidates) {
 	string data;
 	Request request;
 	Response response;
@@ -85,5 +85,6 @@ void handleConnection(int fd, const std::vector<ConfigBlock> &candidates) {
 			response = processRequest(request, candidates[index]);
 	}
 	sendResponse(fd, response);
+	epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, NULL);
 	close(fd);
 }
