@@ -5,6 +5,7 @@
 #include <Response.hpp>
 #include <Request.hpp>
 #include <ConfigBlock.hpp>
+#include <CGI.hpp>
 
 using namespace std;
 
