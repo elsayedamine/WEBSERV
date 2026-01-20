@@ -7,6 +7,7 @@
 #include <dirent.h>
 #include <algorithm>
 #include <Methods.hpp>
+#include <wait.h>
 
 class CGI
 {

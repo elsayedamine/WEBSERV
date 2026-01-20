@@ -68,5 +68,39 @@ std::string CGI::handleCGI(const Request &request, const std::string &script, co
 {
 	CreateVariables(request, script);
 	ConvertEnvp();
-	// now i create l pipe...ndwzha l fork....take the output and shit
+	int pipe_in[2];
+	int pipe_out[2];
+
+	if (pipe(pipe_in) < 0 || pipe(pipe_out) < 0)
+		{ freeEnvp(); return std::string(""); }
+	pid_t pid = fork();
+	if (pid < 0)
+		{ freeEnvp(); return std::string(""); }
+	if (pid == 0)
+	{
+		dup2(pipe_in[0], STDIN_FILENO);
+		dup2(pipe_out[1], STDOUT_FILENO);
+		close(pipe_in[0]); close(pipe_in[1]);
+		close(pipe_out[0]); close(pipe_out[1]);
+		char *argv[] = {(char *)interpret.c_str(), (char *)script.c_str(), NULL};
+		execve(argv[0], argv, envp);
+		exit(1);
+	}
+	else
+	{
+		close(pipe_in[0]);
+		close(pipe_out[1]);
+		write(pipe_in[1], request.getBody().c_str(), request.getBody().size());
+		close(pipe_in[1]);
+		char buffer[10000];
+		std::string result;
+		ssize_t bytes;
+		while ((bytes = read(pipe_out[0], buffer, sizeof(buffer))) > 0)
+			result.append(buffer, bytes);
+		// check this needs to be added to the multiplexer; any read or write should pass by epoll();
+		close(pipe_out[0]);
+		waitpid(pid, NULL, 0);
+		freeEnvp();
+		return result;
+	}
 }

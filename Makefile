@@ -16,6 +16,7 @@ SRC:=	src/Config/Configuration.cpp \
 		src/utils/strings.cpp \
 		src/Methods/Get.cpp \
 		src/Methods/Post.cpp \
+		src/Methods/CGI.cpp \
 		src/Methods/Utils.cpp \
 		src/main.cpp
 
