@@ -33,6 +33,9 @@ class Response {
 			map<string, string>::const_iterator it = headers.find(key);
 			return it != headers.end() ? it->second : "";
 		}
+		void sendResponse(int fd) const;
+		void processResponse(const Request &request, const ConfigBlock &server);
+		std::string getCodeMessage(int code) const;
 }; 
 
 #endif

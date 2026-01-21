@@ -1,4 +1,4 @@
-#include <main.hpp>
+
 #include <Request.hpp>
 #include <Server.hpp>
 
@@ -27,7 +27,7 @@ pair<string, string> parseHeader(string &header) {
 	return (pair);
 }
 
-Request parseRequest(string &data) {
+void Request::parseRequest(string &data) {
 	stringstream stream(data);
 	int cr = 0;
 	Request request;
@@ -43,8 +43,8 @@ Request parseRequest(string &data) {
 		}
 		tokens = tokenize(reqline);
 		if (tokens.size() != 3 || reqline[reqline.length() - 1] == ' ')
-			return (Request("", "", ""));
-		request = Request(tokens[0], tokens[1], tokens[2]);
+			{ method = ""; target = ""; version = ""; return; }
+		method = tokens[0]; target = tokens[1]; version = tokens[2];
 	}
 	{ // Headers
 		string header;
@@ -55,14 +55,14 @@ Request parseRequest(string &data) {
 				break ;
 			if ((header[header.length() - 1] == '\r') != cr) {
 				request.headerCount = -1;
-				return (request);
+				return;
 			}
 			if (cr)
 				header = header.substr(0, header.length() - 1);
 			pair = parseHeader(header);
 			if (pair.first.empty()) {
 				request.headerCount = -1;
-				return (request);
+				return;
 			}
 			request.setHeader(pair.first, pair.second);
 		}
@@ -75,5 +75,4 @@ Request parseRequest(string &data) {
 			body.push_back(ch);
 		request.setBody(body);
 	}
-	return (request);
 }

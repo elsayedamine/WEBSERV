@@ -1,6 +1,6 @@
 #include <fcntl.h>
 #include <sys/stat.h>
-#include <main.hpp>
+
 #include <dirent.h>
 #include <algorithm>
 #include <Methods.hpp>
@@ -113,10 +113,9 @@ string setType(const string &path, const ConfigBlock &location) {
 	return("application/octet-stream");
 }
 
-Response handleGet(Request &request, const string &path, const ConfigBlock &location) {
+Response handleGet(const string &path, const ConfigBlock &location) {
 	pair<string, int> body;
 	
-	(void)request;
 	{ // Find location and process path
 		if (path[path.size() - 1] == '/')
 			body = processDir(path, location);

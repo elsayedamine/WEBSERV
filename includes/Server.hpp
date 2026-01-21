@@ -9,18 +9,21 @@
 #include <poll.h>
 #include <sys/epoll.h>
 #include <wait.h>
-#include <main.hpp>
+
+#include <Connection.hpp>
 
 class Server 
 {
 	public:
 		Configuration	config;
+		std::map<int, Connection> connections;
 		static int epoll_fd;
+
 		static std::map<int, int> pipe_to_client;
-		static int client_fd;
-		static std::map<int, pid_t> pipe_to_pid;
-		static std::map<int, std::string> cgi_responses;
-		std::map<int, size_t> pipe_write_offset;
+		// static int client_fd;
+		// static std::map<int, pid_t> pipe_to_pid;
+		// static std::map<int, std::string> cgi_responses;
+		// std::map<int, size_t> pipe_write_offset;
 	public:
 		Server() {}
 		~Server() {} // clear the project ig && close fds
@@ -34,8 +37,7 @@ class Server
 		void	SetupSockets();
 		int		accept_new_connection(int listener_fd);
 		void	check_duplicate_servers(const ConfigBlock &new_server);
-		void	handleConnection(int fd, const std::vector<ConfigBlock> &candidates);
-
+		void	handleEvent(Connection &conn);
 };
 
 #endif

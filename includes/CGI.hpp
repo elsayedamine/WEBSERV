@@ -3,7 +3,6 @@
 
 #include <fcntl.h>
 #include <sys/stat.h>
-#include <main.hpp>
 #include <dirent.h>
 #include <algorithm>
 #include <Methods.hpp>

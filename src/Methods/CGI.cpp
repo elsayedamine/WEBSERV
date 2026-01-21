@@ -88,6 +88,7 @@ std::string CGI::handleCGI(const Request &request, const std::string &script, co
 	}
 	else
 	{
+		// check (use chhdir)
 		close(pipe_in[0]);
 		close(pipe_out[1]);
 
@@ -105,7 +106,7 @@ std::string CGI::handleCGI(const Request &request, const std::string &script, co
 		epoll_ctl(Server::epoll_fd, EPOLL_CTL_ADD, pipe_out[0], &ev);
 
 		Server::pipe_to_client[pipe_in[1]] = Server::client_fd; // write
-		Server::pipe_to_client[pipe_out[0]] = Server::client_fd; // reed
+		Server::pipe_to_client[pipe_out[0]] = Server::client_fd; // read
 		Server::pipe_to_pid[pipe_out[0]] = pid;
 
 		freeEnvp();

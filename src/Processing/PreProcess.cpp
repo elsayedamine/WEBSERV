@@ -1,4 +1,3 @@
-#include <main.hpp>
 #include <Utils.hpp>
 
 #define MAX_BODY 10 * 1000 * 1000
@@ -26,42 +25,39 @@ int checkVersion(const string &ver) {
 	return (0);
 }
 
-int validateRequest(Request &request, const ConfigBlock &server) {
-	(void)server;
+int Request::validateRequest() const {
 	{ // Request line
 		int validVer;
 
-		if (request.getTarget().empty() || request.getMethod().empty())
+		if (target.empty() || method.empty())
 			return (400);
-		if (request.getTarget().length() > MAX_URI)
+		if (target.length() > MAX_URI)
 			return (414);
-		validVer = checkVersion(request.getVersion());
+		validVer = checkVersion(version);
 		if (validVer)
 			return (validVer);
 	}
 	{ // Headers
-		const multimap<string,string>& headers = request.getHeaders();
-
-		if (request.headerCount == -1)
+		if (headerCount == -1)
 			return (400);
 		for (mmap_it it = headers.begin(); it != headers.end(); ++it) {
 			pair<mmap_it, mmap_it> range = headers.equal_range(it->first);
 			if (distance(range.first, range.second) > 1)
 				return (400);
 		}
-		if (request.getHeader("Host").empty())
+		if (getHeader("Host").empty())
 			return (400);
 	}
 	{ // Body
-		if (request.getHeader("Content-Length").empty()) {
-			if (request.getMethod() == "POST" || request.getMethod() == "PUT")
+		if (getHeader("Content-Length").empty()) {
+			if (method == "POST" || method == "PUT")
 				return (411);
 			return (0);
 		}
 		// this line may be wrong later
-		if ((long)request.getBody().length() > MAX_BODY)
+		if ((long)body.length() > MAX_BODY)
 			return (413);
-		if (request.getBody().length() != (size_t)stringToInt(request.getHeader("Content-Length")))
+		if (body.length() != (size_t)stringToInt(getHeader("Content-Length")))
 			return (400);
 	}
 	return (0);

@@ -29,7 +29,7 @@
 // 		std::cerr << "testServer: write() wrote " << written << " of " << to_write << " bytes\n";
 // 	}
 // 	close(fd[1]);
-// 	handleConnection(fd[0], config.getServers());
+// 	handleEvent(fd[0], config.getServers());
 // }
 
 int main(int ac, char **av)

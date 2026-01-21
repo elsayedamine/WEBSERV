@@ -1,4 +1,3 @@
-#include <main.hpp>
 #include <Methods.hpp>
 #include <Server.hpp>
 #include <fcntl.h>
@@ -17,13 +16,13 @@ Response handleReturn(const pair<int, string> &ret) {
 	return (response);
 }
 
-Response handleRequest(Request &request, vector<ConfigBlock> locations) {
+Response Request::handleRequest(const vector<ConfigBlock> &locations) const {
 	Response response;
 	const ConfigBlock *location;
 	string path;
 	
 	{ // Resolve path
-		string target = request.getTarget();
+		string target = target;
 
 		stable_sort(locations.begin(), locations.end(), compare);
 		normalizeTarget(target);
@@ -32,18 +31,17 @@ Response handleRequest(Request &request, vector<ConfigBlock> locations) {
 			return (Response(404));
 		if (location->root.empty())
 			return (Response(500));
-		if (find(location->methods.begin(), location->methods.end(), request.getMethod()) == location->methods.end())
+		if (find(location->methods.begin(), location->methods.end(), getMethod()) == location->methods.end())
 			return (405);
 		if (location->ret.first)
 			return (handleReturn(location->ret));
 		path = location->root + "/" + target.substr(location->prefix.size());
 	}
-	switch (request.getMethodEnum())
-	{
+	switch (getMethodEnum()) {
 		case GET:
-			response = handleGet(request, path, *location); break;
+			response = handleGet(path, *location); break;
 		case POST:
-			response = handlePost(request, path, *location); break;
+			response = handlePost(path, *location); break;
 		// case PUT:
 		// 	response = handlePut(request);
 		// case DELETE:
@@ -89,36 +87,32 @@ string dateTimeGMT() {
 	return oss.str();
 }
 
-Response processResponse(const Request &request, Response &response, const ConfigBlock &server) {
-	// if (!request.getHeader("Accept").empty()) {
-	// 	if (!validateType(request.getHeader("Accept"), response.getHeader("Content-Type")))
-	// 		response = Response(406);
-	// }
-	if (response.getCode() >= 400) { // Check for error pages
-		map<int, string>::const_iterator it = server.error_page.find(response.getCode());
+void Response::processResponse(const Request &request, const ConfigBlock &server) {
+	if (code >= 400) { // Check for error pages
+		map<int, string>::const_iterator it = server.error_page.find(code);
 
 		if (it != server.error_page.end()) {
-			response.setBody(getResource(it->second).first);
-			response.setHeader("Content-Type", "text/html");
+			setBody(getResource(it->second).first);
+			setHeader("Content-Type", "text/html");
 		}
 	}
 	{ // Finalize response
-		response.setHeader("Connection", request.getHeader("Connection"));
-		response.setHeader("Date", dateTimeGMT());
-		response.setHeader("Server", "WEBSERV");
-		if (!response.getBody().empty())
-			response.setHeader("Content-Length", num_to_string(response.getBody().size()));
+		setHeader("Connection", getHeader("Connection"));
+		setHeader("Date", dateTimeGMT());
+		setHeader("Server", "WEBSERV");
+		if (!body.empty())
+			setHeader("Content-Length", num_to_string(body.size()));
 	}	
-	return (response);
 }
 
-Response processRequest(Request &request, const ConfigBlock &server) {
+Response Request::processRequest() const {
 	int invalid;
 	Response response;
 
-	invalid = validateRequest(request, server);
+	invalid = validateRequest();
 	if (invalid)
 		return (Response(invalid));
-	response = handleRequest(request, server.locations);
-	return (processResponse(request, response, server));
+
+	response = handleRequest(server.locations);
+	return (response);
 }
