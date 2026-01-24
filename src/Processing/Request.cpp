@@ -4,32 +4,32 @@ Request::Request() {}
 
 void Request::setServer(const ConfigBlock &s) { server = s; }
 
-void Request::setHeader(const string& key, const string& value) {
-	pair<mmap_it, mmap_it> range = headers.equal_range(key);
+void Request::setHeader(const std::string& key, const std::string& value) {
+	std::pair<mmap_it, mmap_it> range = headers.equal_range(key);
 	if (range.first == range.second)
 		this->headerCount++;
 	headers.insert(make_pair(key, value));
 }
 
-void Request::setBody(const string& b) { body = b; }
+void Request::setBody(const std::string& b) { body = b; }
 
-void Request::setMethod(const string &m) { method = m; }
+void Request::setMethod(const std::string &m) { method = m; }
 
-void Request::setTarget(const string &t) { target = t; }
+void Request::setTarget(const std::string &t) { target = t; }
 
-void Request::setVersion(const string &v) { version = v; }
+void Request::setVersion(const std::string &v) { version = v; }
 
-const string &Request::getMethod() const { return method; }
+const std::string &Request::getMethod() const { return method; }
 
-const string& Request::getTarget() const { return target; }
+const std::string& Request::getTarget() const { return target; }
 
-const string& Request::getVersion() const { return version; }
+const std::string& Request::getVersion() const { return version; }
 
-const multimap<string, string>& Request::getHeaders() const { return headers; }
+const std::multimap<std::string, std::string>& Request::getHeaders() const { return headers; }
 
-const string& Request::getBody() const { return body;}
+const std::string& Request::getBody() const { return body;}
 
-string Request::getHeader(const string& key) const {  
+std::string Request::getHeader(const std::string& key) const {  
 	mmap_it it = headers.find(key);
 	return it != headers.end() ? it->second : "";
 }

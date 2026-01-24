@@ -7,21 +7,25 @@ void Parse::operator()(std::string data) {
 		&Parse::parseMethod,
 		&Parse::parseTarget,
 		&Parse::parseVersion,
-		// &Parse::parseHeaders,
-		// &Parse::parseBody
+		&Parse::parseHeaders,
+		&Parse::parseBody
 	};
 
 	current += data;
-	while (status != PARSE_OVER) {
-		(this->*handlers[state])();		
-		if (status == PARSE_SUCCESS)
+	while (status != PARSE_OVER && state < 5) {
+		(this->*handlers[state])();
+		if (status == PARSE_FAIL)
+			return;
+		if (status == PARSE_SUCCESS) {
+			status = PARSE_CURRENT;
 			state++;
+		}
 	}
 }
 
 void Parse::parseMethod() {
 	std::string method = request.getMethod();
-	int i = 0;
+	size_t i = 0;
 
 	if (current[i] == ' ') {
 		status = PARSE_FAIL;
@@ -31,17 +35,19 @@ void Parse::parseMethod() {
 		if (current[i] == ' ') {
 			i++;
 			status = PARSE_SUCCESS;
+			break;
 		}
 		method += current[i];
 		i++;
 	}
 	request.setMethod(method);
 	current = current.substr(i);
+	std::cout << request.getMethod() << std::endl;
 }
 
 void Parse::parseTarget() {
-	std::string method = request.getTarget();
-	int i = 0;
+	std::string target = request.getTarget();
+	size_t i = 0;
 
 	if (current[i] == ' ') {
 		status = PARSE_FAIL;
@@ -51,17 +57,19 @@ void Parse::parseTarget() {
 		if (current[i] == ' ') {
 			i++;
 			status = PARSE_SUCCESS;
+			break;
 		}
-		method += current[i];
+		target += current[i];
 		i++;
 	}
-	request.setTarget(method);
+	request.setTarget(target);
 	current = current.substr(i);
+	std::cout << request.getTarget() << std::endl;
 }
 
 void Parse::parseVersion() {
 	std::string method = request.getVersion();
-	int i = 0;
+	size_t i = 0;
 
 	if (current[i] == ' ') {
 		status = PARSE_FAIL;
@@ -71,12 +79,14 @@ void Parse::parseVersion() {
 		if (!current.compare(i, 2, "\r\n")) {
 			i += 2;
 			status = PARSE_SUCCESS;
+			break;
 		}
 		method += current[i];
 		i++;
 	}
 	request.setVersion(method);
 	current = current.substr(i);
+	std::cout << request.getVersion() << std::endl;
 }
 
 void Parse::parseHeaders() {

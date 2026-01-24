@@ -31,7 +31,7 @@ void Server::handleConnectionIO(int fd, int events) {
 		data = string(buffer);
 		connection.parse(data);
 	}
-	if (!connection.response.isReady()) { // processData
+	if (!connection.response.isReady()) { // Process
 		std::vector<ConfigBlock>::const_iterator candidate;
 
 		candidate = connection.request.getCandidate(candidates);
@@ -40,7 +40,7 @@ void Server::handleConnectionIO(int fd, int events) {
 		connection.response.processResponse(connection.request, *candidate);
 		connection.response.mkResponse();
 	}
-	if (events & EPOLLOUT) {
+	if (events & EPOLLOUT) { // Write
 		// check use send() instead
 		write(fd, connection.response.getData().c_str(), WSIZE);
 		connection.response.setData(connection.response.getData().substr(WSIZE));

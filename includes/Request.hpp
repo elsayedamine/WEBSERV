@@ -6,10 +6,6 @@
 #include <map>
 #include <ConfigBlock.hpp>
 #include <Response.hpp>
-#include <Parse.hpp>
-#include <ConfigBlock.hpp>
-
-using namespace std;
 
 enum Method {
 	UNKNOWN,
@@ -21,11 +17,11 @@ enum Method {
 
 class Request {
 	private:
-		string method;
-		string target;
-		string version;
-		multimap<string, string> headers; 
-		string body;
+		std::string method;
+		std::string target;
+		std::string version;
+		std::multimap<std::string, std::string> headers; 
+		std::string body;
 		int headerCount;
 
 		ConfigBlock server;
@@ -33,28 +29,28 @@ class Request {
 	public:
 		Request();
 
-		void setHeader(const string &key, const string &value);
-		void setBody(const string &b);
+		void setHeader(const std::string &key, const std::string &value);
+		void setBody(const std::string &b);
 		void setServer(const ConfigBlock &server);
-		void setMethod(const string &m);
-		void setTarget(const string &t);
-		void setVersion(const string &v);
+		void setMethod(const std::string &m);
+		void setTarget(const std::string &t);
+		void setVersion(const std::string &v);
 
-		const string &getMethod() const;
+		const std::string &getMethod() const;
 		Method getMethodEnum() const;
-		const string &getTarget() const;
-		const string &getVersion() const;
-		const multimap<string, string> &getHeaders() const;
-		string getHeader(const string &key) const;
-		const string &getBody() const;
+		const std::string &getTarget() const;
+		const std::string &getVersion() const;
+		const std::multimap<std::string, std::string> &getHeaders() const;
+		std::string getHeader(const std::string &key) const;
+		const std::string &getBody() const;
 
 		std::vector<ConfigBlock>::const_iterator getCandidate(const std::vector<ConfigBlock> &candidates) const;
 		Response processRequest();
 		int validateRequest() const;
-		Response handleRequest(const vector<ConfigBlock> &locations) const;
+		Response handleRequest(const std::vector<ConfigBlock> &locations) const;
 };
 
-typedef multimap<string, string>::const_iterator mmap_it;
-typedef map<string, string>::const_iterator map_it;
+typedef std::multimap<std::string, std::string>::const_iterator mmap_it;
+typedef std::map<std::string, std::string>::const_iterator map_it;
 
 #endif

@@ -10,6 +10,6 @@ int stringToInt(std::string str);
 std::string	strtrim(const std::string &s);
 
 // printing
-ostream &operator<<(ostream &os, const Request &req);
+std::ostream &operator<<(std::ostream &os, const Request &req);
 
 #endif

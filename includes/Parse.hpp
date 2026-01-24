@@ -24,8 +24,6 @@ enum success {
 	PARSE_OVER
 };
 
-class Request;
-
 class Parse {
 	private:
 		Request request;
@@ -33,7 +31,6 @@ class Parse {
 		std::string current;
 		int state;
 		success status;
-		string nl;
 	
 	public:
 		Parse();

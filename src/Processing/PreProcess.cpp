@@ -3,7 +3,7 @@
 #define MAX_BODY 10 * 1000 * 1000
 #define MAX_URI 10 * 1000 * 1000
 
-int validateHeader(string key, string value) {
+int validateHeader(std::string key, std::string value) {
 	if (key.empty())
 		return (0);
 	for (int i = 0; (size_t)i < key.length(); i++) {
@@ -17,7 +17,7 @@ int validateHeader(string key, string value) {
 	return (1);
 }
 
-int checkVersion(const string &ver) {
+int checkVersion(const std::string &ver) {
 	if (ver.length() != 8 || ver.compare(0, 5, "HTTP/"))
 		return (400);
 	if (ver.compare(5, 3, "1.1"))
@@ -41,7 +41,7 @@ int Request::validateRequest() const {
 		if (headerCount == -1)
 			return (400);
 		for (mmap_it it = headers.begin(); it != headers.end(); ++it) {
-			pair<mmap_it, mmap_it> range = headers.equal_range(it->first);
+			std::pair<mmap_it, mmap_it> range = headers.equal_range(it->first);
 			if (distance(range.first, range.second) > 1)
 				return (400);
 		}

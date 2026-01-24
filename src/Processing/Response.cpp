@@ -3,37 +3,37 @@
 
 int Response::getCode() const { return code; }
 
-void Response::setHeader(const string& key, const string& value) {
+void Response::setHeader(const std::string& key, const std::string& value) {
 	if (value.empty()) return;
 	headers[key] = value;
 }
 
-void Response::setBody(const string& b) { body = b; }
+void Response::setBody(const std::string& b) { body = b; }
 
-void Response::setData(const string& d) { data = d; }
+void Response::setData(const std::string& d) { data = d; }
 
 int Response::isReady() const { return ready; }
 
-const map<string, string>& Response::getHeaders() const { return headers; }
+const std::map<std::string, std::string>& Response::getHeaders() const { return headers; }
 
-const string& Response::getBody() const { return body; }
+const std::string& Response::getBody() const { return body; }
 
-const string& Response::getData() const { return data; }
+const std::string& Response::getData() const { return data; }
 
-string Response::getHeader(const string& key) const {
-	map<string, string>::const_iterator it = headers.find(key);
+std::string Response::getHeader(const std::string& key) const {
+	std::map<std::string, std::string>::const_iterator it = headers.find(key);
 	return it != headers.end() ? it->second : "";
 }
 
 void Response::mkResponse() {
-	string buffer = "HTTP/1.1 ";
+	std::string buffer = "HTTP/1.1 ";
 
 	{ // Status code and message
 		buffer.append(num_to_string(code) + ' ');
 		buffer.append(getCodeMessage(code) + "\r\n");
 	}
 	{ // Headers
-		map<string, string>::const_iterator it = headers.begin();
+		std::map<std::string, std::string>::const_iterator it = headers.begin();
 
 		while (it != headers.end()) {
 			buffer.append(it->first + ": " + it->second + "\r\n");
@@ -48,7 +48,7 @@ void Response::mkResponse() {
 }
 
 std::string Response::getCodeMessage(int code) const {
-	static map<int, std::string> messages;
+	static std::map<int, std::string> messages;
 	if (messages.empty()) {
 		messages[200] = "OK";
 		messages[201] = "Created";
