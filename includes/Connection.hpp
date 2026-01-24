@@ -13,6 +13,7 @@ class Connection {
 		ConfigBlock server;
 		
 	public:
+		Parse parse;
 		Request request;
 		Response response;
 

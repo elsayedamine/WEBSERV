@@ -4,7 +4,7 @@
 #include <iostream>
 #include <string>
 #include <sys/socket.h>
-// #include <Request.hpp>
+#include <Request.hpp>
 
 #define RSIZE 8000
 #define WSIZE 8000
@@ -18,25 +18,25 @@ enum states {
 };
 
 enum success {
-	STATE_FAIL,
-	STATE_SUCCESS,
-	STATE_CURRENT,
-	STATE_OVER
+	PARSE_FAIL,
+	PARSE_SUCCESS,
+	PARSE_CURRENT,
+	PARSE_OVER
 };
 
 class Request;
 
 class Parse {
 	private:
+		Request request;
 		int fd;
 		std::string current;
 		int state;
 		success status;
-		Request &request;
+		string nl;
 	
 	public:
-		Parse(Request &req);
-		// void loopParse(std::string data);
+		Parse();
 		void operator()(std::string data);
 		void parseMethod();
 		void parseTarget();
@@ -44,5 +44,7 @@ class Parse {
 		void parseHeaders();
 		void parseBody();
 };
+
+typedef void (Parse::*stateHandler)();
 
 #endif

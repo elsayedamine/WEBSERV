@@ -31,13 +31,14 @@ class Request {
 		ConfigBlock server;
 
 	public:
-		Parse parse;
-
 		Request();
 
 		void setHeader(const string &key, const string &value);
 		void setBody(const string &b);
 		void setServer(const ConfigBlock &server);
+		void setMethod(const string &m);
+		void setTarget(const string &t);
+		void setVersion(const string &v);
 
 		const string &getMethod() const;
 		Method getMethodEnum() const;

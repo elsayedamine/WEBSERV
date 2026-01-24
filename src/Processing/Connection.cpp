@@ -29,7 +29,7 @@ void Server::handleConnectionIO(int fd, int events) {
 		
 		buffer[size] = 0;
 		data = string(buffer);
-		connection.request.parse(data);
+		connection.parse(data);
 	}
 	if (!connection.response.isReady()) { // processData
 		std::vector<ConfigBlock>::const_iterator candidate;
@@ -46,5 +46,6 @@ void Server::handleConnectionIO(int fd, int events) {
 		connection.response.setData(connection.response.getData().substr(WSIZE));
 	}
 	// epoll_ctl(epoll_fd, EPOLL_CTL_DEL, connection.getFD(), NULL);
-	// close(connection.getFD());
+	if (connection.response.getHeader("Connection") == "keep-alive")
+		close(connection.getFD());
 }

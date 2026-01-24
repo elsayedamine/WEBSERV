@@ -1,6 +1,6 @@
 #include <Request.hpp>
 
-Request::Request() : parse(*this) {};
+Request::Request() {}
 
 void Request::setServer(const ConfigBlock &s) { server = s; }
 
@@ -12,6 +12,12 @@ void Request::setHeader(const string& key, const string& value) {
 }
 
 void Request::setBody(const string& b) { body = b; }
+
+void Request::setMethod(const string &m) { method = m; }
+
+void Request::setTarget(const string &t) { target = t; }
+
+void Request::setVersion(const string &v) { version = v; }
 
 const string &Request::getMethod() const { return method; }
 
