@@ -1,12 +1,8 @@
 #include <fcntl.h>
 #include <sys/stat.h>
-
 #include <dirent.h>
 #include <algorithm>
 #include <Methods.hpp>
-
-#define AUTOINDEX
-
 
 string autoindexMakeEntry(const string &name, const string &prefix) {
 	string entry = "<a class=\"text-3xl my-3 hover:text-blue-400\" href=\"";

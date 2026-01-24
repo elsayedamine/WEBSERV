@@ -1,9 +1,9 @@
-#include <main.hpp>
 #include <algorithm>
 #include <Methods.hpp>
 #include <dirent.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <Utils.hpp>
 
 const std::string getExtension(const std::string &type) {
 	static map<std::string, std::string> types;
@@ -99,7 +99,7 @@ string createResource(const string &path, const Request &request, const string &
 	return (uri);
 }
 
-Response handlePost(Request &request, const string &path, const ConfigBlock &location) {
+Response handlePost(const Request &request, const string &path, const ConfigBlock &location) {
 	string name;
 
 	if (!location.upload_enable)

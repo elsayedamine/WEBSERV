@@ -1,6 +1,5 @@
 #include <Directive.hpp>
 
-
 std::string	strtrim(const std::string &s)
 {
 	size_t start = 0;
@@ -19,7 +18,7 @@ std::string num_to_string(std::size_t num)
 	return ss.str();
 }
 
-int stringToInt(string str) {
+int stringToInt(std::string str) {
 	size_t n = 0;
 	std::istringstream iss(str);
 	iss >> n;

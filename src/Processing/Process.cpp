@@ -41,7 +41,7 @@ Response Request::handleRequest(const vector<ConfigBlock> &locations) const {
 		case GET:
 			response = handleGet(path, *location); break;
 		case POST:
-			response = handlePost(path, *location); break;
+			response = handlePost(*this, path, *location); break;
 		// case PUT:
 		// 	response = handlePut(request);
 		// case DELETE:
@@ -97,7 +97,7 @@ void Response::processResponse(const Request &request, const ConfigBlock &server
 		}
 	}
 	{ // Finalize response
-		setHeader("Connection", getHeader("Connection"));
+		setHeader("Connection", request.getHeader("Connection"));
 		setHeader("Date", dateTimeGMT());
 		setHeader("Server", "WEBSERV");
 		if (!body.empty())
@@ -105,7 +105,7 @@ void Response::processResponse(const Request &request, const ConfigBlock &server
 	}	
 }
 
-Response Request::processRequest() const {
+Response Request::processRequest() {
 	int invalid;
 	Response response;
 

@@ -7,6 +7,8 @@
 #include <algorithm>
 #include <Methods.hpp>
 #include <wait.h>
+#include <poll.h>
+#include <sys/epoll.h>
 
 class CGI
 {

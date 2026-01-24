@@ -6,30 +6,45 @@
 
 std::vector<ConfigBlock>::const_iterator Request::getCandidate(const std::vector<ConfigBlock> &candidates) const {
 	std::vector<ConfigBlock>::const_iterator it = candidates.begin();
-	for (it; it != candidates.end(); ++it) {
+	for (; it != candidates.end(); ++it) {
 		if (!it->server_name.empty() && it->server_name[0] == getHeader("Host"))
 			return it;
 	}
 	return candidates.end();
 }
 
-void 
+void Server::handleCGIIO(int fd, int events) {
+	(void)fd;
+	(void)events;
+}
 
 void Server::handleConnectionIO(int fd, int events) {
-	std::vector<ConfigBlock>::const_iterator candidate;
-	string data;
-	vector<ConfigBlock> candidates = config_map[client_fd_to_port[connection.getFD()]];
+	vector<ConfigBlock> candidates = config_map[client_fd_to_port[fd]];
+	Connection connection = connections[fd];
 
-	{ // processData
-		connection.request.parseRequest(data);
-		candidate = connection.request.getCandidate(candidates);
-		if (candidate == candidates.end())
-			connection.response = Response(400);
-		else
-			connection.response = connection.request.processRequest();
+	if (events & EPOLLIN) { // Read
+		char buffer[RSIZE];
+		ssize_t size = recv(fd, buffer, RSIZE, 0);
+		string data;
+		
+		buffer[size] = 0;
+		data = string(buffer);
+		connection.request.parse(data);
 	}
-	connection.response.processResponse(connection.request, *candidate);
-	connection.response.sendResponse(connection.getFD());
-	epoll_ctl(epoll_fd, EPOLL_CTL_DEL, connection.getFD(), NULL);
-	close(connection.getFD());
+	if (!connection.response.isReady()) { // processData
+		std::vector<ConfigBlock>::const_iterator candidate;
+
+		candidate = connection.request.getCandidate(candidates);
+		connection.request.setServer(*candidate);
+		connection.response = (candidate == candidates.end()) ? Response(400) : connection.request.processRequest();
+		connection.response.processResponse(connection.request, *candidate);
+		connection.response.mkResponse();
+	}
+	if (events & EPOLLOUT) {
+		// check use send() instead
+		write(fd, connection.response.getData().c_str(), WSIZE);
+		connection.response.setData(connection.response.getData().substr(WSIZE));
+	}
+	// epoll_ctl(epoll_fd, EPOLL_CTL_DEL, connection.getFD(), NULL);
+	// close(connection.getFD());
 }

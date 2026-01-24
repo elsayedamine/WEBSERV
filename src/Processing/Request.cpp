@@ -1,6 +1,8 @@
 #include <Request.hpp>
 
-Request::Request(const string& m, const string& t, const string& v) : headerCount(0), method(m), target(t), version(v) {}
+Request::Request() : parse(*this) {};
+
+void Request::setServer(const ConfigBlock &s) { server = s; }
 
 void Request::setHeader(const string& key, const string& value) {
 	pair<mmap_it, mmap_it> range = headers.equal_range(key);

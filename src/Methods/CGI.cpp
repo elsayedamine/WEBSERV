@@ -1,4 +1,5 @@
 #include <CGI.hpp>
+#include <Server.hpp>
 
 std::string InttoString(int x)
 {
@@ -105,9 +106,9 @@ std::string CGI::handleCGI(const Request &request, const std::string &script, co
 		ev.data.fd = pipe_out[0];
 		epoll_ctl(Server::epoll_fd, EPOLL_CTL_ADD, pipe_out[0], &ev);
 
-		Server::pipe_to_client[pipe_in[1]] = Server::client_fd; // write
-		Server::pipe_to_client[pipe_out[0]] = Server::client_fd; // read
-		Server::pipe_to_pid[pipe_out[0]] = pid;
+		// Server::pipe_to_client[pipe_in[1]] = Server::client_fd; // write
+		// Server::pipe_to_client[pipe_out[0]] = Server::client_fd; // read
+		// Server::pipe_to_pid[pipe_out[0]] = pid;
 
 		freeEnvp();
 		return "";

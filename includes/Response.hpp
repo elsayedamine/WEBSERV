@@ -5,35 +5,36 @@
 #include <map>
 #include <iostream>
 
-using namespace std;
- 
+class Request;
+class ConfigBlock;
+
 class Response {
 	private: 
 		int code;
-		map<string, string> headers;   
-		string body; 
+		std::map<std::string, std::string> headers;   
+		std::string body;
+		int ready;
+		std::string data;
 
 	public:
 		// Constructor
-		Response() {}
-		Response(int c) : code(c) {}
+		Response() : ready(0) {}
+		Response(int c) : code(c), ready(0) {}
 		
 		// Setters
-		void setHeader(const string& key, const string& value) {
-			if (value.empty()) return;
-			headers[key] = value;
-		}
-		void setBody(const string& b) { body = b; }
+		void setHeader(const std::string& key, const std::string& value);
+		void setBody(const std::string& b);
+		void setData(const std::string& d);
 		
 		// Getters
-		int getCode() const { return code; }
-		const map<string, string>& getHeaders() const { return headers; }
-		const string& getBody() const { return body; }
-		string getHeader(const string& key) const {
-			map<string, string>::const_iterator it = headers.find(key);
-			return it != headers.end() ? it->second : "";
-		}
-		void sendResponse(int fd) const;
+		int isReady() const;
+		int getCode() const;
+		const std::map<std::string, std::string>& getHeaders() const;
+		const std::string& getBody() const;
+		std::string getHeader(const std::string& key) const;
+		const std::string& getData() const;
+		
+		void mkResponse();
 		void processResponse(const Request &request, const ConfigBlock &server);
 		std::string getCodeMessage(int code) const;
 }; 

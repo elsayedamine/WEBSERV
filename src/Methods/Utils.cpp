@@ -1,33 +1,6 @@
 #include <Methods.hpp>
 #include <Utils.hpp>
-
-std::string buildResponse(Response &response) {
-	std::string data;
-
-	{ // Status line
-		data = "HTTP/1.1 ";
-		data += num_to_string(response.getCode()) + ' ';
-		data += getCodeMessage(response.getCode()) + "\r\n";
-	}
-	{ // Headers
-		map<std::string, std::string> headers = response.getHeaders();
-
-		map_it it = headers.begin();
-		while (1) {
-			data += it->first + ": " + it->second;
-			++it;
-			if (it == headers.end())
-				break;
-			data += "\r\n";
-		}
-	}
-	{
-		if (response.getBody().empty())
-			return (data);
-		data += "\r\n" + response.getBody();
-	}
-	return (data);
-}
+#include <Response.hpp>
 
 const std::string getMimeType(const std::string &file) {
 	static map<std::string, std::string> types;

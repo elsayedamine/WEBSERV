@@ -4,6 +4,10 @@
 #include <vector>
 #include <iostream>
 #include <map>
+#include <ConfigBlock.hpp>
+#include <Response.hpp>
+#include <Parse.hpp>
+#include <ConfigBlock.hpp>
 
 using namespace std;
 
@@ -22,15 +26,19 @@ class Request {
 		string version;
 		multimap<string, string> headers; 
 		string body;
+		int headerCount;
 
 		ConfigBlock server;
 
 	public:
-		int headerCount;
-		Request() {};
-		Request(const string &m, const string &t, const string &v);
+		Parse parse;
+
+		Request();
+
 		void setHeader(const string &key, const string &value);
 		void setBody(const string &b);
+		void setServer(const ConfigBlock &server);
+
 		const string &getMethod() const;
 		Method getMethodEnum() const;
 		const string &getTarget() const;
@@ -39,10 +47,9 @@ class Request {
 		string getHeader(const string &key) const;
 		const string &getBody() const;
 
-		void parseRequest(string &data);
 		std::vector<ConfigBlock>::const_iterator getCandidate(const std::vector<ConfigBlock> &candidates) const;
-		Response processRequest() const;
-		int Request::validateRequest() const;
+		Response processRequest();
+		int validateRequest() const;
 		Response handleRequest(const vector<ConfigBlock> &locations) const;
 };
 

@@ -9,6 +9,7 @@
 #include <poll.h>
 #include <sys/epoll.h>
 #include <wait.h>
+#include <cstring>
 
 #include <Connection.hpp>
 
@@ -35,9 +36,10 @@ class Server
 		std::map<int, int> client_fd_to_port;
 		
 		void	SetupSockets();
-		int		accept_new_connection(int listener_fd);
+		int		acceptConnection(int listener_fd);
 		void	check_duplicate_servers(const ConfigBlock &new_server);
-		void	handleEvent(Connection &conn);
+		void	handleConnectionIO(int fd, int events);
+		void	handleCGIIO(int fd, int events);
 };
 
 #endif
