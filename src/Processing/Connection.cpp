@@ -48,4 +48,5 @@ void Server::handleConnectionIO(int fd, int events) {
 	// epoll_ctl(epoll_fd, EPOLL_CTL_DEL, connection.getFD(), NULL);
 	if (connection.response.getHeader("Connection") == "keep-alive")
 		close(connection.getFD());
+	// check call closeConnections() instead
 }

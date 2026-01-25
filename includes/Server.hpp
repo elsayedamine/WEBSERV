@@ -2,6 +2,8 @@
 # define SERVER_HPP
 
 #include <Configuration.hpp>
+#include <Connection.hpp>
+
 #include <sys/socket.h>
 #include <set>
 #include <fcntl.h>
@@ -11,7 +13,7 @@
 #include <wait.h>
 #include <cstring>
 
-#include <Connection.hpp>
+#define MAX_EVENTS 128
 
 class Server 
 {
@@ -34,9 +36,13 @@ class Server
 		std::map<int, std::vector<ConfigBlock> > config_map;
 		std::map<int, int> sockets_to_ports;
 		std::map<int, int> client_fd_to_port;
-		
+
+		epoll_event	event;
+		epoll_event	events[MAX_EVENTS];
+
 		void	SetupSockets();
 		int		acceptConnection(int listener_fd);
+		void	closeConnection(int index);
 		void	check_duplicate_servers(const ConfigBlock &new_server);
 		void	handleConnectionIO(int fd, int events);
 		void	handleCGIIO(int fd, int events);

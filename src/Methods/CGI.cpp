@@ -79,17 +79,21 @@ std::string CGI::handleCGI(const Request &request, const std::string &script, co
 		{ freeEnvp(); return std::string(""); }
 	if (pid == 0)
 	{
+		size_t last_slash = script.find_last_of("/");
+		std::string dir = (last_slash == std::string::npos) ? "." : script.substr(0, last_slash);
+		std::string file = (last_slash == std::string::npos) ? script : script.substr(last_slash + 1);
+
+		if (chdir(dir.c_str()) < 0) exit(1);
 		dup2(pipe_in[0], STDIN_FILENO);
 		dup2(pipe_out[1], STDOUT_FILENO);
 		close(pipe_in[0]); close(pipe_in[1]);
 		close(pipe_out[0]); close(pipe_out[1]);
-		char *argv[] = {(char *)interpret.c_str(), (char *)script.c_str(), NULL};
+		char *argv[] = {(char *)interpret.c_str(), (char *)file.c_str(), NULL};
 		execve(argv[0], argv, envp);
 		exit(1);
 	}
 	else
 	{
-		// check (use chhdir)
 		close(pipe_in[0]);
 		close(pipe_out[1]);
 

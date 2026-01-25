@@ -6,7 +6,7 @@
 #include <iostream>
 
 class Request;
-class ConfigBlock;
+struct ConfigBlock;
 
 class Response {
 	private: 
