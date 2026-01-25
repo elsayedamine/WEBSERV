@@ -2,6 +2,7 @@
 
 int Server::epoll_fd = -1;
 std::map<int, int> Server::pipe_to_client;
+std::vector<int> Server::cgi_pipe_ends;
 
 Server::Server(const Configuration & conf) : config(conf)
 {
@@ -69,7 +70,7 @@ void	Server::SetupSockets()
 		std::memset(&addr, 0, sizeof(addr));
 		addr.sin_family = AF_INET;
 		addr.sin_port = htons(port);
-		addr.sin_addr.s_addr = htonl(INADDR_ANY);
+		addr.sin_addr.s_addr = htonl(INADDR_ANY); // check
 
 		if (bind(sock, (struct sockaddr*)&addr, sizeof(addr)) < 0)
 			throw std::runtime_error("bind() failed.");
@@ -166,11 +167,11 @@ void	Server::run()
 			else if (events[i].events & (EPOLLERR | EPOLLRDHUP | EPOLLHUP))
 				closeConnection(i);
 			else if (pipe_to_client.count(curr))
-				handleCGIIO(curr, events[i].events);
+				handleCGIIO(i);
 			else
-				handleConnectionIO(curr, events[i].events);
+				handleConnectionIO(i);
 		}
 	}
-	// close(epoll_fd);
+	close(epoll_fd);
 	// std::cerr << "\nServers stopped\n";
 }

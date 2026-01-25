@@ -15,13 +15,16 @@ class CGI
 	private:
 		std::vector<std::string> variables;
 		char **envp;
+		// int pipe_in;
+		// int pipe_out;
+		// pid_t pid;
 	public:
-		CGI() {};
+		CGI() /*: pipe_in(-1), pipe_out(-1)*/ {};
 		~CGI() { freeEnvp(); };
-
 		const std::vector<std::string> &getVariables() const { return this->variables; }
-		std::string handleCGI(const Request &request, const std::string &script, const std::string &interpret);
-		void	CreateVariables(const Request &request, const std::string &script);
+
+		std::string handleCGI(const Request &, const std::string &, const std::string &);
+		void	CreateVariables(const Request &, const std::string &);
 		void	ConvertEnvp();
 		void 	freeEnvp();
 };

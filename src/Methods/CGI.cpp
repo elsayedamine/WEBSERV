@@ -102,25 +102,18 @@ std::string CGI::handleCGI(const Request &request, const std::string &script, co
 
 		// adding the pipe ends to the epoll()
 		struct epoll_event ev;
-		ev.events = EPOLLOUT; 
+		ev.events = EPOLLOUT;
 		ev.data.fd = pipe_in[1];
 		epoll_ctl(Server::epoll_fd, EPOLL_CTL_ADD, pipe_in[1], &ev);
 
 		ev.events = EPOLLIN;
 		ev.data.fd = pipe_out[0];
 		epoll_ctl(Server::epoll_fd, EPOLL_CTL_ADD, pipe_out[0], &ev);
-
-		// Server::pipe_to_client[pipe_in[1]] = Server::client_fd; // write
-		// Server::pipe_to_client[pipe_out[0]] = Server::client_fd; // read
+		Server::cgi_pipe_ends.push_back(pipe_in[1]);
+		Server::cgi_pipe_ends.push_back(pipe_in[0]);
 		// Server::pipe_to_pid[pipe_out[0]] = pid;
 
 		freeEnvp();
 		return "";
 	}
 }
-
-// major steps for cgi
-// variables creation
-// envp convertion
-// pipe + fork + execve(child)
-// non-block + epoll()

@@ -54,7 +54,7 @@ int Request::validateRequest() const {
 				return (411);
 			return (0);
 		}
-		// this line may be wrong later
+		// check this line may be wrong later
 		if ((long)body.length() > MAX_BODY)
 			return (413);
 		if (body.length() != (size_t)stringToInt(getHeader("Content-Length")))

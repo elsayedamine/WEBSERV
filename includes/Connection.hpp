@@ -6,6 +6,7 @@
 #include <Response.hpp>
 #include <ConfigBlock.hpp>
 #include <Parse.hpp>
+#include <CGI.hpp>
 
 class Connection {
 	private:
@@ -16,6 +17,7 @@ class Connection {
 		Parse parse;
 		Request request;
 		Response response;
+		CGI cgi;
 
 		Connection() {};
 		Connection(int fd) : fd(fd) {};

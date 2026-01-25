@@ -13,16 +13,17 @@ std::vector<ConfigBlock>::const_iterator Request::getCandidate(const std::vector
 	return candidates.end();
 }
 
-void Server::handleCGIIO(int fd, int events) {
-	(void)fd;
-	(void)events;
+void Server::handleCGIIO(int index) {
+	(void)index;
 }
 
-void Server::handleConnectionIO(int fd, int events) {
+void Server::handleConnectionIO(int index) {
+	int fd = events[index].data.fd;
+	int ev = events[index].events;
 	vector<ConfigBlock> candidates = config_map[client_fd_to_port[fd]];
 	Connection connection = connections[fd];
 
-	if (events & EPOLLIN) { // Read
+	if (ev & EPOLLIN) { // Read
 		char buffer[RSIZE];
 		ssize_t size = recv(fd, buffer, RSIZE, 0);
 		string data;
@@ -40,13 +41,11 @@ void Server::handleConnectionIO(int fd, int events) {
 		connection.response.processResponse(connection.request, *candidate);
 		connection.response.mkResponse();
 	}
-	if (events & EPOLLOUT) { // Write
+	if (ev & EPOLLOUT) { // Write
 		// check use send() instead
-		write(fd, connection.response.getData().c_str(), WSIZE);
-		connection.response.setData(connection.response.getData().substr(WSIZE));
+		ssize_t size = write(fd, connection.response.getData().c_str(), WSIZE);
+		connection.response.setData(connection.response.getData().substr(size));
 	}
-	// epoll_ctl(epoll_fd, EPOLL_CTL_DEL, connection.getFD(), NULL);
-	if (connection.response.getHeader("Connection") == "keep-alive")
-		close(connection.getFD());
-	// check call closeConnections() instead
+	if (connection.response.getHeader("Connection") != "keep-alive")
+		closeConnection(index);
 }

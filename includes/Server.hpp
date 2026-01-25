@@ -23,6 +23,7 @@ class Server
 		static int epoll_fd;
 
 		static std::map<int, int> pipe_to_client;
+		static std::vector<int> cgi_pipe_ends;
 		// static int client_fd;
 		// static std::map<int, pid_t> pipe_to_pid;
 		// static std::map<int, std::string> cgi_responses;
@@ -44,8 +45,8 @@ class Server
 		int		acceptConnection(int listener_fd);
 		void	closeConnection(int index);
 		void	check_duplicate_servers(const ConfigBlock &new_server);
-		void	handleConnectionIO(int fd, int events);
-		void	handleCGIIO(int fd, int events);
+		void	handleConnectionIO(int index);
+		void	handleCGIIO(int index);
 };
 
 #endif
