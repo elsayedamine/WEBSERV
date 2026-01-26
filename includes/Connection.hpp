@@ -10,8 +10,8 @@
 
 class Connection {
 	private:
-		int fd;
 		ConfigBlock server;
+		int fd;
 		
 	public:
 		Parse parse;

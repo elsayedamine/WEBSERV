@@ -10,24 +10,30 @@
 #include <poll.h>
 #include <sys/epoll.h>
 
+struct CGIHandle
+{
+	int in;
+	int out;
+	pid_t pid;
+};
+
 class CGI
 {
 	private:
 		std::vector<std::string> variables;
 		char **envp;
-		// int pipe_in;
-		// int pipe_out;
-		// pid_t pid;
+
 	public:
-		CGI() /*: pipe_in(-1), pipe_out(-1)*/ {};
+		CGI(){};
 		~CGI() { freeEnvp(); };
+
+		// Getters
 		const std::vector<std::string> &getVariables() const { return this->variables; }
 
-		std::string handleCGI(const Request &, const std::string &, const std::string &);
+		void	handleCGI(const Request &, const std::string &, const std::string &, int fd);
 		void	CreateVariables(const Request &, const std::string &);
 		void	ConvertEnvp();
 		void 	freeEnvp();
 };
-
 
 #endif

@@ -22,12 +22,9 @@ class Server
 		std::map<int, Connection> connections;
 		static int epoll_fd;
 
-		static std::map<int, int> pipe_to_client;
-		static std::vector<int> cgi_pipe_ends;
-		// static int client_fd;
-		// static std::map<int, pid_t> pipe_to_pid;
-		// static std::map<int, std::string> cgi_responses;
-		// std::map<int, size_t> pipe_write_offset;
+		static std::map<int, CGIHandle> cgi;
+		static std::map<int, int> connect;
+
 	public:
 		Server() {}
 		~Server() {} // clear the project ig && close fds
@@ -46,7 +43,7 @@ class Server
 		void	closeConnection(int index);
 		void	check_duplicate_servers(const ConfigBlock &new_server);
 		void	handleConnectionIO(int index);
-		void	handleCGIIO(int index);
+		void	handleCGIIO(int fd);
 };
 
 #endif

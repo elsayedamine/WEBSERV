@@ -65,7 +65,7 @@ void	CGI::ConvertEnvp()
 	}
 }
 
-std::string CGI::handleCGI(const Request &request, const std::string &script, const std::string &interpret)
+void CGI::handleCGI(const Request &request, const std::string &script, const std::string &interpret, int fd)
 {
 	CreateVariables(request, script);
 	ConvertEnvp();
@@ -73,10 +73,10 @@ std::string CGI::handleCGI(const Request &request, const std::string &script, co
 	int pipe_out[2];
 
 	if (pipe(pipe_in) < 0 || pipe(pipe_out) < 0)
-		{ freeEnvp(); return std::string(""); }
+		{ freeEnvp(); return ; }
 	pid_t pid = fork();
 	if (pid < 0)
-		{ freeEnvp(); return std::string(""); }
+		{ freeEnvp(); return ; }
 	if (pid == 0)
 	{
 		size_t last_slash = script.find_last_of("/");
@@ -109,11 +109,13 @@ std::string CGI::handleCGI(const Request &request, const std::string &script, co
 		ev.events = EPOLLIN;
 		ev.data.fd = pipe_out[0];
 		epoll_ctl(Server::epoll_fd, EPOLL_CTL_ADD, pipe_out[0], &ev);
-		Server::cgi_pipe_ends.push_back(pipe_in[1]);
-		Server::cgi_pipe_ends.push_back(pipe_in[0]);
-		// Server::pipe_to_pid[pipe_out[0]] = pid;
+
+		Server::cgi[fd].in = pipe_out[0];
+		Server::cgi[fd].out = pipe_in[1];
+		Server::cgi[fd].pid = pid;
+		Server::connect[pipe_out[0]] = fd;
+		Server::connect[pipe_in[1]] = fd;
 
 		freeEnvp();
-		return "";
 	}
 }

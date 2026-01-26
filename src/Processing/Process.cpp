@@ -37,6 +37,8 @@ Response Request::handleRequest(const vector<ConfigBlock> &locations) const {
 			return (handleReturn(location->ret));
 		path = location->root + "/" + target.substr(location->prefix.size());
 	}
+	// if (cgi)
+	//	connection.cgi.handleCGI(request, script, interpreter, fd);
 	switch (getMethodEnum()) {
 		case GET:
 			response = handleGet(path, *location); break;
