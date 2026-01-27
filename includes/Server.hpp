@@ -44,6 +44,9 @@ class Server
 		void	check_duplicate_servers(const ConfigBlock &new_server);
 		void	handleConnectionIO(int index);
 		void	handleCGIIO(int fd);
+		void	handleCGIWrite(int pipe_fd);
+		void	handleCGIRead(int pipe_fd);
+		
 };
 
 #endif

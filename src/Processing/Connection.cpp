@@ -13,47 +13,51 @@ std::vector<ConfigBlock>::const_iterator Request::getCandidate(const std::vector
 	return candidates.end();
 }
 
-void handleCGIWrite(int pipe_fd)
+void Server::handleCGIWrite(int pipe_fd)
 {
-	(void)pipe_fd;
-// 	int client_fd = Server::pipe_to_client[pipe_fd];
-// 	// write request body to CGI stdin
-// 	ssize_t n = write(pipe_fd,
-// 					Server::client_body[client_fd].data(),
-// 					Server::client_body[client_fd].size());
-// 	if (n > 0)
-// 	{
-// 		// remove written part
-// 		Server::client_body[client_fd].erase(0, n);
-// 		if (Server::client_body[client_fd].empty())
-// 		{
-// 			close(pipe_fd);
-// 			epoll_ctl(Server::epoll_fd, EPOLL_CTL_DEL, pipe_fd, NULL);
-// 		}
-// 	}
-}
+	int client_fd = Server::connect[pipe_fd];
 
-string handleCGIRead(int pipe_fd)
+	Request &req = connections[client_fd].request;
+	std::string body = req.getBody(); 
+
+	if (!body.empty())
+	{
+		ssize_t n = write(pipe_fd, body.c_str(), body.size());
+		if (n > 0)
+			req.setBody(body.substr(n));
+	}
+
+	if (req.getBody().empty())
+	{
+		epoll_ctl(Server::epoll_fd, EPOLL_CTL_DEL, pipe_fd, NULL);
+		close(pipe_fd);
+	}
+}
+void Server::handleCGIRead(int pipe_fd)
 {
-	(void)pipe_fd;
-// 	string output;
-// 	char buf[4096];
-// 	int client_fd = Server::pipe_to_client[pipe_fd];
-// 	ssize_t n = read(pipe_fd, buf, sizeof(buf));
-// 	if (n > 0)
-// 	{
-// 		Server::cgi_output[client_fd].append(buf, n);
-// 	}
-// 	else if (n == 0)
-// 	{
-// 		close(pipe_fd);
-// 		epoll_ctl(Server::epoll_fd, EPOLL_CTL_DEL, pipe_fd, NULL);
-// 		pid_t pid = Server::pipe_to_pid[pipe_fd];
-// 		waitpid(pid, NULL, WNOHANG);
-// 		// now CGI response is complete
-// 		// build_http_response(client_fd);
-// 	}
-	return std::string(); 
+	int client_fd = Server::connect[pipe_fd];
+	char buf[RSIZE];
+	ssize_t n = read(pipe_fd, buf, RSIZE);
+
+	if (n > 0)
+	{
+		std::string currentBody = connections[client_fd].response.getBody();
+		currentBody.append(buf, n);
+		connections[client_fd].response.setBody(currentBody);
+	}
+	else if (n == 0)
+	{
+		epoll_ctl(Server::epoll_fd, EPOLL_CTL_DEL, pipe_fd, NULL);
+		close(pipe_fd);
+		waitpid(Server::cgi[client_fd].pid, NULL, WNOHANG);
+
+		connections[client_fd].response.mkResponse(); // change the place
+
+		int pipe_in = Server::cgi[client_fd].in;
+		Server::connect.erase(pipe_fd);
+		Server::connect.erase(pipe_in);
+		Server::cgi.erase(client_fd);
+	}
 }
 
 void	Server::handleCGIIO(int fd)
@@ -92,6 +96,9 @@ void Server::handleConnectionIO(int index) {
 		connection.response.processResponse(connection.request, *candidate);
 		connection.response.mkResponse();
 		// how can you make a response while the cgi is not finished processing yet which is the body of the response
+		// u need to wait for cgi (check if there is cgi and if yes u should wait for it to finish processing and reading)
+		// if (connection.request.isCGI())
+            // return; // get the fuck out and wait for the pipe to finish IO
 	}
 	if (ev & EPOLLOUT) { // Write
 		// check use send() instead
