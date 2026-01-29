@@ -17,7 +17,11 @@ pair<string, int> processPath(const string &path, const ConfigBlock &location);
 const ConfigBlock *findLocation(const vector<ConfigBlock> &locations, const string &target);
 bool normalizeTarget(string &target);
 bool compare(const ConfigBlock &a, const ConfigBlock &b);
+// Methods' Handlers
 Response handleGet(const string &path, const ConfigBlock &location);
 Response handlePost(const Request &request, const string &path, const ConfigBlock &location);
+Response handlePut(const Request &req, const std::string &path);
+Response handleDelete(const std::string &path);
+
 
 #endif

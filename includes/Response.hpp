@@ -11,20 +11,21 @@ struct ConfigBlock;
 class Response {
 	private: 
 		int code;
+		int ready;
 		std::map<std::string, std::string> headers;   
 		std::string body;
-		int ready;
 		std::string data;
 
 	public:
 		// Constructor
-		Response() : ready(0) {}
+		Response() : code (200), ready(0) {}
 		Response(int c) : code(c), ready(0) {}
 		
 		// Setters
 		void setHeader(const std::string& key, const std::string& value);
 		void setBody(const std::string& b);
 		void setData(const std::string& d);
+		void setStatus(int);
 		
 		// Getters
 		int isReady() const;

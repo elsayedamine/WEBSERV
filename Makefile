@@ -9,6 +9,8 @@ SRC:= src/Config/ConfigBlock.cpp \
 	src/Methods/CGI.cpp \
 	src/Methods/Post.cpp \
 	src/Methods/Get.cpp \
+	src/Methods/Delete.cpp \
+	src/Methods/Put.cpp \
 	src/Methods/Utils.cpp \
 	src/Processing/Connection.cpp \
 	src/Processing/PreProcess.cpp \

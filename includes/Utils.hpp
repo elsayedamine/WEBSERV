@@ -9,7 +9,5 @@ std::string num_to_string(std::size_t num);
 int stringToInt(std::string str);
 std::string	strtrim(const std::string &s);
 
-// printing
-std::ostream &operator<<(std::ostream &os, const Request &req);
 
 #endif

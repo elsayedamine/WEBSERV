@@ -7,6 +7,7 @@
 #include <vector>
 #include <string>
 #include <cctype>
+#include <Utils.hpp>
 
 typedef std::string str;
 typedef std::vector<std::string>::const_iterator string_it;
@@ -42,10 +43,6 @@ class Directive {
 		void				PrintDirective(int indent) const ;
 		static	Directive	DirectiveBuilder(string_it &it, const string_it &end);
 };
-
-// helper functions
-std::string	strtrim(const std::string &s);
-std::string	num_to_string(std::size_t num);
 
 class ConfigException : public std::exception
 {

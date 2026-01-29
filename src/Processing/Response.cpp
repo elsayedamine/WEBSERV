@@ -10,6 +10,8 @@ void Response::setHeader(const std::string& key, const std::string& value) {
 
 void Response::setBody(const std::string& b) { body = b; }
 
+void Response::setStatus(int c) { code = c; }
+
 void Response::setData(const std::string& d) { data = d; }
 
 int Response::isReady() const { return ready; }
