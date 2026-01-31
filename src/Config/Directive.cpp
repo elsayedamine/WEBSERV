@@ -1,35 +1,67 @@
 #include <Directive.hpp>
 
-std::string AddSpacesAroundDelimiters(const std::string &str)
+std::vector<std::string> tokenizer(const std::string &content)
 {
-	std::string result;
-	std::string delimiters = "{};";
+	bool in_single = false;
+	bool in_double = false;
+	std::string current;
+	std::vector<std::string> tokens;
 
-	for (std::size_t i = 0; i < str.size(); ++i) {
-		char c = str[i];
-		if (delimiters.find(c) != std::string::npos)
+	for (std::size_t i = 0; i < content.size(); ++i)
+	{
+		char c = content[i];
+		if (c == '\'' && !in_double)
+			{ in_single = !in_single; continue; }
+		if (c == '"' && !in_single)
+			{ in_double = !in_double; continue; }
+		if (c == '\n' && (in_single || in_double))
+			throw std::runtime_error("Newline inside unclosed quote.");
+		if (!in_single && !in_double)
 		{
-			result += ' ';
-			result += c;
-			result += ' ';
+			if (std::isspace(static_cast<unsigned char>(c))) {
+				if (!current.empty())
+					{ tokens.push_back(current); current.clear(); }
+			}
+			else if (c == '{' || c == '}' || c == ';') {
+				if (!current.empty()) {
+					tokens.push_back(current); current.clear(); }
+				tokens.push_back(std::string(1, c));
+			}
+			else
+				current += c;
 		}
 		else
-			result += c;
+			current += c;
 	}
-	return result;
+	if (!current.empty())
+		tokens.push_back(current);
+	if (in_single)
+		throw std::runtime_error("Unclosed single quote in config file.");
+	if (in_double)
+		throw std::runtime_error("Unclosed double quote in config file.");
+	return tokens;
 }
 
-std::vector<std::string> tokenizer(const std::string &str)
+std::string strip_comments(const std::string& s)
 {
-	std::string spaced_str = AddSpacesAroundDelimiters(str);
-	std::stringstream ss(spaced_str);
-	std::vector<std::string> tokens;
-	std::string token;
+	bool	in_single = false;
+	bool	in_double = false;
+	std::string out;
 
-	while (ss >> token)
-		tokens.push_back(token);
-
-	return tokens;
+	for (size_t i = 0; i < s.size(); i++)
+	{
+		char c = s[i];
+		if (c == '\'' && !in_double) in_single = !in_single;
+		else if (c == '"' && !in_single) in_double = !in_double;
+		else if (c == '#' && !in_single && !in_double)
+		{
+			while (i < s.size() && s[i] != '\n') i++;
+			out += '\n';
+			continue;
+		}
+		out += c;
+	}
+	return out;
 }
 
 Directive	Directive::DirectiveBuilder(string_it &it, const string_it &end)
@@ -113,11 +145,15 @@ Directive::Directive(const char *conf)
 	}
 
 	std::stringstream buffer;
-	std::string	content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-	std::vector<std::string> tokens = tokenizer(content);
+	std::vector<std::string> tokens;
+	string_it it;
+
+	std::string	content((bufIt(file)), bufIt());
+	strip_comments(content);
+	tokens = tokenizer(content);
 	ValidateTokens(tokens);
 
-	string_it it = tokens.begin();
+	it = tokens.begin();
 	*this = DirectiveBuilder(it, tokens.end());
 	this->name = "Main";
 }

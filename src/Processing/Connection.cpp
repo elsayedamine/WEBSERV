@@ -99,7 +99,7 @@ void Server::handleConnectionIO(int index) {
 		// u need to wait for cgi (check if there is cgi and if yes u should wait for it to finish processing and reading)
 		// TL;DR u cant make response here like that 
 		// if (connection.request.isCGI())
-            // return; // get the fuck out and wait for the pipe to finish IO
+			// return; // get the fuck out and wait for the pipe to finish IO
 	}
 	if (ev & EPOLLOUT) { // Write
 		const std::string& data = connection.response.getData();

@@ -14,6 +14,7 @@
 
 typedef std::string str;
 typedef std::vector<std::string>::const_iterator string_it;
+typedef std::istreambuf_iterator<char> bufIt;
 
 class Directive {
 	private:
