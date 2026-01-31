@@ -31,6 +31,7 @@ class Parse {
 		std::string current;
 		int state;
 		success status;
+		int cr;
 	
 	public:
 		Parse();
@@ -38,8 +39,9 @@ class Parse {
 		void parseMethod();
 		void parseTarget();
 		void parseVersion();
-		void parseHeaders();
+		void parseHeader();
 		void parseBody();
+		int checkNL(size_t &i);
 };
 
 typedef void (Parse::*stateHandler)();

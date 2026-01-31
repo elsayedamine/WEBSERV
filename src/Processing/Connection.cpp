@@ -75,7 +75,7 @@ void Server::handleConnectionIO(int index) {
 	int fd = events[index].data.fd;
 	int ev = events[index].events;
 	vector<ConfigBlock> candidates = config_map[client_fd_to_port[fd]];
-	Connection connection = connections[fd];
+	Connection &connection = connections[fd];
 
 	if (ev & EPOLLIN) { // Read
 		char buffer[RSIZE];
@@ -90,8 +90,12 @@ void Server::handleConnectionIO(int index) {
 		std::vector<ConfigBlock>::const_iterator candidate;
 
 		candidate = connection.request.getCandidate(candidates);
-		connection.request.setServer(*candidate);
-		connection.response = (candidate == candidates.end()) ? Response(400) : connection.request.processRequest();
+		if (candidate == candidates.end()) {
+			connection.response = Response(400);
+		} else {
+			connection.request.setServer(*candidate);
+			connection.response = connection.request.processRequest();
+		}
 		// after this step we need to fill the cgi within the connection class
 		connection.response.processResponse(connection.request, *candidate);
 		connection.response.mkResponse();
@@ -102,9 +106,12 @@ void Server::handleConnectionIO(int index) {
 			// return; // get the fuck out and wait for the pipe to finish IO
 	}
 	if (ev & EPOLLOUT) { // Write
-		const std::string& data = connection.response.getData();
-		ssize_t sent = send(fd, data.c_str(), std::min((size_t)WSIZE, data.size()), MSG_NOSIGNAL); // prtct frm clnt dcxn
-		if (sent > 0) connection.response.setData(data.substr(sent));
+		const std::string &data = connection.response.getData();
+		if (!data.empty()) {
+			ssize_t size = write(fd, data.c_str(), std::min(static_cast<size_t>(WSIZE), data.size()));
+			if (size > 0)
+				connection.response.setData(data.substr(size));
+		}
 	}
 	if (connection.response.getData().empty() && connection.response.getHeader("Connection") != "keep-alive") { // Close
 		closeConnection(index);

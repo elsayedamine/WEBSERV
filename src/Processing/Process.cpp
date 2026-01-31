@@ -45,10 +45,9 @@ Response Request::handleRequest(const vector<ConfigBlock> &locations) const {
 		case POST:
 			response = handlePost(*this, path, *location); break;
 		case PUT:
-			response = handlePut(*this, path);
+			response = handlePut(*this, path); break;
 		case DELETE:
-			response = handleDelete(path);
-
+			response = handleDelete(path); break;
 		default:
 			response = Response(501);
 	}
