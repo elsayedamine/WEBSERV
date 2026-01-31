@@ -5,17 +5,35 @@
 #include <sstream>
 #include <iostream>
 
+std::string check_configfile(int ac, char **av)
+{
+	std::string ConfigFile = "testing/webserv.conf";
+	std::string filename;
+
+	if (ac > 2)
+		{ std::cerr << "Usage: " << av[0] << " [config_file.conf]" << std::endl; return ""; }
+	else
+	{
+		filename = (ac == 2) ? av[1] : ConfigFile;
+		size_t dotPos = filename.find_last_of('.');
+		if (dotPos == std::string::npos || filename.substr(dotPos) != ".conf")
+			{ std::cerr << "Error: File '" + filename + "' must have a .conf extension.\n"; return ""; }
+		std::ifstream file(filename.c_str());
+		if (!file.good())
+			{ std::cerr << "Error: Cannot open file '" + filename + "'."; return ""; }
+	}
+
+	return filename;
+}
+
 int main(int ac, char **av)
 {
-	// check (extension)
-	std::string ConfigFile = "testing/webserv.conf";
-	if (ac == 2)
-		ConfigFile = av[1];
-	else if (ac > 2)
-		{ std::cerr << "Usage: " << av[0] << " [config_file.conf]" << std::endl; return 1; }
+	std::string filename; 
+	if ((filename = check_configfile(ac, av)) == "")
+		return EXIT_FAILURE;
 
 	Directive Dir;
-	try { Dir =  Directive(ConfigFile.c_str()); }
+	try { Dir =  Directive(filename.c_str()); }
 	catch (std::exception &e) { std::cerr << e.what() << std::endl; return 1; }
 
 	Configuration Conf;

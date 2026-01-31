@@ -9,6 +9,9 @@
 #include <cctype>
 #include <Utils.hpp>
 
+# define TRUE 1
+# define FALSE 0
+
 typedef std::string str;
 typedef std::vector<std::string>::const_iterator string_it;
 

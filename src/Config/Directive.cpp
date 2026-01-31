@@ -82,7 +82,7 @@ void	ValidateTokens(const std::vector<std::string> &tokens)
 				throw ConfigException("Missing ';' before '}' .");
 			if (brace_stack.empty())
 				throw ConfigException("Unexpected '}' .");
-			// if (i > 0 && tokens[i - 1] == "{")
+			// check if (i > 0 && tokens[i - 1] == "{")
 			// 	throw ConfigException("Empty block '{}' is not allowed .");
 			state = EXPECT_DIRECTIVE;
 			brace_stack.pop_back();
@@ -107,16 +107,14 @@ Directive::Directive(const char *conf)
 	std::ifstream file(conf);
 	if (!file.is_open())
 	{
-		std::string file(conf);
-		std::string error = str("Failed to open config file: ") + file;
+		std::string fil(conf);
+		std::string error = str("Failed to open config file: ") + fil;
 		throw std::runtime_error(error);
 	}
 
 	std::stringstream buffer;
 	std::string	content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-
 	std::vector<std::string> tokens = tokenizer(content);
-
 	ValidateTokens(tokens);
 
 	string_it it = tokens.begin();
