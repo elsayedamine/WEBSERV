@@ -134,5 +134,5 @@ void	Server::run()
 		}
 	}
 	close(epoll_fd);
-	// std::cerr << "\nServers stopped\n";
+	std::cerr << "\nServer stopped\n";
 }

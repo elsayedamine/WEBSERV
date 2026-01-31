@@ -101,6 +101,7 @@ void Server::handleConnectionIO(int index) {
 		connection.response.mkResponse();
 		// how can you make a response while the cgi is not finished processing yet which is the body of the response
 		// u need to wait for cgi (check if there is cgi and if yes u should wait for it to finish processing and reading)
+		// TL;DR u cant make response here like that 
 		// if (connection.request.isCGI())
             // return; // get the fuck out and wait for the pipe to finish IO
 	}
@@ -112,7 +113,7 @@ void Server::handleConnectionIO(int index) {
 				connection.response.setData(data.substr(size));
 		}
 	}
-	if (connection.response.getHeader("Connection") != "keep-alive") { // Close
+	if (connection.response.getData().empty() && connection.response.getHeader("Connection") != "keep-alive") { // Close
 		closeConnection(index);
 	}
 }
