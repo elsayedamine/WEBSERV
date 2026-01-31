@@ -97,15 +97,16 @@ void Server::handleConnectionIO(int index) {
 		connection.response.mkResponse();
 		// how can you make a response while the cgi is not finished processing yet which is the body of the response
 		// u need to wait for cgi (check if there is cgi and if yes u should wait for it to finish processing and reading)
+		// TL;DR u cant make response here like that 
 		// if (connection.request.isCGI())
             // return; // get the fuck out and wait for the pipe to finish IO
 	}
 	if (ev & EPOLLOUT) { // Write
-		// check use send() instead
-		ssize_t size = write(fd, connection.response.getData().c_str(), WSIZE);
-		connection.response.setData(connection.response.getData().substr(size));
+		const std::string& data = connection.response.getData();
+		ssize_t sent = send(fd, data.c_str(), std::min((size_t)WSIZE, data.size()), MSG_NOSIGNAL); // prtct frm clnt dcxn
+		if (sent > 0) connection.response.setData(data.substr(sent));
 	}
-	if (connection.response.getHeader("Connection") != "keep-alive") { // Close
+	if (connection.response.getData().empty() && connection.response.getHeader("Connection") != "keep-alive") { // Close
 		closeConnection(index);
 	}
 }
