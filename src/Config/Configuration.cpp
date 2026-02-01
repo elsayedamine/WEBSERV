@@ -22,6 +22,9 @@ void	fill_errors(std::map<e_error, std::string> &error)
 	error[ERROR_INVALID_UPLOAD_PATH] = "ERROR_INVALID_UPLOAD_PATH";
 	error[ERROR_INVALID_UPLOAD_STATE] = "ERROR_INVALID_UPLOAD_STATE";
 	error[ERROR_INVALID_KEY_IN_LOCATION] = "ERROR_INVALID_KEY_IN_LOCATION";
+	error[ERROR_MISSING_LISTEN] = "ERROR_MISSING_LISTEN";
+	error[ERROR_MISSING_SERVER_NAME] = "ERROR_MISSING_SERVER_NAME";
+	error[ERROR_MISSING_ROOT] = "ERROR_MISSING_ROOT";
 }
 
 void	fill_server_keys(std::map<std::string, Validators> &server_keys)

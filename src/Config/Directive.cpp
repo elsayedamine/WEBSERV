@@ -11,9 +11,9 @@ std::vector<std::string> tokenizer(const std::string &content)
 	{
 		char c = content[i];
 		if (c == '\'' && !in_double)
-			{ in_single = !in_single; continue; }
+			{ in_single = !in_single; current += c; continue; }
 		if (c == '"' && !in_single)
-			{ in_double = !in_double; continue; }
+			{ in_double = !in_double; current += c; continue; }
 		if (c == '\n' && (in_single || in_double))
 			throw std::runtime_error("Newline inside unclosed quote.");
 		if (!in_single && !in_double)
@@ -42,26 +42,26 @@ std::vector<std::string> tokenizer(const std::string &content)
 	return tokens;
 }
 
-std::string strip_comments(const std::string& s)
+void	strip_comments(std::string& content)
 {
 	bool	in_single = false;
 	bool	in_double = false;
 	std::string out;
 
-	for (size_t i = 0; i < s.size(); i++)
+	for (size_t i = 0; i < content.size(); i++)
 	{
-		char c = s[i];
+		char c = content[i];
 		if (c == '\'' && !in_double) in_single = !in_single;
 		else if (c == '"' && !in_single) in_double = !in_double;
 		else if (c == '#' && !in_single && !in_double)
 		{
-			while (i < s.size() && s[i] != '\n') i++;
+			while (i < content.size() && content[i] != '\n') i++;
 			out += '\n';
 			continue;
 		}
 		out += c;
 	}
-	return out;
+	content = out;
 }
 
 Directive	Directive::DirectiveBuilder(string_it &it, const string_it &end)

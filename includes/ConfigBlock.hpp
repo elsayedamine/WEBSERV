@@ -23,13 +23,18 @@ enum e_error {
 	ERROR_INVALID_PREFIX, ERROR_INVALID_RETURN,
 	ERROR_INVALID_CGI, ERROR_INVALID_AUTOINDEX,
 	ERROR_INVALID_UPLOAD_PATH, ERROR_INVALID_UPLOAD_STATE,
-	ERROR_INVALID_KEY_IN_LOCATION
+	ERROR_INVALID_KEY_IN_LOCATION,
+	ERROR_MISSING_LISTEN, ERROR_MISSING_SERVER_NAME,
+	ERROR_MISSING_ROOT,
 };
 
 struct ConfigBlock
 {
 	e_error	err;
-
+	// --- Mandatory members --- //
+	bool has_listen;
+	bool has_root;
+	bool has_server_name;
 	// --- Server-Only ---
 	unsigned short	port;
 	std::string		host;
@@ -50,8 +55,10 @@ struct ConfigBlock
 	// --- For Nesting ---
 	std::vector<ConfigBlock> locations; 
 
-	ConfigBlock() : err((e_error)0), port(0), autoindex(-1), upload_enable(-1), client_max_body_size(-1) {}
+	ConfigBlock() : err((e_error)0), port(0), autoindex(-1), upload_enable(-1), client_max_body_size(-1), \
+					has_listen(false), has_root(false), has_server_name(false) {}
 	ConfigBlock(const Directive &);
+	void applyDefaultsToLocations();
 };
 
 ConfigBlock	validate_listen(const Directive &);
