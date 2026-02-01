@@ -1,5 +1,6 @@
 #include <Server.hpp>
 
+int serverRunning = 1;
 int Server::epoll_fd = -1;
 std::map<int, CGIHandle> Server::cgi;
 std::map<int, int> Server::connect;
@@ -116,7 +117,7 @@ void Server::closeConnection(int index)
 void	Server::run()
 {
 	std::cout << "WebServer is running..." << std::endl;
-	while (1)
+	while (serverRunning)
 	{
 		int nevents = epoll_wait(epoll_fd, events, MAX_EVENTS, 3000);
 		if (nevents < 0) continue;

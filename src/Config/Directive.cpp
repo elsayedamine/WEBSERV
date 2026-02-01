@@ -1,5 +1,17 @@
 #include <Directive.hpp>
 
+void	handler(int signum)
+{
+	(void)signum;
+	serverRunning = false;
+	std::cout << "\n";
+}
+void	initSignals()
+{
+	signal(SIGINT, handler);
+	signal(SIGQUIT, SIG_IGN);
+}
+
 std::vector<std::string> tokenizer(const std::string &content)
 {
 	bool in_single = false;

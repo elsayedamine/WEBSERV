@@ -32,6 +32,7 @@ int main(int ac, char **av)
 	if ((filename = check_configfile(ac, av)) == "")
 		return EXIT_FAILURE;
 
+	initSignals();
 	Directive Dir;
 	try { Dir =  Directive(filename.c_str()); }
 	catch (std::exception &e) { std::cerr << e.what() << std::endl; return 1; }

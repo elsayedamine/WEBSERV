@@ -1,6 +1,7 @@
 #ifndef DIRECTIVE_HPP
 # define DIRECTIVE_HPP
 
+#include <signal.h>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -63,5 +64,8 @@ enum NextState {
 	EXPECT_DIRECTIVE,
 	EXPECT_TERMINATOR_OR_VALUE
 };
+
+extern int serverRunning;
+void	initSignals();
 
 #endif
