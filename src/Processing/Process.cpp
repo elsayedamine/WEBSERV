@@ -22,11 +22,11 @@ Response Request::handleRequest(const vector<ConfigBlock> &locations) const {
 	string path;
 	
 	{ // Resolve path
-		string target = target;
+		string tar = target;
 
 		stable_sort(locations.begin(), locations.end(), compare);
-		normalizeTarget(target);
-		location = findLocation(locations, target);
+		normalizeTarget(tar);
+		location = findLocation(locations, tar);
 		if (!location)
 			return (Response(404));
 		if (location->root.empty())
@@ -35,7 +35,7 @@ Response Request::handleRequest(const vector<ConfigBlock> &locations) const {
 			return (405);
 		if (location->ret.first)
 			return (handleReturn(location->ret));
-		path = location->root + "/" + target.substr(location->prefix.size());
+		path = location->root + "/" + tar.substr(location->prefix.size());
 	}
 	// if (cgi)
 	//	connection.cgi.handleCGI(request, script, interpreter, fd);
@@ -110,9 +110,9 @@ Response Request::processRequest() {
 	int invalid;
 	Response response;
 
-	invalid = validateRequest();
-	if (invalid)
-		return (Response(invalid));
+	// invalid = validateRequest();
+	// if (invalid)
+	// 	return (Response(invalid));
 
 	response = handleRequest(server.locations);
 	return (response);

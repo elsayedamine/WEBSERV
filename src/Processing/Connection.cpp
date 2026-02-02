@@ -74,18 +74,21 @@ void	Server::handleCGIIO(int fd)
 void Server::handleConnectionIO(int index) {
 	int fd = events[index].data.fd;
 	int ev = events[index].events;
-	vector<ConfigBlock> candidates = config_map[client_fd_to_port[fd]];
 	Connection &connection = connections[fd];
+	std::vector<ConfigBlock> candidates = connection.getServers();
 
 	if (ev & EPOLLIN) { // Read
 		char buffer[RSIZE];
-		ssize_t size = recv(fd, buffer, RSIZE, 0);
 		string data;
+		ssize_t size = recv(fd, buffer, RSIZE, 0);
+		if (size < 0)
+			return closeConnection(index);
 		
 		buffer[size] = 0;
 		data = string(buffer);
 		connection.parse(data);
 		connection.request = connection.parse.getRequest();
+		std::cout << connection.request.getTarget() << std::endl;
 	}
 	if (connection.request.isReady()) { // Process 
 		std::vector<ConfigBlock>::const_iterator candidate;
@@ -100,6 +103,11 @@ void Server::handleConnectionIO(int index) {
 		// after this step we need to fill the cgi within the connection class
 		connection.response.processResponse(connection.request, *candidate);
 		connection.response.mkResponse();
+		struct epoll_event ev;
+		ev.data.fd = fd;
+		ev.events = EPOLLIN | EPOLLOUT | EPOLLRDHUP | EPOLLHUP;
+		epoll_ctl(epoll_fd, EPOLL_CTL_MOD, fd, &ev);
+		connection.request.setReady(0);
 		// how can you make a response while the cgi is not finished processing yet which is the body of the response
 		// u need to wait for cgi (check if there is cgi and if yes u should wait for it to finish processing and reading)
 		// TL;DR u cant make response here like that 
@@ -112,9 +120,21 @@ void Server::handleConnectionIO(int index) {
 			ssize_t size = write(fd, data.c_str(), std::min(static_cast<size_t>(WSIZE), data.size()));
 			if (size > 0)
 				connection.response.setData(data.substr(size));
+			if (size < 0)
+				closeConnection(index);	
+		}
+		if (connection.response.getData().empty()) {
+			struct epoll_event ev;
+			ev.data.fd = fd;
+			ev.events = EPOLLIN | EPOLLRDHUP | EPOLLHUP;
+			epoll_ctl(epoll_fd, EPOLL_CTL_MOD, fd, &ev);
+			// if (connection.response.getHeader("Connection") != "keep-alive")
+			closeConnection(index);
+			// else
+				// connection.reset();
 		}
 	}
-	if (connection.response.getData().empty() && connection.response.getHeader("Connection") != "keep-alive") { // Close
-		closeConnection(index);
-	}
+	// if (connection.response.getData().empty() && connection.response.getHeader("Connection") != "keep-alive") { // Close
+	// 	closeConnection(index);
+	// }
 }

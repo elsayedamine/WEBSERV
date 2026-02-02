@@ -92,7 +92,7 @@ int	Server::acceptConnection(int listener)
 
 	fcntl(client, F_SETFL, O_NONBLOCK);
 	struct epoll_event client_event;
-	client_event.events = EPOLLIN | EPOLLRDHUP | EPOLLHUP | EPOLLOUT;
+	client_event.events = EPOLLIN | EPOLLRDHUP | EPOLLHUP;
 	client_event.data.fd = client;
 	if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client, &client_event) < 0) {
 		std::cerr << "Failed to add client to epoll" << std::endl;
@@ -103,8 +103,9 @@ int	Server::acceptConnection(int listener)
 	std::cout << "New connection on FD: " << client << std::endl;
 	int port = sockets_to_ports[listener];
 	this->client_fd_to_port[client] = port;
+	connections[client].setFD(client);
+	connections[client].setServers(config_map[port]);
 	return (true);
-	// check (add the connection class to the map fd->connection)
 }
 
 void Server::closeConnection(int index)
@@ -120,7 +121,8 @@ void	Server::run()
 	while (serverRunning)
 	{
 		int nevents = epoll_wait(epoll_fd, events, MAX_EVENTS, 3000);
-		if (nevents < 0) continue;
+		if (nevents <= 0)
+			continue;
 		for (int i = 0; i < nevents; ++i)
 		{
 			int curr = events[i].data.fd;

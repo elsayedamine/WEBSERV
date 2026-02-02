@@ -10,7 +10,7 @@
 
 class Connection {
 	private:
-		ConfigBlock server;
+		std::vector<ConfigBlock> servers;
 		int fd;
 		
 	public:
@@ -25,7 +25,8 @@ class Connection {
 
 		int getFD() const { return fd; }
 		void setFD(int fd) { this->fd = fd; }
-		const ConfigBlock &getServer() const { return server; }
+		void setServers(const std::vector<ConfigBlock> &s) { servers = s; }
+		const std::vector<ConfigBlock> &getServers() const { return servers; }
 };
 
 #endif
