@@ -12,6 +12,7 @@ Response handleDelete(const std::string &path)
 		return resp;
 	}
 
+	// check (error message and code are in the header, not body)
 	switch (errno)
 	{
 		case ENOENT:

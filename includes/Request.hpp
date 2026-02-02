@@ -23,6 +23,7 @@ class Request {
 		std::multimap<std::string, std::string> headers; 
 		std::string body;
 		int headerCount;
+		bool ready;
 
 		ConfigBlock server;
 
@@ -35,6 +36,7 @@ class Request {
 		void setMethod(const std::string &m);
 		void setTarget(const std::string &t);
 		void setVersion(const std::string &v);
+		void setReady(bool r);
 
 		const std::string &getMethod() const;
 		Method getMethodEnum() const;
@@ -43,6 +45,7 @@ class Request {
 		const std::multimap<std::string, std::string> &getHeaders() const;
 		std::string getHeader(const std::string &key) const;
 		const std::string &getBody() const;
+		bool isReady() const;
 
 		std::vector<ConfigBlock>::const_iterator getCandidate(const std::vector<ConfigBlock> &candidates) const;
 		Response processRequest();
@@ -52,5 +55,7 @@ class Request {
 
 typedef std::multimap<std::string, std::string>::const_iterator mmap_it;
 typedef std::map<std::string, std::string>::const_iterator map_it;
+
+std::ostream& operator<<(std::ostream& os, const Request& req);
 
 #endif

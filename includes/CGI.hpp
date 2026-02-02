@@ -24,7 +24,7 @@ class CGI
 		char **envp;
 
 	public:
-		CGI(){};
+		CGI() : envp(NULL) {};
 		~CGI() { freeEnvp(); };
 
 		// Getters

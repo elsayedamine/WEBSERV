@@ -5,7 +5,7 @@
 #include <Request.hpp>
 #include <Response.hpp>
 #include <ConfigBlock.hpp>
-#include <Parse.hpp>
+#include <Parser.hpp>
 #include <CGI.hpp>
 
 class Connection {
@@ -14,7 +14,7 @@ class Connection {
 		int fd;
 		
 	public:
-		Parse parse;
+		Parser parse;
 		Request request;
 		Response response;
 		CGI cgi;

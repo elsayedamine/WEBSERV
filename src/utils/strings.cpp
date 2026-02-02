@@ -18,9 +18,16 @@ std::string num_to_string(std::size_t num)
 	return ss.str();
 }
 
-int stringToInt(std::string str) {
+size_t stringToInt(std::string str) {
 	size_t n = 0;
+
+	if (str.empty())
+		return (n);
 	std::istringstream iss(str);
 	iss >> n;
 	return (n);
+}
+
+size_t min(size_t a, size_t b) {
+	return (a < b) ? a : b;
 }

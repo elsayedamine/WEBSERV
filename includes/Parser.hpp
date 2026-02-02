@@ -21,10 +21,11 @@ enum success {
 	PARSE_FAIL,
 	PARSE_SUCCESS,
 	PARSE_CURRENT,
+	PARSE_PENDING,
 	PARSE_OVER
 };
 
-class Parse {
+class Parser {
 	private:
 		Request request;
 		int fd;
@@ -34,7 +35,8 @@ class Parse {
 		int cr;
 	
 	public:
-		Parse();
+		Parser();
+		const Request &getRequest() const;
 		void operator()(std::string data);
 		void parseMethod();
 		void parseTarget();
@@ -44,6 +46,12 @@ class Parse {
 		int checkNL(size_t &i);
 };
 
-typedef void (Parse::*stateHandler)();
+typedef void (Parser::*stateHandler)();
+
+int validateMethod(const std::string meth);
+int validateTarget(const std::string tar);
+int validateVersion(const std::string ver);
+int validateHeader(const std::pair<std::string, std::string> head, const std::multimap<std::string, std::string> map);
+int validateBody(const std::string str);
 
 #endif

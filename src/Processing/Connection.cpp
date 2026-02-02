@@ -85,8 +85,9 @@ void Server::handleConnectionIO(int index) {
 		buffer[size] = 0;
 		data = string(buffer);
 		connection.parse(data);
+		connection.request = connection.parse.getRequest();
 	}
-	if (!connection.response.isReady()) { // Process
+	if (connection.request.isReady()) { // Process 
 		std::vector<ConfigBlock>::const_iterator candidate;
 
 		candidate = connection.request.getCandidate(candidates);

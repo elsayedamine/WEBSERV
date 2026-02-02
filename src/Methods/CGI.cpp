@@ -41,6 +41,8 @@ void	CGI::CreateVariables(const Request &request, const std::string &script)
 
 void 	CGI::freeEnvp()
 {
+	if (!envp)
+		return ;
 	for (size_t i = 0; i < variables.size(); ++i)
 		delete[] envp[i];
 	delete[] envp;
