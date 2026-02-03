@@ -21,6 +21,7 @@ Server::Server(const Configuration & conf) : config(conf)
 		struct epoll_event ep;
 		ep.events = EPOLLIN;
 		ep.data.fd = it->first;
+		ep.data.ptr = NULL;
 		if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, ep.data.fd, &ep) < 0)
  			throw std::runtime_error("epoll_ctl failed to add listener.");
 	}
@@ -92,6 +93,7 @@ int	Server::acceptConnection(int listener)
 	struct epoll_event client_event;
 	client_event.events = EPOLLIN | EPOLLRDHUP | EPOLLHUP;
 	client_event.data.fd = client;
+	client_event.data.ptr = NULL;
 	if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client, &client_event) < 0) {
 		std::cerr << "Failed to add client to epoll" << std::endl;
 		close(client);
@@ -119,7 +121,7 @@ void Server::handleCGIWrite(Connection &connection, int fd)
 
 	if (!body.empty())
 	{
-		ssize_t n = write(fd, body.c_str() + connection.request.cgi.offset, body.size());
+		ssize_t n = write(fd, body.c_str() + connection.request.cgi.offset, body.size() - connection.request.cgi.offset);
 		if (n > 0)
 			connection.request.cgi.offset += n;
 	}
@@ -191,7 +193,7 @@ void	Server::run()
 		for (int i = 0; i < nevents; ++i)
 		{
 			int curr = events[i].data.fd;
-			if (static_cast<Connection *>(events[i].data.ptr)->request.cgi.isReady())
+			if (!events[i].data.ptr && static_cast<Connection *>(events[i].data.ptr)->request.cgi.isReady())
 				handleCGIIO(i);
 			else if (sockets_to_ports.find(curr) != sockets_to_ports.end())
 				acceptConnection(curr);

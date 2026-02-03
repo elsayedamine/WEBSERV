@@ -27,7 +27,7 @@ void Connection::read() {
 	char buffer[RSIZE];
 	string data;
 
-	ssize_t size = recv(fd, buffer, RSIZE, 0);
+	ssize_t size = recv(fd, buffer, RSIZE - 1, 0);
 	if (!size)
 		return Server::setEvents(fd, 0, EPOLL_CTL_MOD);
 	if (size < 0)
@@ -42,7 +42,7 @@ void Connection::write() {
 	std::string data = getData();
 
 	if (!data.empty()) {
-		ssize_t size = send(fd, data.c_str() + offset, std::min(static_cast<size_t>(WSIZE), data.size()), 0);
+		ssize_t size = send(fd, data.c_str() + offset, std::min(static_cast<size_t>(WSIZE), data.size() - offset), 0);
 		if (size > 0)
 			offset += size;
 		if (size < 0)
@@ -68,7 +68,6 @@ void Connection::processRequest() {
 		if (request.process(response))
 			return request.setReady(0);
 		response.setServer(*candidate);
-		response.process(request);
 		response.setReady(true);
 	}
 	request.setReady(0);
@@ -78,6 +77,7 @@ void Connection::processResponse() {
 	response.process(request);
 	setData(response.mkResponse());
 	setDataReady(1);
+	response.setReady(0);
 	Server::setEvents(fd, EPOLLIN | EPOLLOUT | EPOLLRDHUP | EPOLLHUP, EPOLL_CTL_MOD);
 }
 
