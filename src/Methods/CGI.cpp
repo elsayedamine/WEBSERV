@@ -112,14 +112,8 @@ void CGI::handleCGI(const Request &request, const std::string &script, const std
 		fcntl(pipe_out[0], F_SETFL, O_NONBLOCK);
 
 		// adding the pipe ends to the epoll()
-		struct epoll_event ev;
-		ev.events = EPOLLOUT;
-		ev.data.fd = pipe_in[1];
-		epoll_ctl(Server::epoll_fd, EPOLL_CTL_ADD, pipe_in[1], &ev);
-
-		ev.events = EPOLLIN;
-		ev.data.fd = pipe_out[0];
-		epoll_ctl(Server::epoll_fd, EPOLL_CTL_ADD, pipe_out[0], &ev);
+		Server::setEvents(pipe_in[1], EPOLLOUT, EPOLL_CTL_MOD);
+		Server::setEvents(pipe_out[0], EPOLLIN, EPOLL_CTL_MOD);
 
 		in = pipe_out[0];
 		out = pipe_in[1];

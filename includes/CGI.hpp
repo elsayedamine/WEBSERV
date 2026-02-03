@@ -22,12 +22,13 @@ class CGI
 		int ready;
 
 	public:
-		CGI() : envp(NULL), ready(0), in(-1), out(-1), pid(-1) {};
+		CGI() : envp(NULL), ready(0), in(-1), out(-1), pid(-1), offset(0) {};
 		~CGI() { freeEnvp(); };
 
 		int in;
 		int out;
 		pid_t pid;
+		size_t offset;
 
 		// Getters
 		const std::vector<std::string> &getVariables() const { return this->variables; }

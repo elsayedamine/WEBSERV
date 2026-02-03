@@ -27,7 +27,7 @@ class Server
 		~Server() {} // clear the project ig && close fds
 		Server(const Configuration &);
 		void	run( void );
-		static void	setEvents(int &fd, int events);
+		static void	setEvents(int &fd, int events, int mode);
 	private:
 		std::map<int, std::vector<ConfigBlock> > config_map;
 		std::map<int, int> sockets_to_ports;
@@ -37,14 +37,13 @@ class Server
 		epoll_event	events[MAX_EVENTS];
 
 		void		SetupSockets();
-		int		isCGI(int curr);
 		int			acceptConnection(int listener_fd);
 		void		closeConnection(int index);
-		void		check_duplicate_servers(const ConfigBlock &new_server);
+		void		checkDuplicateServers(const ConfigBlock &new_server);
 		void		handleConnectionIO(int index);
 		void		handleCGIIO(int fd);
-		void		handleCGIWrite(int pipe_fd);
-		void		handleCGIRead(int pipe_fd);
+		void		handleCGIWrite(Connection &connection, int fd);
+		void		handleCGIRead(Connection &connection, int fd);
 };
 
 #endif

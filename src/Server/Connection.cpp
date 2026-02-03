@@ -13,70 +13,6 @@ std::vector<ConfigBlock>::const_iterator Request::getCandidate(const std::vector
 	return candidates.end();
 }
 
-void Server::handleCGIWrite(int pipe_fd)
-{
-	int client_fd = Server::connections[pipe_fd];
-
-	Request &req = connections[client_fd].request;
-	std::string body = req.getBody(); 
-
-	if (!body.empty())
-	{
-		ssize_t n = write(pipe_fd, body.c_str(), body.size());
-		if (n > 0)
-			req.setBody(body.substr(n));
-	}
-
-	if (req.getBody().empty())
-	{
-		epoll_ctl(Server::epoll_fd, EPOLL_CTL_DEL, pipe_fd, NULL);
-		close(pipe_fd);
-	}
-}
-
-void Server::handleCGIRead(int pipe_fd)
-{
-	int client_fd = Server::connect[pipe_fd];
-	char buf[RSIZE];
-	ssize_t n = read(pipe_fd, buf, RSIZE);
-
-	if (n > 0)
-	{
-		std::string currentBuffer = connections[client_fd].request.cgi.getBufCGI();
-		currentBuffer.append(buf, n);
-		connections[client_fd].request.cgi.setBufCGI(currentBuffer);
-	}
-	else if (n == 0)
-	{
-		epoll_ctl(Server::epoll_fd, EPOLL_CTL_DEL, pipe_fd, NULL);
-		close(pipe_fd);
-		waitpid(Server::cgi[client_fd].pid, NULL, WNOHANG);
-
-		// int pipe_in = Server::cgi[client_fd].in;
-		// Server::connect.erase(pipe_fd);
-		// Server::connect.erase(pipe_in);
-		// Server::cgi.erase(client_fd);
-	}
-}
-
-void	Server::handleCGIIO(int fd)
-{
-	CGI &cgi = connections[fd].request.cgi;
-
-	if (fd == cgi.in)
-		handleCGIWrite(fd);
-	if (fd == cgi.out)
-		handleCGIRead(fd);
-}
-
-void Server::setEvents(int &fd, int events) {
-	struct epoll_event ev;
-
-	ev.data.fd = fd;
-	ev.events = events;
-	epoll_ctl(epoll_fd, EPOLL_CTL_MOD, fd, &ev);
-}
-
 void Connection::reset() {
 	offset = 0;
 	data.clear();
@@ -92,8 +28,10 @@ void Connection::read() {
 	string data;
 
 	ssize_t size = recv(fd, buffer, RSIZE, 0);
+	if (!size)
+		return Server::setEvents(fd, 0, EPOLL_CTL_MOD);
 	if (size < 0)
-		return Server::setEvents(fd, EPOLLERR);
+		return Server::setEvents(fd, EPOLLERR, EPOLL_CTL_MOD);
 	buffer[size] = 0;
 	data = string(buffer);
 	parse(data);
@@ -108,12 +46,12 @@ void Connection::write() {
 		if (size > 0)
 			offset += size;
 		if (size < 0)
-			Server::setEvents(fd, EPOLLERR);	
+			Server::setEvents(fd, EPOLLERR, EPOLL_CTL_MOD);
 	}
 	if (getData().empty()) {
-		Server::setEvents(fd, EPOLLIN | EPOLLRDHUP | EPOLLHUP);
+		Server::setEvents(fd, EPOLLIN | EPOLLRDHUP | EPOLLHUP, EPOLL_CTL_MOD);
 		if (response.getHeader("Connection") != "keep-alive")
-			Server::setEvents(fd, EPOLLERR);
+			Server::setEvents(fd, EPOLLERR, EPOLL_CTL_MOD);
 		else
 			reset();
 	}
@@ -128,7 +66,7 @@ void Connection::processRequest() {
 	else {		
 		request.setServer(*candidate);
 		if (request.process(response))
-			return;
+			return request.setReady(0);
 		response.setServer(*candidate);
 		response.process(request);
 		response.setReady(true);
@@ -140,7 +78,7 @@ void Connection::processResponse() {
 	response.process(request);
 	setData(response.mkResponse());
 	setDataReady(1);
-	Server::setEvents(fd, EPOLLIN | EPOLLOUT | EPOLLRDHUP | EPOLLHUP);
+	Server::setEvents(fd, EPOLLIN | EPOLLOUT | EPOLLRDHUP | EPOLLHUP, EPOLL_CTL_MOD);
 }
 
 void Server::handleConnectionIO(int index) {
@@ -150,8 +88,11 @@ void Server::handleConnectionIO(int index) {
 
 	if (ev & EPOLLIN) // Read
 		connection.read();
-	if (connection.request.isReady()) // Process request
+	if (connection.request.isReady()) { // Process request
 		connection.processRequest();
+		if (connection.request.cgi.isReady())
+			events[index].data.ptr = &connection;
+	}
 	if (connection.response.isReady()) // Process response
 		connection.processResponse();
 	if (ev & EPOLLOUT && connection.dataReady()) // Write

@@ -8,7 +8,7 @@ Server::Server(const Configuration & conf) : config(conf)
 	const std::vector<ConfigBlock> &servers = config.getServers();
 
 	for (std::size_t i = 0; i < servers.size(); ++i) {
-		check_duplicate_servers(servers[i]);
+		checkDuplicateServers(servers[i]);
 		config_map[servers[i].port].push_back(servers[i]);
 	}
 
@@ -26,7 +26,7 @@ Server::Server(const Configuration & conf) : config(conf)
 	}
 }
 
-void	Server::check_duplicate_servers(const ConfigBlock &entering_server)
+void	Server::checkDuplicateServers(const ConfigBlock &entering_server)
 {
 	int port = entering_server.port;
 	std::string host = entering_server.host;
@@ -113,13 +113,71 @@ void Server::closeConnection(int index)
 	close(events[index].data.fd); // check again
 }
 
-int Server::isCGI(int curr)
+void Server::handleCGIWrite(Connection &connection, int fd)
 {
-	std::map<int, Connection>::const_iterator it;
-	for (; it != connections.end(); ++it)
-		if (it->second.request.cgi.isReady())
-			return true;
-	return false;
+	std::string body = connection.request.getBody(); 
+
+	if (!body.empty())
+	{
+		ssize_t n = write(fd, body.c_str() + connection.request.cgi.offset, body.size());
+		if (n > 0)
+			connection.request.cgi.offset += n;
+	}
+
+	if (connection.request.cgi.offset == body.size())
+	{
+		epoll_ctl(Server::epoll_fd, EPOLL_CTL_DEL, fd, NULL);
+		close(fd);
+	}
+}
+
+void Server::handleCGIRead(Connection &connection, int fd)
+{
+	char buf[RSIZE];
+	ssize_t n = read(fd, buf, RSIZE - 1);
+
+	if (n > 0)
+	{
+		buf[n] = 0;
+		std::string currentBuffer = connection.request.cgi.getBufCGI();
+		currentBuffer.append(buf, n);
+		connection.request.cgi.setBufCGI(currentBuffer);
+	}
+	else if (n == 0)
+	{
+		epoll_ctl(Server::epoll_fd, EPOLL_CTL_DEL, fd, NULL);
+		close(fd);
+		waitpid(connection.request.cgi.pid, NULL, WNOHANG);
+		// make response
+		// change connection EPOLL events to EPOLLOUT
+		// make reasonse ready
+	}
+	else
+	{
+		epoll_ctl(Server::epoll_fd, EPOLL_CTL_DEL, fd, NULL);
+		close(fd);
+	}
+}
+
+void	Server::handleCGIIO(int index)
+{
+	int fd = events[index].data.fd;
+	Connection &connection = *(static_cast<Connection*>(events[index].data.ptr));
+	CGI &cgi = connection.request.cgi;
+
+	if (fd == cgi.in)
+		handleCGIWrite(connection, fd);
+	if (fd == cgi.out)
+		handleCGIRead(connection, fd);
+}
+
+void Server::setEvents(int &fd, int events, int mode)
+{
+	struct epoll_event ev;
+
+	ev.data.fd = fd;
+	ev.events = events;
+	epoll_ctl(epoll_fd, mode, fd, &ev);
 }
 
 void	Server::run()
@@ -133,8 +191,8 @@ void	Server::run()
 		for (int i = 0; i < nevents; ++i)
 		{
 			int curr = events[i].data.fd;
-			if (isCGI(curr))
-				handleCGIIO(curr);
+			if (static_cast<Connection *>(events[i].data.ptr)->request.cgi.isReady())
+				handleCGIIO(i);
 			else if (sockets_to_ports.find(curr) != sockets_to_ports.end())
 				acceptConnection(curr);
 			else if (events[i].events & (EPOLLERR | EPOLLRDHUP | EPOLLHUP))
