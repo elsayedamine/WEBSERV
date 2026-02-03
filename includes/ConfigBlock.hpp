@@ -31,10 +31,6 @@ enum e_error {
 struct ConfigBlock
 {
 	e_error	err;
-	// --- Mandatory members --- //
-	bool has_listen;
-	bool has_root;
-	bool has_server_name;
 	// --- Server-Only ---
 	unsigned short	port;
 	std::string		host;
@@ -52,6 +48,10 @@ struct ConfigBlock
 	std::pair<int,std::string> ret;
 	std::vector<std::string>	index;
 	std::vector<std::string>	methods;
+	// --- Mandatory members --- //
+	bool has_listen;
+	bool has_root;
+	bool has_server_name;
 	// --- For Nesting ---
 	std::vector<ConfigBlock> locations; 
 

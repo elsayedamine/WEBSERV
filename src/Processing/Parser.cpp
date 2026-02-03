@@ -202,6 +202,7 @@ int validateHeader(const std::pair<std::string, std::string> head, const std::mu
 
 int validateBody(const std::string str) {
 	(void)str;
+	return (true);
 }
 
 int Parser::checkNL(size_t &i) {

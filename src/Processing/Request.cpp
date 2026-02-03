@@ -5,7 +5,7 @@ Request::Request() : ready(false) {}
 void Request::setServer(const ConfigBlock &s) { server = s; }
 
 void Request::setHeader(const std::string& key, const std::string& value) {
-	std::pair<mmap_it, mmap_it> range = headers.equal_range(key);
+	// std::pair<mmap_it, mmap_it> range = headers.equal_range(key);
 	headers.insert(make_pair(key, value));
 }
 

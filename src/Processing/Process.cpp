@@ -5,7 +5,7 @@
 #include <sstream>
 #include <iomanip>
 
-Response handleReturn(const pair<int, string> &ret) {
+Response handleReturn(const std::pair<int, string> &ret) {
 	Response response(ret.first);
 
 	if (ret.second.empty())
@@ -16,11 +16,11 @@ Response handleReturn(const pair<int, string> &ret) {
 	return (response);
 }
 
-Response Request::handleRequest(const vector<ConfigBlock> &locations) const {
+Response Request::handleRequest(const std::vector<ConfigBlock> &loc) const {
 	Response response;
 	const ConfigBlock *location;
 	string path;
-	
+	std::vector<ConfigBlock> locations = loc;
 	{ // Resolve path
 		string tar = target;
 
@@ -108,7 +108,7 @@ void Response::processResponse(const Request &request, const ConfigBlock &server
 }
 
 Response Request::processRequest() {
-	int invalid;
+	// int invalid;
 	Response response;
 
 	// invalid = validateRequest();

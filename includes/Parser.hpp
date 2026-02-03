@@ -28,7 +28,6 @@ enum status {
 class Parser {
 	private:
 		Request request;
-		int fd;
 		std::string current;
 		int state;
 		int status;
