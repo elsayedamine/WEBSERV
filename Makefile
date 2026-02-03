@@ -1,3 +1,4 @@
+# check (bdl hdch)
 CXX:= clang++
 CFLAGS:= -std=c++98 -g -Wall -Werror -Wextra
 NAME:= webserv

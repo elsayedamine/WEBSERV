@@ -3,6 +3,10 @@
 
 int Response::getCode() const { return code; }
 
+void Response::setServer(const ConfigBlock &s) { server = s; }
+
+const ConfigBlock &Response::getServer() const { return server; }
+
 void Response::setHeader(const std::string& key, const std::string& value) {
 	if (value.empty()) return;
 	headers[key] = value;

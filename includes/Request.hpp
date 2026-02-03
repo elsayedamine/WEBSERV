@@ -49,7 +49,7 @@ class Request {
 		std::vector<ConfigBlock>::const_iterator getCandidate(const std::vector<ConfigBlock> &candidates) const;
 		Response processRequest();
 		int validateRequest() const;
-		Response handleRequest(const std::vector<ConfigBlock> &locations) const;
+		Response process() const;
 };
 
 typedef std::multimap<std::string, std::string>::const_iterator mmap_it;

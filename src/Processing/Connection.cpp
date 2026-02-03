@@ -89,58 +89,72 @@ void Connection::reset() {
 	response = Response();
 	response.setReady(0);
 }
+void Connection::read() {
+	char buffer[RSIZE];
+	string data;
+
+	ssize_t size = recv(fd, buffer, RSIZE, 0);
+	if (size < 0)
+		return Server::setEvents(fd, EPOLLERR);
+	buffer[size] = 0;
+	data = string(buffer);
+	parse(data);
+	request = parse.getRequest();
+}
+
+void Connection::write() {
+	std::string data = getData();
+
+	if (!data.empty()) {
+		ssize_t size = send(fd, data.c_str() + offset, std::min(static_cast<size_t>(WSIZE), data.size()), 0);
+		if (size > 0)
+			offset += size;
+		if (size < 0)
+			Server::setEvents(fd, EPOLLERR);	
+	}
+	if (getData().empty()) {
+		Server::setEvents(fd, EPOLLIN | EPOLLRDHUP | EPOLLHUP);
+		if (response.getHeader("Connection") != "keep-alive")
+			Server::setEvents(fd, EPOLLERR);
+		else
+			reset();
+	}
+}
+
+void Connection::processRequest() {
+	std::vector<ConfigBlock>::const_iterator candidate;
+
+	candidate = request.getCandidate(getServers());
+	if (candidate == getServers().end())
+		response = Response(400);
+	else {
+		request.setServer(*candidate);
+		response = request.process();
+		response.setServer(*candidate);
+		response = request.process();
+		response.setReady(true);
+	}
+	request.setReady(0);
+}
+
+void Connection::processResponse() {
+	response.process(request);
+	setData(response.mkResponse());
+	setDataReady(1);
+	Server::setEvents(fd, EPOLLIN | EPOLLOUT | EPOLLRDHUP | EPOLLHUP);
+}
 
 void Server::handleConnectionIO(int index) {
 	int fd = events[index].data.fd;
 	int ev = events[index].events;
 	Connection &connection = connections[fd];
-	std::vector<ConfigBlock>::const_iterator candidate;
 
-	if (ev & EPOLLIN) { // Read
-		char buffer[RSIZE];
-		string data;
-		ssize_t size = recv(fd, buffer, RSIZE, 0);
-		if (size < 0)
-			return closeConnection(index);
-		buffer[size] = 0;
-		data = string(buffer);
-		connection.parse(data);
-		connection.request = connection.parse.getRequest();
-	}
-	if (connection.request.isReady()) { // Process request
-		std::vector<ConfigBlock> candidates = connection.getServers();
-
-		candidate = connection.request.getCandidate(candidates);
-		if (candidate == candidates.end()) {
-			connection.response = Response(400);
-		} else {
-			connection.request.setServer(*candidate);
-			connection.response = connection.request.processRequest();
-		}
-		connection.request.setReady(0);
-	}
-	if (connection.response.isReady()) { // Process response
-		connection.response.processResponse(connection.request, *candidate);
-		connection.setData(connection.response.mkResponse());
-		connection.setDataReady(1);
-		setEvents(fd, EPOLLIN | EPOLLOUT | EPOLLRDHUP | EPOLLHUP);
-	}
-	if (ev & EPOLLOUT && connection.dataReady()) { // Write
-		std::string data = connection.getData();
-
-		if (!data.empty()) {
-			ssize_t size = send(fd, data.c_str() + connection.offset, std::min(static_cast<size_t>(WSIZE), data.size()), 0);
-			if (size > 0)
-				connection.offset += size;
-			if (size < 0)
-				closeConnection(index);	
-		}
-		if (connection.getData().empty()) {
-			setEvents(fd, EPOLLIN | EPOLLRDHUP | EPOLLHUP);
-			if (connection.response.getHeader("Connection") != "keep-alive")
-				closeConnection(index);
-			else
-				connection.reset();
-		}
-	}
+	if (ev & EPOLLIN) // Read
+		connection.read();
+	if (connection.request.isReady()) // Process request
+		connection.processRequest();
+	if (connection.response.isReady()) // Process response
+		connection.processResponse();
+	if (ev & EPOLLOUT && connection.dataReady()) // Write
+		connection.write();
 }

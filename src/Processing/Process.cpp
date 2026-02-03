@@ -16,17 +16,15 @@ Response handleReturn(const std::pair<int, string> &ret) {
 	return (response);
 }
 
-Response Request::handleRequest(const std::vector<ConfigBlock> &loc) const {
+Response Request::process() const {
 	Response response;
 	const ConfigBlock *location;
 	string path;
-	std::vector<ConfigBlock> locations = loc;
+
 	{ // Resolve path
 		string tar = target;
-
-		stable_sort(locations.begin(), locations.end(), compare);
 		normalizeTarget(tar);
-		location = findLocation(locations, tar);
+		location = findLocation(server.locations, tar);
 		if (!location)
 			return (Response(404));
 		if (location->root.empty())
@@ -88,7 +86,7 @@ string dateTimeGMT() {
 	return oss.str();
 }
 
-void Response::processResponse(const Request &request, const ConfigBlock &server) {
+void Response::process(const Request &request) {
 	if (code >= 400) { // Check for error pages
 		map<int, string>::const_iterator it = server.error_page.find(code);
 
@@ -115,7 +113,7 @@ Response Request::processRequest() {
 	// if (invalid)
 	// 	return (Response(invalid));
 
-	response = handleRequest(server.locations);
+	response = process();
 	response.setReady(true);
 	return (response);
 }

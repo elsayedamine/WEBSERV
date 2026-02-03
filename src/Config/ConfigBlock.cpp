@@ -451,5 +451,6 @@ ConfigBlock::ConfigBlock(const Directive &server) : err((e_error)0), port(0), au
 		if (it->has_root) { any_location_has_root = true; break; } }
 	if (!has_root && !any_location_has_root)
 		{ this->err = ERROR_MISSING_ROOT; return; }
+	stable_sort(locations.begin(), locations.end(), compare);
 
 }

@@ -4,9 +4,9 @@
 #include <string>
 #include <map>
 #include <iostream>
+#include <ConfigBlock.hpp>
 
 class Request;
-struct ConfigBlock;
 
 class Response {
 	private: 
@@ -14,6 +14,7 @@ class Response {
 		int ready;
 		std::map<std::string, std::string> headers;   
 		std::string body;
+		ConfigBlock server;
 
 	public:
 		// Constructor
@@ -25,6 +26,7 @@ class Response {
 		void setBody(const std::string& b);
 		void setStatus(int);
 		void setReady(int);
+		void setServer(const ConfigBlock &server);
 		
 		// Getters
 		int isReady() const;
@@ -32,9 +34,10 @@ class Response {
 		const std::map<std::string, std::string>& getHeaders() const;
 		const std::string& getBody() const;
 		std::string getHeader(const std::string& key) const;
+		const ConfigBlock &getServer() const;
 		
 		std::string mkResponse();
-		void processResponse(const Request &request, const ConfigBlock &server);
+		void process(const Request &request);
 		std::string getCodeMessage(int code) const;
 }; 
 

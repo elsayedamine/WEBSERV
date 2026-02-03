@@ -13,6 +13,7 @@
 class Connection {
 	private:
 		std::vector<ConfigBlock> servers;
+		ConfigBlock server;
 		int fd;
 		std::string data;
 		int data_ready;
@@ -36,6 +37,11 @@ class Connection {
 		void setData(const std::string &d) { data = d; }
 		int dataReady() const { return data_ready; }
 		void setDataReady(int r) { data_ready = (r != 0); }
+		
+		void read();
+		void write();
+		void processRequest();
+		void processResponse();
 		void reset();
 };
 

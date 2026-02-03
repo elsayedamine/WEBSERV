@@ -14,6 +14,7 @@
 
 #include <Directive.hpp>
 #include <ConfigBlock.hpp>
+#include <Methods.hpp>
 
 class Configuration
 {
