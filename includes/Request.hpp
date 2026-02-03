@@ -4,8 +4,8 @@
 #include <vector>
 #include <iostream>
 #include <map>
-#include <ConfigBlock.hpp>
 #include <Response.hpp>
+#include <CGI.hpp>
 
 enum Method {
 	UNKNOWN,
@@ -25,9 +25,10 @@ class Request {
 		bool ready;
 
 		ConfigBlock server;
-
+		
 	public:
 		Request();
+		CGI cgi;
 
 		void setHeader(const std::string &key, const std::string &value);
 		void setBody(const std::string &b);
@@ -47,9 +48,8 @@ class Request {
 		bool isReady() const;
 
 		std::vector<ConfigBlock>::const_iterator getCandidate(const std::vector<ConfigBlock> &candidates) const;
-		Response processRequest();
 		int validateRequest() const;
-		Response process() const;
+		int process(Response &response);
 };
 
 typedef std::multimap<std::string, std::string>::const_iterator mmap_it;

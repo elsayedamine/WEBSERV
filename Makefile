@@ -13,13 +13,13 @@ SRC:= src/Config/ConfigBlock.cpp \
 	src/Methods/Delete.cpp \
 	src/Methods/Put.cpp \
 	src/Methods/Utils.cpp \
-	src/Processing/Connection.cpp \
-	src/Processing/PreProcess.cpp \
-	src/Processing/Request.cpp \
-	src/Processing/Compare.cpp \
-	src/Processing/Parser.cpp \
-	src/Processing/Process.cpp \
-	src/Processing/Response.cpp \
+	src/Server/Connection.cpp \
+	src/Server/PreProcess.cpp \
+	src/Server/Request.cpp \
+	src/Server/Compare.cpp \
+	src/Server/Parser.cpp \
+	src/Server/Process.cpp \
+	src/Server/Response.cpp \
 	src/Server/Server.cpp \
 	src/utils/prints.cpp \
 	src/utils/strings.cpp \

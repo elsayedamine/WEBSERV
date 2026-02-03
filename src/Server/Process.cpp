@@ -16,27 +16,38 @@ Response handleReturn(const std::pair<int, string> &ret) {
 	return (response);
 }
 
-Response Request::process() const {
-	Response response;
+int Request::process(Response &response) {
 	const ConfigBlock *location;
 	string path;
 
 	{ // Resolve path
-		string tar = target;
-		normalizeTarget(tar);
-		location = findLocation(server.locations, tar);
+		normalizeTarget(target);
+		location = findLocation(server.locations, target);
 		if (!location)
-			return (Response(404));
+			return (response = Response(404), 0);
 		if (location->root.empty())
-			return (Response(500));
+			return (response = Response(500), 0);
 		if (find(location->methods.begin(), location->methods.end(), getMethod()) == location->methods.end())
-			return (405);
+			return (response = Response(405), 0);
 		if (location->ret.first)
-			return (handleReturn(location->ret));
-		path = location->root + "/" + tar.substr(location->prefix.size());
+			return (response = handleReturn(location->ret), 0);
+		path = location->root + "/" + target.substr(location->prefix.size());
 	}
-	// if (cgi)
-	//	connection.cgi.handleCGI(request, script, interpreter, fd);
+	if (!location->cgi.empty()) {
+		map_it it = location->cgi.begin();
+
+		for (; it != location->cgi.end(); ++it) {
+			size_t pos = target.find_last_of('.');
+
+			if (pos == std::string::npos || target.compare(pos, it->first.size(), it->first))
+				continue;
+			break;
+		}
+		if (it != location->cgi.end()) {
+			cgi.handleCGI(*this, target, it->second);
+			return (1);
+		}
+	}
 	switch (getMethodEnum()) {
 		case GET:
 			response = handleGet(path, *location); break;
@@ -49,7 +60,7 @@ Response Request::process() const {
 		default:
 			response = Response(501);
 	}
-	return (response);
+	return (0);
 }
 
 int validateType(const string &target, const string &type) {
@@ -103,17 +114,4 @@ void Response::process(const Request &request) {
 			setHeader("Content-Length", num_to_string(body.size()));
 	}
 	ready = true;
-}
-
-Response Request::processRequest() {
-	// int invalid;
-	Response response;
-
-	// invalid = validateRequest();
-	// if (invalid)
-	// 	return (Response(invalid));
-
-	response = process();
-	response.setReady(true);
-	return (response);
 }

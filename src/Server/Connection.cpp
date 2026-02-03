@@ -15,7 +15,7 @@ std::vector<ConfigBlock>::const_iterator Request::getCandidate(const std::vector
 
 void Server::handleCGIWrite(int pipe_fd)
 {
-	int client_fd = Server::connect[pipe_fd];
+	int client_fd = Server::connections[pipe_fd];
 
 	Request &req = connections[client_fd].request;
 	std::string body = req.getBody(); 
@@ -33,6 +33,7 @@ void Server::handleCGIWrite(int pipe_fd)
 		close(pipe_fd);
 	}
 }
+
 void Server::handleCGIRead(int pipe_fd)
 {
 	int client_fd = Server::connect[pipe_fd];
@@ -41,9 +42,9 @@ void Server::handleCGIRead(int pipe_fd)
 
 	if (n > 0)
 	{
-		std::string currentBody = connections[client_fd].response.getBody();
-		currentBody.append(buf, n);
-		connections[client_fd].response.setBody(currentBody);
+		std::string currentBuffer = connections[client_fd].request.cgi.getBufCGI();
+		currentBuffer.append(buf, n);
+		connections[client_fd].request.cgi.setBufCGI(currentBuffer);
 	}
 	else if (n == 0)
 	{
@@ -51,23 +52,20 @@ void Server::handleCGIRead(int pipe_fd)
 		close(pipe_fd);
 		waitpid(Server::cgi[client_fd].pid, NULL, WNOHANG);
 
-		connections[client_fd].response.mkResponse(); // change the place
-
-		int pipe_in = Server::cgi[client_fd].in;
-		Server::connect.erase(pipe_fd);
-		Server::connect.erase(pipe_in);
-		Server::cgi.erase(client_fd);
+		// int pipe_in = Server::cgi[client_fd].in;
+		// Server::connect.erase(pipe_fd);
+		// Server::connect.erase(pipe_in);
+		// Server::cgi.erase(client_fd);
 	}
 }
 
 void	Server::handleCGIIO(int fd)
 {
-	int client_fd = connect[fd];
-	CGIHandle handler = cgi[client_fd];
+	CGI &cgi = connections[fd].request.cgi;
 
-	if (fd == handler.in)
+	if (fd == cgi.in)
 		handleCGIWrite(fd);
-	if (fd == handler.out)
+	if (fd == cgi.out)
 		handleCGIRead(fd);
 }
 
@@ -127,11 +125,12 @@ void Connection::processRequest() {
 	candidate = request.getCandidate(getServers());
 	if (candidate == getServers().end())
 		response = Response(400);
-	else {
+	else {		
 		request.setServer(*candidate);
-		response = request.process();
+		if (request.process(response))
+			return;
 		response.setServer(*candidate);
-		response = request.process();
+		response.process(request);
 		response.setReady(true);
 	}
 	request.setReady(0);

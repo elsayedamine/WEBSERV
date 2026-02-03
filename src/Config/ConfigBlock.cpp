@@ -348,7 +348,7 @@ ConfigBlock	validate_location(const Directive &location)
 		if (it == location_keys.end())
 			return LocationContainer.err = ERROR_INVALID_KEY_IN_LOCATION, LocationContainer;
 		int &count = directive_counts[name];
-		if (name != "location" && name != "error_page" && count > 0)
+		if (name != "location" && name != "error_page" && name != "cgi" && count > 0)
 			{ LocationContainer.err = ERROR_DUPLICATE_KEY; return LocationContainer; }
 
 		count++;
@@ -363,6 +363,7 @@ ConfigBlock	validate_location(const Directive &location)
 		if (tmp.autoindex != -1) loc.autoindex = tmp.autoindex;
 		if (tmp.upload_enable != -1) loc.upload_enable = tmp.upload_enable;
 		if (!tmp.error_page.empty()) loc.error_page = tmp.error_page;
+		if (!tmp.cgi.empty()) loc.cgi = tmp.cgi;
 	}
 	loc.err = ERROR_NONE;
 	LocationContainer.locations.push_back(loc);

@@ -2,8 +2,6 @@
 
 int serverRunning = 1;
 int Server::epoll_fd = -1;
-std::map<int, CGIHandle> Server::cgi;
-std::map<int, int> Server::connect;
 
 Server::Server(const Configuration & conf) : config(conf)
 {
@@ -115,6 +113,15 @@ void Server::closeConnection(int index)
 	close(events[index].data.fd); // check again
 }
 
+int Server::isCGI(int curr)
+{
+	std::map<int, Connection>::const_iterator it;
+	for (; it != connections.end(); ++it)
+		if (it->second.request.cgi.isReady())
+			return true;
+	return false;
+}
+
 void	Server::run()
 {
 	std::cout << "WebServer is running..." << std::endl;
@@ -126,12 +133,12 @@ void	Server::run()
 		for (int i = 0; i < nevents; ++i)
 		{
 			int curr = events[i].data.fd;
-			if (sockets_to_ports.find(curr) != sockets_to_ports.end())
+			if (isCGI(curr))
+				handleCGIIO(curr);
+			else if (sockets_to_ports.find(curr) != sockets_to_ports.end())
 				acceptConnection(curr);
 			else if (events[i].events & (EPOLLERR | EPOLLRDHUP | EPOLLHUP))
 				closeConnection(i);
-			else if (connect.count(curr))
-				handleCGIIO(curr);
 			else
 				handleConnectionIO(i);
 		}

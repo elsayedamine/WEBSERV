@@ -1,5 +1,14 @@
 #include <CGI.hpp>
+#include <Request.hpp>
 #include <Server.hpp>
+
+const std::string &CGI::getBufCGI() const { return bufCGI; }
+
+void CGI::setBufCGI(const std::string &buf) { bufCGI = buf; }
+
+int CGI::isReady() const { return ready; }
+
+void CGI::setReady(int r) { ready = (r != 0); }
 
 std::string InttoString(int x)
 {
@@ -67,7 +76,7 @@ void	CGI::ConvertEnvp()
 	}
 }
 
-void CGI::handleCGI(const Request &request, const std::string &script, const std::string &interpret, int fd)
+void CGI::handleCGI(const Request &request, const std::string &script, const std::string &interpret)
 {
 	CreateVariables(request, script);
 	ConvertEnvp();
@@ -112,11 +121,10 @@ void CGI::handleCGI(const Request &request, const std::string &script, const std
 		ev.data.fd = pipe_out[0];
 		epoll_ctl(Server::epoll_fd, EPOLL_CTL_ADD, pipe_out[0], &ev);
 
-		Server::cgi[fd].in = pipe_out[0];
-		Server::cgi[fd].out = pipe_in[1];
-		Server::cgi[fd].pid = pid;
-		Server::connect[pipe_out[0]] = fd;
-		Server::connect[pipe_in[1]] = fd;
+		in = pipe_out[0];
+		out = pipe_in[1];
+		this->pid = pid;
+		ready = true;
 
 		freeEnvp();
 	}

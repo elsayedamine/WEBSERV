@@ -22,9 +22,6 @@ class Server
 		std::map<int, Connection> connections;
 		static int epoll_fd;
 
-		static std::map<int, CGIHandle> cgi;
-		static std::map<int, int> connect;
-
 	public:
 		Server() {}
 		~Server() {} // clear the project ig && close fds
@@ -40,6 +37,7 @@ class Server
 		epoll_event	events[MAX_EVENTS];
 
 		void		SetupSockets();
+		int		isCGI(int curr);
 		int			acceptConnection(int listener_fd);
 		void		closeConnection(int index);
 		void		check_duplicate_servers(const ConfigBlock &new_server);

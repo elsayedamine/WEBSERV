@@ -23,7 +23,6 @@ class Connection {
 		Parser parse;
 		Request request;
 		Response response;
-		CGI cgi;
 
 		Connection() : fd(-1), data_ready(0), offset(0) { response.setReady(0); request.setReady(false); };
 		Connection(int fd) : fd(fd), data_ready(0), offset(0) { response.setReady(0); request.setReady(false); };

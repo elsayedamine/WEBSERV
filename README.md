@@ -8,4 +8,3 @@ amine:
 youssef:
 	high priorty:
 	- session management
-	- 9ad cv jdid
