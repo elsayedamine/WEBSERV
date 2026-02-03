@@ -22,7 +22,6 @@ class Request {
 		std::string version;
 		std::multimap<std::string, std::string> headers; 
 		std::string body;
-		int headerCount;
 		bool ready;
 
 		ConfigBlock server;

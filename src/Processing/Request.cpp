@@ -1,13 +1,11 @@
 #include <Request.hpp>
 
-Request::Request() {}
+Request::Request() : ready(false) {}
 
 void Request::setServer(const ConfigBlock &s) { server = s; }
 
 void Request::setHeader(const std::string& key, const std::string& value) {
 	std::pair<mmap_it, mmap_it> range = headers.equal_range(key);
-	if (range.first == range.second)
-		this->headerCount++;
 	headers.insert(make_pair(key, value));
 }
 

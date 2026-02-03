@@ -5,6 +5,10 @@ Parser::Parser() : state(STATE_METHOD), status(PARSE_CURRENT) {}
 
 const Request &Parser::getRequest() const { return request; }
 
+int Parser::getStatus() const { return status; }
+
+void Parser::setStatus(::status s) { status = s; }
+
 void Parser::operator()(std::string data) {
 	static stateHandler handlers[] = {
 		&Parser::parseMethod,

@@ -38,8 +38,6 @@ int Request::validateRequest() const {
 			return (validVer);
 	}
 	{ // Headers
-		if (headerCount == -1)
-			return (400);
 		for (mmap_it it = headers.begin(); it != headers.end(); ++it) {
 			std::pair<mmap_it, mmap_it> range = headers.equal_range(it->first);
 			if (distance(range.first, range.second) > 1)

@@ -71,11 +71,30 @@ void	Server::handleCGIIO(int fd)
 		handleCGIRead(fd);
 }
 
+void Server::setEvents(int &fd, int events) {
+	struct epoll_event ev;
+
+	ev.data.fd = fd;
+	ev.events = events;
+	epoll_ctl(epoll_fd, EPOLL_CTL_MOD, fd, &ev);
+}
+
+void Connection::reset() {
+	offset = 0;
+	data.clear();
+	setDataReady(0);
+	parse = Parser();
+	request = Request();
+	request.setReady(false);
+	response = Response();
+	response.setReady(0);
+}
+
 void Server::handleConnectionIO(int index) {
 	int fd = events[index].data.fd;
 	int ev = events[index].events;
 	Connection &connection = connections[fd];
-	std::vector<ConfigBlock> candidates = connection.getServers();
+	std::vector<ConfigBlock>::const_iterator candidate;
 
 	if (ev & EPOLLIN) { // Read
 		char buffer[RSIZE];
@@ -83,15 +102,13 @@ void Server::handleConnectionIO(int index) {
 		ssize_t size = recv(fd, buffer, RSIZE, 0);
 		if (size < 0)
 			return closeConnection(index);
-		
 		buffer[size] = 0;
 		data = string(buffer);
 		connection.parse(data);
 		connection.request = connection.parse.getRequest();
-		std::cout << connection.request.getTarget() << std::endl;
 	}
-	if (connection.request.isReady()) { // Process 
-		std::vector<ConfigBlock>::const_iterator candidate;
+	if (connection.request.isReady()) { // Process request
+		std::vector<ConfigBlock> candidates = connection.getServers();
 
 		candidate = connection.request.getCandidate(candidates);
 		if (candidate == candidates.end()) {
@@ -100,41 +117,30 @@ void Server::handleConnectionIO(int index) {
 			connection.request.setServer(*candidate);
 			connection.response = connection.request.processRequest();
 		}
-		// after this step we need to fill the cgi within the connection class
-		connection.response.processResponse(connection.request, *candidate);
-		connection.response.mkResponse();
-		struct epoll_event ev;
-		ev.data.fd = fd;
-		ev.events = EPOLLIN | EPOLLOUT | EPOLLRDHUP | EPOLLHUP;
-		epoll_ctl(epoll_fd, EPOLL_CTL_MOD, fd, &ev);
 		connection.request.setReady(0);
-		// how can you make a response while the cgi is not finished processing yet which is the body of the response
-		// u need to wait for cgi (check if there is cgi and if yes u should wait for it to finish processing and reading)
-		// TL;DR u cant make response here like that 
-		// if (connection.request.isCGI())
-			// return; // get the fuck out and wait for the pipe to finish IO
 	}
-	if (ev & EPOLLOUT) { // Write
-		const std::string &data = connection.response.getData();
+	if (connection.response.isReady()) { // Process response
+		connection.response.processResponse(connection.request, *candidate);
+		connection.setData(connection.response.mkResponse());
+		connection.setDataReady(1);
+		setEvents(fd, EPOLLIN | EPOLLOUT | EPOLLRDHUP | EPOLLHUP);
+	}
+	if (ev & EPOLLOUT && connection.dataReady()) { // Write
+		std::string data = connection.getData();
+
 		if (!data.empty()) {
-			ssize_t size = write(fd, data.c_str(), std::min(static_cast<size_t>(WSIZE), data.size()));
+			ssize_t size = send(fd, data.c_str() + connection.offset, std::min(static_cast<size_t>(WSIZE), data.size()), 0);
 			if (size > 0)
-				connection.response.setData(data.substr(size));
+				connection.offset += size;
 			if (size < 0)
 				closeConnection(index);	
 		}
-		if (connection.response.getData().empty()) {
-			struct epoll_event ev;
-			ev.data.fd = fd;
-			ev.events = EPOLLIN | EPOLLRDHUP | EPOLLHUP;
-			epoll_ctl(epoll_fd, EPOLL_CTL_MOD, fd, &ev);
-			// if (connection.response.getHeader("Connection") != "keep-alive")
-			closeConnection(index);
-			// else
-				// connection.reset();
+		if (connection.getData().empty()) {
+			setEvents(fd, EPOLLIN | EPOLLRDHUP | EPOLLHUP);
+			if (connection.response.getHeader("Connection") != "keep-alive")
+				closeConnection(index);
+			else
+				connection.reset();
 		}
 	}
-	// if (connection.response.getData().empty() && connection.response.getHeader("Connection") != "keep-alive") { // Close
-	// 	closeConnection(index);
-	// }
 }

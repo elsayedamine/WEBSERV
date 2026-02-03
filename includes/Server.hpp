@@ -46,7 +46,7 @@ class Server
 		void	handleCGIIO(int fd);
 		void	handleCGIWrite(int pipe_fd);
 		void	handleCGIRead(int pipe_fd);
-		
+		void	setEvents(int &fd, int events);
 };
 
 #endif

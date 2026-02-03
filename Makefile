@@ -1,5 +1,5 @@
-CXX:= g++
-CFLAGS:= -std=c++98 -g -fpermissive
+CXX:= clang++
+CFLAGS:= -std=c++98 -g -Wall -Werror -Wextra
 NAME:= webserv
 INC= -I./includes
 BIN_DIR:= bin

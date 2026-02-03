@@ -12,7 +12,7 @@ void Response::setBody(const std::string& b) { body = b; }
 
 void Response::setStatus(int c) { code = c; }
 
-void Response::setData(const std::string& d) { data = d; }
+void Response::setReady(int r) { ready = (r != 0); }
 
 int Response::isReady() const { return ready; }
 
@@ -20,14 +20,12 @@ const std::map<std::string, std::string>& Response::getHeaders() const { return 
 
 const std::string& Response::getBody() const { return body; }
 
-const std::string& Response::getData() const { return data; }
-
 std::string Response::getHeader(const std::string& key) const {
 	std::map<std::string, std::string>::const_iterator it = headers.find(key);
 	return it != headers.end() ? it->second : "";
 }
 
-void Response::mkResponse() {
+std::string Response::mkResponse() {
 	std::string buffer = "HTTP/1.1 ";
 
 	{ // Status code and message
@@ -46,7 +44,7 @@ void Response::mkResponse() {
 		buffer.append("\r\n");
 		buffer.append(body);
 	}
-	setData(buffer);
+	return (buffer);
 }
 
 std::string Response::getCodeMessage(int code) const {

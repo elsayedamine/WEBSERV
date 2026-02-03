@@ -14,18 +14,17 @@ class Response {
 		int ready;
 		std::map<std::string, std::string> headers;   
 		std::string body;
-		std::string data;
 
 	public:
 		// Constructor
-		Response() : code (200), ready(0) {}
-		Response(int c) : code(c), ready(0) {}
-		
+		Response() : code (200), ready(1) {}
+		Response(int c) : code(c), ready(1) {}
+	
 		// Setters
 		void setHeader(const std::string& key, const std::string& value);
 		void setBody(const std::string& b);
-		void setData(const std::string& d);
 		void setStatus(int);
+		void setReady(int);
 		
 		// Getters
 		int isReady() const;
@@ -33,9 +32,8 @@ class Response {
 		const std::map<std::string, std::string>& getHeaders() const;
 		const std::string& getBody() const;
 		std::string getHeader(const std::string& key) const;
-		const std::string& getData() const;
 		
-		void mkResponse();
+		std::string mkResponse();
 		void processResponse(const Request &request, const ConfigBlock &server);
 		std::string getCodeMessage(int code) const;
 }; 

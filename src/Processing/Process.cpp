@@ -103,7 +103,8 @@ void Response::processResponse(const Request &request, const ConfigBlock &server
 		setHeader("Server", "WEBSERV");
 		if (!body.empty())
 			setHeader("Content-Length", num_to_string(body.size()));
-	}	
+	}
+	ready = true;
 }
 
 Response Request::processRequest() {
@@ -115,5 +116,6 @@ Response Request::processRequest() {
 	// 	return (Response(invalid));
 
 	response = handleRequest(server.locations);
+	response.setReady(true);
 	return (response);
 }

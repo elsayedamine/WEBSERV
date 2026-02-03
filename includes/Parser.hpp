@@ -9,7 +9,7 @@
 #define RSIZE 8000
 #define WSIZE 8000
 
-enum states {
+enum state {
 	STATE_METHOD,
 	STATE_TARGET,
 	STATE_VERSION,
@@ -17,7 +17,7 @@ enum states {
 	STATE_BODY
 };
 
-enum success {
+enum status {
 	PARSE_FAIL,
 	PARSE_SUCCESS,
 	PARSE_CURRENT,
@@ -31,18 +31,20 @@ class Parser {
 		int fd;
 		std::string current;
 		int state;
-		success status;
+		int status;
 		int cr;
 	
-	public:
-		Parser();
-		const Request &getRequest() const;
-		void operator()(std::string data);
 		void parseMethod();
 		void parseTarget();
 		void parseVersion();
 		void parseHeader();
 		void parseBody();
+	public:
+		Parser();
+		const Request &getRequest() const;
+		int getStatus() const;
+		void setStatus(::status s);
+		void operator()(std::string data);
 		int checkNL(size_t &i);
 };
 
