@@ -73,9 +73,9 @@ const ConfigBlock *findLocation(const vector<ConfigBlock> &locations, const stri
 	vector<ConfigBlock>::const_iterator it = locations.begin();
 
 	for (; it != locations.end(); ++it) {
+		std::cout << target << " - " << it->prefix << std::endl;
 		if (target.size() < it->prefix.size())
 			continue;
-		// cout << target << " - " << it->prefix << endl;
 		if (!target.compare(0, it->prefix.size(), it->prefix) || target[it->prefix.size()] == '/')
 			return &locations[it - locations.begin()];
 	}

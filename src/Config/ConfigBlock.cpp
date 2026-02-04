@@ -343,7 +343,7 @@ ConfigBlock	validate_location(const Directive &location)
 	{
 		const Directive &d = location.getChildren()[i];
 		const std::string &name = d.getName();
-		std::map<std::string, Validators>::iterator it = location_keys.find(d.getName());
+		std::map<std::string, Validators>::iterator it = location_keys.find(d.getName());	
 
 		if (it == location_keys.end())
 			return LocationContainer.err = ERROR_INVALID_KEY_IN_LOCATION, LocationContainer;
@@ -363,7 +363,7 @@ ConfigBlock	validate_location(const Directive &location)
 		if (tmp.autoindex != -1) loc.autoindex = tmp.autoindex;
 		if (tmp.upload_enable != -1) loc.upload_enable = tmp.upload_enable;
 		if (!tmp.error_page.empty()) loc.error_page = tmp.error_page;
-		if (!tmp.cgi.empty()) loc.cgi = tmp.cgi;
+		if (!tmp.cgi.empty()) loc.cgi.insert(tmp.cgi.begin(), tmp.cgi.end());
 	}
 	loc.err = ERROR_NONE;
 	LocationContainer.locations.push_back(loc);
@@ -453,5 +453,4 @@ ConfigBlock::ConfigBlock(const Directive &server) : err((e_error)0), port(0), au
 	if (!has_root && !any_location_has_root)
 		{ this->err = ERROR_MISSING_ROOT; return; }
 	stable_sort(locations.begin(), locations.end(), compare);
-
 }

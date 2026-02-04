@@ -21,7 +21,6 @@ Server::Server(const Configuration & conf) : config(conf)
 		struct epoll_event ep;
 		ep.events = EPOLLIN;
 		ep.data.fd = it->first;
-		ep.data.ptr = NULL;
 		if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, ep.data.fd, &ep) < 0)
  			throw std::runtime_error("epoll_ctl failed to add listener.");
 	}
@@ -93,7 +92,7 @@ int	Server::acceptConnection(int listener)
 	struct epoll_event client_event;
 	client_event.events = EPOLLIN | EPOLLRDHUP | EPOLLHUP;
 	client_event.data.fd = client;
-	client_event.data.ptr = NULL;
+
 	if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client, &client_event) < 0) {
 		std::cerr << "Failed to add client to epoll" << std::endl;
 		close(client);
@@ -141,15 +140,23 @@ void Server::handleCGIRead(Connection &connection, int fd)
 	if (n > 0)
 	{
 		buf[n] = 0;
-		std::string currentBuffer = connection.request.cgi.getBufCGI();
+		std::string currentBuffer = connection.request.cgi.getBuffer();
 		currentBuffer.append(buf, n);
-		connection.request.cgi.setBufCGI(currentBuffer);
+		connection.request.cgi.setBuffer(currentBuffer);
 	}
 	else if (n == 0)
 	{
 		epoll_ctl(Server::epoll_fd, EPOLL_CTL_DEL, fd, NULL);
 		close(fd);
 		waitpid(connection.request.cgi.pid, NULL, WNOHANG);
+		{
+			connection.response = Response(200);
+			connection.response.setHeader("Content-Length", "6");
+			connection.response.setHeader("Content-Type", "text/plain");
+			connection.response.setBody("hello\n");
+		}
+		connection.response.setReady(1);
+		// Server::setEvents(connection.getFD(), EPOLLOUT, EPOLL_CTL_MOD);
 		// make response
 		// change connection EPOLL events to EPOLLOUT
 		// make reasonse ready
@@ -164,16 +171,27 @@ void Server::handleCGIRead(Connection &connection, int fd)
 void	Server::handleCGIIO(int index)
 {
 	int fd = events[index].data.fd;
-	Connection &connection = *(static_cast<Connection*>(events[index].data.ptr));
-	CGI &cgi = connection.request.cgi;
-
-	if (fd == cgi.in)
-		handleCGIWrite(connection, fd);
-	if (fd == cgi.out)
-		handleCGIRead(connection, fd);
+	// Connection &connection = *(static_cast<Connection*>(events[index].data.ptr));
+	// CGI &cgi = connection.request.cgi;
+	std::map<int, Connection>::iterator it = connections.begin();
+	for (; it != connections.end(); ++it)
+	{
+		Connection &con = it->second;
+		if (it->second.request.cgi.in == fd)
+			handleCGIWrite(con, con.request.cgi.in);
+		if (it->second.request.cgi.out == fd)
+			handleCGIRead(con, con.request.cgi.out);
+	}
+	// when the compiler enters the two funcs (write then read) it simply hangs
+	// i noticed also that the read() doesnt read 
+	// Connection &con = it->second;
+	// if (events[index].events & EPOLLOUT)
+	// 	handleCGIWrite(con, con.request.cgi.in);
+	// if (events[index].events & EPOLLIN)
+	// 	handleCGIRead(con, con.request.cgi.out);
 }
 
-void Server::setEvents(int &fd, int events, int mode)
+void Server::setEvents(int fd, int events, int mode)
 {
 	struct epoll_event ev;
 
@@ -193,14 +211,14 @@ void	Server::run()
 		for (int i = 0; i < nevents; ++i)
 		{
 			int curr = events[i].data.fd;
-			if (!events[i].data.ptr && static_cast<Connection *>(events[i].data.ptr)->request.cgi.isReady())
-				handleCGIIO(i);
-			else if (sockets_to_ports.find(curr) != sockets_to_ports.end())
+			if (sockets_to_ports.count(curr))
 				acceptConnection(curr);
-			else if (events[i].events & (EPOLLERR | EPOLLRDHUP | EPOLLHUP))
-				closeConnection(i);
-			else
+			// else if (events[i].events & (EPOLLERR | EPOLLRDHUP | EPOLLHUP))
+			// 	closeConnection(i);
+			else if (connections.count(curr))
 				handleConnectionIO(i);
+			else // if (events[i].data.ptr && static_cast<Connection *>(events[i].data.ptr)->request.cgi.isReady())
+				handleCGIIO(i);
 		}
 	}
 	close(epoll_fd);

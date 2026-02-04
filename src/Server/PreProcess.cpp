@@ -3,20 +3,6 @@
 #define MAX_BODY 10 * 1000 * 1000
 #define MAX_URI 10 * 1000 * 1000
 
-int validateHeader(std::string key, std::string value) {
-	if (key.empty())
-		return (0);
-	for (int i = 0; (size_t)i < key.length(); i++) {
-		if (!isalnum(key[i]) && key[i] != '-')
-			return (0);
-	}
-	for (int i = 0; (size_t)i < value.length(); i++) {
-		if (value[i] < 32 || value[i] > 126)
-			return (0);
-	}
-	return (1);
-}
-
 int checkVersion(const std::string &ver) {
 	if (ver.length() != 8 || ver.compare(0, 5, "HTTP/"))
 		return (400);

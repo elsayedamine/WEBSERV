@@ -1,10 +1,12 @@
 #include <CGI.hpp>
 #include <Request.hpp>
 #include <Server.hpp>
+#include <iostream>
+#include <sstream>
 
-const std::string &CGI::getBufCGI() const { return bufCGI; }
+const std::string &CGI::getBuffer() const { return buffer; }
 
-void CGI::setBufCGI(const std::string &buf) { bufCGI = buf; }
+void CGI::setBuffer(const std::string &buf) { buffer = buf; }
 
 int CGI::isReady() const { return ready; }
 
@@ -112,14 +114,66 @@ void CGI::handleCGI(const Request &request, const std::string &script, const std
 		fcntl(pipe_out[0], F_SETFL, O_NONBLOCK);
 
 		// adding the pipe ends to the epoll()
-		Server::setEvents(pipe_in[1], EPOLLOUT, EPOLL_CTL_MOD);
-		Server::setEvents(pipe_out[0], EPOLLIN, EPOLL_CTL_MOD);
+		// Server::setEvents(pipe_in[1], EPOLLOUT, EPOLL_CTL_ADD);
+		// Server::setEvents(pipe_out[0], EPOLLIN, EPOLL_CTL_ADD);
 
 		in = pipe_out[0];
 		out = pipe_in[1];
 		this->pid = pid;
 		ready = true;
 
-		freeEnvp();
+		// freeEnvp();
 	}
 }
+
+int CGI::parseHeader(Response &response) {
+	std::string::size_type nl = buffer.find('\n');
+	if (nl == std::string::npos)
+		return (2);
+	std::string line = buffer.substr(0, nl);
+	buffer.erase(0, nl + 1);
+	if (!line.empty() && line[line.size() - 1] == '\r')
+		line.erase(line.size() - 1);
+	if (line.empty())
+		return (1);
+	std::string::size_type colon = line.find(':');
+	if (colon == std::string::npos || colon == 0)
+		return (0);
+	std::string key = line.substr(0, colon);
+	std::string value = line.substr(colon + 1);
+	key = strtrim(key);
+	value = strtrim(value);
+	if (key.empty())
+		return (0);
+	response.setHeader(key, value);
+	return (1);
+}
+
+bool parse() {
+	while (1) {
+		// iyih iyih while 1
+	}
+	return (false);
+}
+
+// int main()
+// {
+// 	CGI cgi;
+// 	std::string cgi_output =
+// 		"Status: 200 OK\n"
+// 		"Content-Type: text/plain\n"
+// 		"X-Demo: true\n"
+// 		"\n"
+// 		"Hello from CGI!\n"
+// 		"Test\n";
+
+// 	std::map<std::string, std::string> headers;
+// 	std::string body;
+// 	bool ok = cgi.parse();
+
+// 	std::cout << "parse ok: " << (ok ? "true" : "false") << std::endl;
+// 	std::cout << "body: " << body << std::endl;
+// 	for (std::map<std::string, std::string>::const_iterator it = headers.begin(); it != headers.end(); ++it)
+// 		std::cout << it->first << ": " << it->second << std::endl;
+// 	return 0;
+// }

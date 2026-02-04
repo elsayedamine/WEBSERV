@@ -29,7 +29,7 @@ void Connection::read() {
 
 	ssize_t size = recv(fd, buffer, RSIZE - 1, 0);
 	if (!size)
-		return Server::setEvents(fd, 0, EPOLL_CTL_MOD);
+		return Server::setEvents(fd, 0, EPOLL_CTL_DEL);
 	if (size < 0)
 		return Server::setEvents(fd, EPOLLERR, EPOLL_CTL_MOD);
 	buffer[size] = 0;
@@ -41,14 +41,14 @@ void Connection::read() {
 void Connection::write() {
 	std::string data = getData();
 
-	if (!data.empty()) {
+	if (data.size() > offset) {
 		ssize_t size = send(fd, data.c_str() + offset, std::min(static_cast<size_t>(WSIZE), data.size() - offset), 0);
 		if (size > 0)
 			offset += size;
 		if (size < 0)
 			Server::setEvents(fd, EPOLLERR, EPOLL_CTL_MOD);
 	}
-	if (getData().empty()) {
+	if (data.size() == offset) {
 		Server::setEvents(fd, EPOLLIN | EPOLLRDHUP | EPOLLHUP, EPOLL_CTL_MOD);
 		if (response.getHeader("Connection") != "keep-alive")
 			Server::setEvents(fd, EPOLLERR, EPOLL_CTL_MOD);
@@ -60,6 +60,10 @@ void Connection::write() {
 void Connection::processRequest() {
 	std::vector<ConfigBlock>::const_iterator candidate;
 
+	if (parse.getStatus() == PARSE_FAIL) {
+		response = Response(400);
+		return;
+	}
 	candidate = request.getCandidate(getServers());
 	if (candidate == getServers().end())
 		response = Response(400);
@@ -78,7 +82,7 @@ void Connection::processResponse() {
 	setData(response.mkResponse());
 	setDataReady(1);
 	response.setReady(0);
-	Server::setEvents(fd, EPOLLIN | EPOLLOUT | EPOLLRDHUP | EPOLLHUP, EPOLL_CTL_MOD);
+	Server::setEvents(fd, EPOLLOUT | EPOLLRDHUP | EPOLLHUP, EPOLL_CTL_MOD);
 }
 
 void Server::handleConnectionIO(int index) {
@@ -90,11 +94,21 @@ void Server::handleConnectionIO(int index) {
 		connection.read();
 	if (connection.request.isReady()) { // Process request
 		connection.processRequest();
-		if (connection.request.cgi.isReady())
-			events[index].data.ptr = &connection;
+		if (connection.request.cgi.isReady()){
+			Server::setEvents(connection.request.cgi.in, EPOLLOUT, EPOLL_CTL_ADD);
+			Server::setEvents(connection.request.cgi.out, EPOLLIN, EPOLL_CTL_ADD);
+			// struct epoll_event ev;
+			// ev.events = EPOLLOUT;
+			// ev.data.ptr = &connection;
+			// epoll_ctl(epoll_fd, EPOLL_CTL_ADD, connection.request.cgi.in, &ev);
+			// struct epoll_event evt;
+			// evt.events = EPOLLIN;
+			// evt.data.ptr = &connection;
+			// epoll_ctl(epoll_fd, EPOLL_CTL_ADD, connection.request.cgi.out, &evt);
+		}
 	}
 	if (connection.response.isReady()) // Process response
 		connection.processResponse();
-	if (ev & EPOLLOUT && connection.dataReady()) // Write
+	if (ev & EPOLLOUT) // Write
 		connection.write();
 }

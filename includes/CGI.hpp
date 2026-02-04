@@ -7,9 +7,11 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <algorithm>
+#include <map>
 #include <wait.h>
 #include <poll.h>
 #include <sys/epoll.h>
+#include <Response.hpp>
 
 class Request;
 
@@ -18,12 +20,15 @@ class CGI
 	private:
 		std::vector<std::string> variables;
 		char **envp;
-		std::string bufCGI;
+		std::string buffer;
 		int ready;
+
+		int parseHeader(Response &response);
+		void parseBody(Response &response);
 
 	public:
 		CGI() : envp(NULL), ready(0), in(-1), out(-1), pid(-1), offset(0) {};
-		~CGI() { freeEnvp(); };
+		~CGI() { /*freeEnvp();*/ };
 
 		int in;
 		int out;
@@ -32,17 +37,18 @@ class CGI
 
 		// Getters
 		const std::vector<std::string> &getVariables() const { return this->variables; }
-		const std::string &getBufCGI() const;
+		const std::string &getBuffer() const;
 		int isReady() const;
 
 		// Setters
-		void setBufCGI(const std::string &buf);
+		void setBuffer(const std::string &buf);
 		void setReady(int r);
 
 		void	handleCGI(const Request &, const std::string &, const std::string &);
 		void	CreateVariables(const Request &, const std::string &);
 		void	ConvertEnvp();
 		void 	freeEnvp();
+		bool	parse();
 };
 
 #endif

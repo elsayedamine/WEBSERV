@@ -27,7 +27,7 @@ class Server
 		~Server() {} // clear the project ig && close fds
 		Server(const Configuration &);
 		void	run( void );
-		static void	setEvents(int &fd, int events, int mode);
+		static void	setEvents(int fd, int events, int mode);
 	private:
 		std::map<int, std::vector<ConfigBlock> > config_map;
 		std::map<int, int> sockets_to_ports;
