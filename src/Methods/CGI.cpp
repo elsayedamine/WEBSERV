@@ -117,10 +117,12 @@ void CGI::handleCGI(const Request &request, const std::string &script, const std
 		// Server::setEvents(pipe_in[1], EPOLLOUT, EPOLL_CTL_ADD);
 		// Server::setEvents(pipe_out[0], EPOLLIN, EPOLL_CTL_ADD);
 
-		in = pipe_out[0];
-		out = pipe_in[1];
+		in = pipe_in[1];
+		out = pipe_out[0];
 		this->pid = pid;
 		ready = true;
+		// if (request.getMethod() == "GET" || request.getMethod() == "DELETE")
+		// 	{ close(pipe_in[1]); out = -1; }
 
 		// freeEnvp();
 	}

@@ -156,7 +156,7 @@ void Server::handleCGIRead(Connection &connection, int fd)
 			connection.response.setBody("hello\n");
 		}
 		connection.response.setReady(1);
-		// Server::setEvents(connection.getFD(), EPOLLOUT, EPOLL_CTL_MOD);
+		Server::setEvents(connection.getFD(), EPOLLOUT, EPOLL_CTL_MOD);
 		// make response
 		// change connection EPOLL events to EPOLLOUT
 		// make reasonse ready

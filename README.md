@@ -2,9 +2,11 @@
 amine:
 	high priority:
 	- comments under "// to check"
-	- handle CGI
-	- i have to create the CGIstruct + fill it + track all fds from handleIO to the CGI till the handleCGIIO 
+	- session management
 
 youssef:
 	high priorty:
-	- session management
+	- resolution (uploads)
+	- cgi parsing
+	- error pages
+
