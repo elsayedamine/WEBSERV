@@ -26,7 +26,7 @@ Server::Server(const Configuration & conf) : config(conf)
 	}
 }
 
-void	Server::checkDuplicateServers(const ConfigBlock &entering_server)
+void Server::checkDuplicateServers(const ConfigBlock &entering_server)
 {
 	int port = entering_server.port;
 	std::string host = entering_server.host;
@@ -50,7 +50,7 @@ void	Server::checkDuplicateServers(const ConfigBlock &entering_server)
 	}
 }
 
-void	Server::SetupSockets()
+void Server::SetupSockets()
 {
 	std::map<int, std::vector<ConfigBlock> >::iterator it;
 	for (it = config_map.begin(); it != config_map.end(); ++it) {
@@ -153,13 +153,11 @@ void Server::handleCGIRead(Connection &connection, int fd)
 			connection.response = Response(200);
 			connection.response.setHeader("Content-Length", "6");
 			connection.response.setHeader("Content-Type", "text/plain");
-			connection.response.setBody("hello\n");
+			connection.response.setBody("lhrba\n");
 		}
 		connection.response.setReady(1);
 		Server::setEvents(connection.getFD(), EPOLLOUT, EPOLL_CTL_MOD);
 		// make response
-		// change connection EPOLL events to EPOLLOUT
-		// make reasonse ready
 	}
 	else
 	{
@@ -168,12 +166,11 @@ void Server::handleCGIRead(Connection &connection, int fd)
 	}
 }
 
-void	Server::handleCGIIO(int index)
+void Server::handleCGIIO(int index)
 {
 	int fd = events[index].data.fd;
-	// Connection &connection = *(static_cast<Connection*>(events[index].data.ptr));
-	// CGI &cgi = connection.request.cgi;
 	std::map<int, Connection>::iterator it = connections.begin();
+
 	for (; it != connections.end(); ++it)
 	{
 		Connection &con = it->second;
@@ -182,13 +179,6 @@ void	Server::handleCGIIO(int index)
 		if (it->second.request.cgi.out == fd)
 			handleCGIRead(con, con.request.cgi.out);
 	}
-	// when the compiler enters the two funcs (write then read) it simply hangs
-	// i noticed also that the read() doesnt read 
-	// Connection &con = it->second;
-	// if (events[index].events & EPOLLOUT)
-	// 	handleCGIWrite(con, con.request.cgi.in);
-	// if (events[index].events & EPOLLIN)
-	// 	handleCGIRead(con, con.request.cgi.out);
 }
 
 void Server::setEvents(int fd, int events, int mode)
@@ -200,7 +190,7 @@ void Server::setEvents(int fd, int events, int mode)
 	epoll_ctl(epoll_fd, mode, fd, &ev);
 }
 
-void	Server::run()
+void Server::run()
 {
 	std::cout << "WebServer is running..." << std::endl;
 	while (serverRunning)
@@ -213,12 +203,12 @@ void	Server::run()
 			int curr = events[i].data.fd;
 			if (sockets_to_ports.count(curr))
 				acceptConnection(curr);
-			// else if (events[i].events & (EPOLLERR | EPOLLRDHUP | EPOLLHUP))
-			// 	closeConnection(i);
 			else if (connections.count(curr))
 				handleConnectionIO(i);
-			else // if (events[i].data.ptr && static_cast<Connection *>(events[i].data.ptr)->request.cgi.isReady())
+			else
 				handleCGIIO(i);
+			// the close connection condition was always fullfilled because the pipe fds are non-client
+			// so they were considered close/dead for the events epoll even if they had EPOLLIN/EPOLLOUT
 		}
 	}
 	close(epoll_fd);

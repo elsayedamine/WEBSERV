@@ -35,18 +35,14 @@ int Request::process(Response &response) {
 		path = location->root + "/" + target.substr(location->prefix.size());
 	}
 	if (!location->cgi.empty()) {
-		map_it it = location->cgi.begin();
-
-		for (; it != location->cgi.end(); ++it) {
-			size_t pos = target.find_last_of('.');
-
-			if (pos == std::string::npos || target.compare(pos, it->first.size(), it->first))
-				continue;
-			break;
-		}
-		if (it != location->cgi.end()) {
-			cgi.handleCGI(*this, target, it->second);
-			return (1);
+		size_t pos = target.find_last_of('.');
+		if (pos != std::string::npos) {
+			for (map_it it = location->cgi.begin(); it != location->cgi.end(); ++it) {
+				if (!target.compare(pos, it->first.size(), it->first)) {
+					cgi.handleCGI(*this, target, it->second);
+					return (1);
+				}
+			}
 		}
 	}
 	switch (getMethodEnum()) {

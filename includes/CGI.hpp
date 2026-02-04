@@ -21,13 +21,12 @@ class CGI
 		std::vector<std::string> variables;
 		char **envp;
 		std::string buffer;
-		int ready;
 
 		int parseHeader(Response &response);
 		void parseBody(Response &response);
 
 	public:
-		CGI() : envp(NULL), ready(0), in(-1), out(-1), pid(-1), offset(0) {};
+		CGI() : envp(NULL), in(-1), out(-1), pid(-1), offset(0) {};
 		~CGI() { /*freeEnvp();*/ };
 
 		int in;

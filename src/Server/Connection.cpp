@@ -90,25 +90,33 @@ void Server::handleConnectionIO(int index) {
 	int ev = events[index].events;
 	Connection &connection = connections[fd];
 
+	if (events[index].events & (EPOLLERR | EPOLLRDHUP | EPOLLHUP))
+		return (closeConnection(index));
 	if (ev & EPOLLIN) // Read
 		connection.read();
-	if (connection.request.isReady()) { // Process request
+	if (connection.request.isReady()) // Process request
 		connection.processRequest();
-		if (connection.request.cgi.isReady()){
-			Server::setEvents(connection.request.cgi.in, EPOLLOUT, EPOLL_CTL_ADD);
-			Server::setEvents(connection.request.cgi.out, EPOLLIN, EPOLL_CTL_ADD);
-			// struct epoll_event ev;
-			// ev.events = EPOLLOUT;
-			// ev.data.ptr = &connection;
-			// epoll_ctl(epoll_fd, EPOLL_CTL_ADD, connection.request.cgi.in, &ev);
-			// struct epoll_event evt;
-			// evt.events = EPOLLIN;
-			// evt.data.ptr = &connection;
-			// epoll_ctl(epoll_fd, EPOLL_CTL_ADD, connection.request.cgi.out, &evt);
-		}
-	}
 	if (connection.response.isReady()) // Process response
 		connection.processResponse();
 	if (ev & EPOLLOUT) // Write
 		connection.write();
 }
+
+// void Server::handleConnectionIO(int index) {
+// 	int fd = events[index].data.fd;
+// 	int ev = events[index].events;
+// 	Connection &connection = connections[fd];
+// 	if (ev & EPOLLIN) // Read
+// 		connection.read();
+// 	if (connection.request.isReady()) { // Process request
+// 		connection.processRequest();
+// 		if (connection.request.cgi.isReady()) { // cgi fds to epoll()
+// 			// Server::setEvents(connection.request.cgi.in, EPOLLOUT, EPOLL_CTL_ADD);
+// 			// Server::setEvents(connection.request.cgi.out, EPOLLIN, EPOLL_CTL_ADD);
+// 		}
+// 	}
+// 	if (connection.response.isReady()) // Process response
+// 		connection.processResponse();
+// 	if (ev & EPOLLOUT) // Write
+// 		connection.write();
+// }

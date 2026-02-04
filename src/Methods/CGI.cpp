@@ -8,10 +8,6 @@ const std::string &CGI::getBuffer() const { return buffer; }
 
 void CGI::setBuffer(const std::string &buf) { buffer = buf; }
 
-int CGI::isReady() const { return ready; }
-
-void CGI::setReady(int r) { ready = (r != 0); }
-
 std::string InttoString(int x)
 {
 	std::ostringstream oss;
@@ -110,17 +106,16 @@ void CGI::handleCGI(const Request &request, const std::string &script, const std
 		close(pipe_in[0]);
 		close(pipe_out[1]);
 
-		fcntl(pipe_in[1], F_SETFL, O_NONBLOCK);
+		fcntl(pipe_in[1], F_SETFL, O_NONBLOCK); //check
 		fcntl(pipe_out[0], F_SETFL, O_NONBLOCK);
 
 		// adding the pipe ends to the epoll()
-		// Server::setEvents(pipe_in[1], EPOLLOUT, EPOLL_CTL_ADD);
-		// Server::setEvents(pipe_out[0], EPOLLIN, EPOLL_CTL_ADD);
+		Server::setEvents(pipe_in[1], EPOLLOUT, EPOLL_CTL_ADD);
+		Server::setEvents(pipe_out[0], EPOLLIN, EPOLL_CTL_ADD);
 
 		in = pipe_in[1];
 		out = pipe_out[0];
 		this->pid = pid;
-		ready = true;
 		// if (request.getMethod() == "GET" || request.getMethod() == "DELETE")
 		// 	{ close(pipe_in[1]); out = -1; }
 
