@@ -27,5 +27,6 @@ class Configuration
 		const std::vector<ConfigBlock> & getServers() const { return this->servers; };
 		e_error	err;
 };
+std::string check_configfile(int ac, char **av);
 
 #endif

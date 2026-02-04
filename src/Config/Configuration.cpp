@@ -45,15 +45,15 @@ void	fill_server_keys(std::map<std::string, Validators> &server_keys)
 
 void	fill_location_keys(std::map<std::string, Validators> &location_keys)
 {
-    location_keys["root"] = &validate_root;
-    location_keys["index"] = &validate_index;
-    location_keys["autoindex"] = &validate_autoindex;
-    location_keys["upload_enable"] = &validate_upload_enable;
-    location_keys["upload_store"] = &validate_upload_store;
-    location_keys["return"] = &validate_return;
-    location_keys["error_page"] = &validate_error_page;
-    location_keys["client_max_body_size"] = &validate_clients;
-    location_keys["allow_methods"] = &validate_allowed_methods;
+	location_keys["root"] = &validate_root;
+	location_keys["index"] = &validate_index;
+	location_keys["autoindex"] = &validate_autoindex;
+	location_keys["upload_enable"] = &validate_upload_enable;
+	location_keys["upload_store"] = &validate_upload_store;
+	location_keys["return"] = &validate_return;
+	location_keys["error_page"] = &validate_error_page;
+	location_keys["client_max_body_size"] = &validate_clients;
+	location_keys["allow_methods"] = &validate_allowed_methods;
 	location_keys["cgi"] = &validate_cgi;
 }
 
@@ -74,6 +74,27 @@ void	Configuration::resolve_config()
 			if (location.ret.second.empty()) location.ret = server.ret;
 		}
 	}
+}
+
+std::string check_configfile(int ac, char **av)
+{
+	std::string ConfigFile = "testing/webserv.conf";
+	std::string filename;
+
+	if (ac > 2)
+		{ std::cerr << "Usage: " << av[0] << " [config_file.conf]" << std::endl; return ""; }
+	else
+	{
+		filename = (ac == 2) ? av[1] : ConfigFile;
+		size_t dotPos = filename.find_last_of('.');
+		if (dotPos == std::string::npos || filename.substr(dotPos) != ".conf")
+			{ std::cerr << "Error: File '" + filename + "' must have a .conf extension.\n"; return ""; }
+		std::ifstream file(filename.c_str());
+		if (!file.good())
+			{ std::cerr << "Error: Cannot open file '" + filename + "'."; return ""; }
+	}
+
+	return filename;
 }
 
 Configuration::Configuration(const Directive &main)
