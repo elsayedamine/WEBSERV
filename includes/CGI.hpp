@@ -15,6 +15,14 @@
 
 class Request;
 
+enum CGIparserState {
+	CGI_OVER,
+	CGI_PENDING,
+	CGI_HEADERS,
+	CGI_BODY,
+	CGI_FAIL = -1
+};
+
 class CGI
 {
 	private:
@@ -22,11 +30,12 @@ class CGI
 		char **envp;
 		std::string buffer;
 
-		int parseHeader(Response &response);
+		void parseHeader(Response &response);
 		void parseBody(Response &response);
+		int state;
 
 	public:
-		CGI() : envp(NULL), in(-1), out(-1), pid(-1), offset(0) {};
+		CGI() : envp(NULL), buffer(), state(CGI_PENDING), in(-1), out(-1), pid(-1), offset(0) {};
 		~CGI() { /*freeEnvp();*/ };
 
 		int in;
@@ -38,16 +47,18 @@ class CGI
 		const std::vector<std::string> &getVariables() const { return this->variables; }
 		const std::string &getBuffer() const;
 		int isReady() const;
+		int getState() const { return state; }
 
 		// Setters
 		void setBuffer(const std::string &buf);
 		void setReady(int r);
+		void setState(int s) { state = s; }
 
 		void	handleCGI(const Request &, const std::string &, const std::string &);
 		void	CreateVariables(const Request &, const std::string &);
 		void	ConvertEnvp();
 		void 	freeEnvp();
-		bool	parse();
+		int		parse(Response &response);
 };
 
 #endif

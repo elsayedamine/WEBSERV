@@ -149,15 +149,15 @@ void Server::handleCGIRead(Connection &connection, int fd)
 		epoll_ctl(Server::epoll_fd, EPOLL_CTL_DEL, fd, NULL);
 		close(fd);
 		waitpid(connection.request.cgi.pid, NULL, WNOHANG);
+		if (!connection.response.isReady())
 		{
-			connection.response = Response(200);
-			connection.response.setHeader("Content-Length", "6");
-			connection.response.setHeader("Content-Type", "text/plain");
-			connection.response.setBody("lhrba\n");
+			int parse = connection.request.cgi.parse(connection.response);
+			if (parse <= 0) {
+				connection.response = parse == -1 ? Response(500) : connection.response;
+				connection.response.setReady(1);
+			}
 		}
-		connection.response.setReady(1);
 		Server::setEvents(connection.getFD(), EPOLLOUT, EPOLL_CTL_MOD);
-		// make response
 	}
 	else
 	{
@@ -207,8 +207,6 @@ void Server::run()
 				handleConnectionIO(i);
 			else
 				handleCGIIO(i);
-			// the close connection condition was always fullfilled because the pipe fds are non-client
-			// so they were considered close/dead for the events epoll even if they had EPOLLIN/EPOLLOUT
 		}
 	}
 	close(epoll_fd);

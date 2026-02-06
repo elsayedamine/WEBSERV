@@ -35,11 +35,11 @@ int Request::process(Response &response) {
 		path = location->root + "/" + target.substr(location->prefix.size());
 	}
 	if (!location->cgi.empty()) {
-		size_t pos = target.find_last_of('.');
+		size_t pos = path.find_last_of('.');
 		if (pos != std::string::npos) {
 			for (map_it it = location->cgi.begin(); it != location->cgi.end(); ++it) {
-				if (!target.compare(pos, it->first.size(), it->first)) {
-					cgi.handleCGI(*this, target, it->second);
+				if (!path.compare(pos, it->first.size(), it->first)) {
+					cgi.handleCGI(*this, path, it->second);
 					return (1);
 				}
 			}
@@ -104,7 +104,7 @@ void Response::process(const Request &request) {
 		}
 	}
 	{ // Finalize response
-		setHeader("Connection", request.getHeader("Connection"));
+		setHeader("Connection", request.getHeader("Connection")); // check
 		setHeader("Date", dateTimeGMT());
 		setHeader("Server", "WEBSERV");
 		if (!body.empty())

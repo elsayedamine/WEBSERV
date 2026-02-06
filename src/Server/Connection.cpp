@@ -13,16 +13,26 @@ std::vector<ConfigBlock>::const_iterator Request::getCandidate(const std::vector
 	return candidates.end();
 }
 
+void Server::handleWrite(int index) {
+	Connection & connection = connections[events[index].data.fd];
+	int wr = connection.write();
+	if (wr < 0)
+		return (closeConnection(index));
+	if (wr > 0 && connection.response.getHeader("Connection") != "keep-alive")
+		return (closeConnection(index));
+}
+
 void Connection::reset() {
 	offset = 0;
 	data.clear();
-	setDataReady(0);
 	parse = Parser();
 	request = Request();
 	request.setReady(false);
 	response = Response();
 	response.setReady(0);
+	Server::setEvents(fd, EPOLLIN | EPOLLRDHUP | EPOLLHUP, EPOLL_CTL_MOD);
 }
+
 void Connection::read() {
 	char buffer[RSIZE];
 	string data;
@@ -38,28 +48,28 @@ void Connection::read() {
 	request = parse.getRequest();
 }
 
-void Connection::write() {
+int Connection::write() {
 	std::string data = getData();
 
 	if (data.size() > offset) {
-		ssize_t size = send(fd, data.c_str() + offset, std::min(static_cast<size_t>(WSIZE), data.size() - offset), 0);
+		ssize_t size = ::write(fd, data.c_str() + offset, std::min(static_cast<size_t>(WSIZE), data.size() - offset));
 		if (size > 0)
 			offset += size;
-		if (size < 0)
-			Server::setEvents(fd, EPOLLERR, EPOLL_CTL_MOD);
+		if (size <= 0)
+			return (-1);
 	}
 	if (data.size() == offset) {
-		Server::setEvents(fd, EPOLLIN | EPOLLRDHUP | EPOLLHUP, EPOLL_CTL_MOD);
-		if (response.getHeader("Connection") != "keep-alive")
-			Server::setEvents(fd, EPOLLERR, EPOLL_CTL_MOD);
-		else
+		if (response.getHeader("Connection") == "keep-alive")
 			reset();
+		return (1);
 	}
+	return (0);
 }
 
 void Connection::processRequest() {
 	std::vector<ConfigBlock>::const_iterator candidate;
 
+	std::cout << request << std::endl;
 	if (parse.getStatus() == PARSE_FAIL) {
 		response = Response(400);
 		return;
@@ -80,7 +90,6 @@ void Connection::processRequest() {
 void Connection::processResponse() {
 	response.process(request);
 	setData(response.mkResponse());
-	setDataReady(1);
 	response.setReady(0);
 	Server::setEvents(fd, EPOLLOUT | EPOLLRDHUP | EPOLLHUP, EPOLL_CTL_MOD);
 }
@@ -99,24 +108,5 @@ void Server::handleConnectionIO(int index) {
 	if (connection.response.isReady()) // Process response
 		connection.processResponse();
 	if (ev & EPOLLOUT) // Write
-		connection.write();
+		return (handleWrite(index));
 }
-
-// void Server::handleConnectionIO(int index) {
-// 	int fd = events[index].data.fd;
-// 	int ev = events[index].events;
-// 	Connection &connection = connections[fd];
-// 	if (ev & EPOLLIN) // Read
-// 		connection.read();
-// 	if (connection.request.isReady()) { // Process request
-// 		connection.processRequest();
-// 		if (connection.request.cgi.isReady()) { // cgi fds to epoll()
-// 			// Server::setEvents(connection.request.cgi.in, EPOLLOUT, EPOLL_CTL_ADD);
-// 			// Server::setEvents(connection.request.cgi.out, EPOLLIN, EPOLL_CTL_ADD);
-// 		}
-// 	}
-// 	if (connection.response.isReady()) // Process response
-// 		connection.processResponse();
-// 	if (ev & EPOLLOUT) // Write
-// 		connection.write();
-// }

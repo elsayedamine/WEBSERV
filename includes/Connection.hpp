@@ -16,7 +16,6 @@ class Connection {
 		ConfigBlock server;
 		int fd;
 		std::string data;
-		int data_ready;
 		
 	public:
 		size_t offset;
@@ -24,8 +23,8 @@ class Connection {
 		Request request;
 		Response response;
 
-		Connection() : fd(-1), data_ready(0), offset(0) { response.setReady(0); request.setReady(false); };
-		Connection(int fd) : fd(fd), data_ready(0), offset(0) { response.setReady(0); request.setReady(false); };
+		Connection() : fd(-1), offset(0) { response.setReady(0); request.setReady(false); };
+		Connection(int fd) : fd(fd), offset(0) { response.setReady(0); request.setReady(false); };
 		~Connection() {};
 
 		int getFD() const { return fd; }
@@ -34,11 +33,9 @@ class Connection {
 		const std::vector<ConfigBlock> &getServers() const { return servers; }
 		const std::string &getData() const { return data; }
 		void setData(const std::string &d) { data = d; }
-		int dataReady() const { return data_ready; }
-		void setDataReady(int r) { data_ready = (r != 0); }
 		
 		void read();
-		void write();
+		int write();
 		void processRequest();
 		void processResponse();
 		void reset();

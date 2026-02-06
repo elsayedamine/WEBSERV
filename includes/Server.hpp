@@ -44,6 +44,7 @@ class Server
 		void		handleCGIIO(int fd);
 		void		handleCGIWrite(Connection &connection, int fd);
 		void		handleCGIRead(Connection &connection, int fd);
+		void		handleWrite(int index);
 };
 
 #endif

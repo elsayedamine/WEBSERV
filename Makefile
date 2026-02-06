@@ -1,5 +1,5 @@
 # check (bdl hdch)
-CXX:= clang++
+CXX:= g++
 CFLAGS:= -std=c++98 -g -Wall -Werror -Wextra
 NAME:= webserv
 INC= -I./includes

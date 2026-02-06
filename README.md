@@ -3,6 +3,7 @@ amine:
 	high priority:
 	- comments under "// to check"
 	- session management
+	- close all fds at the end of the server (for signals)
 
 youssef:
 	high priorty:

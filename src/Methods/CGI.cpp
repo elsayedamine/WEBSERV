@@ -88,10 +88,13 @@ void CGI::handleCGI(const Request &request, const std::string &script, const std
 		{ freeEnvp(); return ; }
 	if (pid == 0)
 	{
+		signal(SIGINT, SIG_DFL);
+		signal(SIGQUIT, SIG_DFL);
 		size_t last_slash = script.find_last_of("/");
 		std::string dir = (last_slash == std::string::npos) ? "." : script.substr(0, last_slash);
 		std::string file = (last_slash == std::string::npos) ? script : script.substr(last_slash + 1);
 
+		// check
 		if (chdir(dir.c_str()) < 0) exit(1);
 		dup2(pipe_in[0], STDIN_FILENO);
 		dup2(pipe_out[1], STDOUT_FILENO);
@@ -123,54 +126,61 @@ void CGI::handleCGI(const Request &request, const std::string &script, const std
 	}
 }
 
-int CGI::parseHeader(Response &response) {
+void CGI::parseHeader(Response &response) {
 	std::string::size_type nl = buffer.find('\n');
-	if (nl == std::string::npos)
-		return (2);
+	if (nl == std::string::npos) {
+		state = CGI_PENDING;
+		return;
+	}
 	std::string line = buffer.substr(0, nl);
 	buffer.erase(0, nl + 1);
 	if (!line.empty() && line[line.size() - 1] == '\r')
 		line.erase(line.size() - 1);
-	if (line.empty())
-		return (1);
+	if (line.empty()) {
+		state = CGI_BODY;
+		return;
+	}
 	std::string::size_type colon = line.find(':');
-	if (colon == std::string::npos || colon == 0)
-		return (0);
+	if (colon == std::string::npos || colon == 0) {
+		state = CGI_FAIL;
+		return;
+	}
 	std::string key = line.substr(0, colon);
 	std::string value = line.substr(colon + 1);
 	key = strtrim(key);
 	value = strtrim(value);
-	if (key.empty())
-		return (0);
-	response.setHeader(key, value);
-	return (1);
-}
-
-bool parse() {
-	while (1) {
-		// iyih iyih while 1
+	if (key.empty()) {
+		state = CGI_FAIL;
+		return;
 	}
-	return (false);
+	if (key == "Status") {
+		std::istringstream iss(value);
+		int status = 0;
+		iss >> status;
+		if (status >= 100 && status <= 599)
+			response.setStatus(status);
+		state = CGI_HEADERS;
+	}
+	response.setHeader(key, value);
+	state = CGI_HEADERS;
 }
 
-// int main()
-// {
-// 	CGI cgi;
-// 	std::string cgi_output =
-// 		"Status: 200 OK\n"
-// 		"Content-Type: text/plain\n"
-// 		"X-Demo: true\n"
-// 		"\n"
-// 		"Hello from CGI!\n"
-// 		"Test\n";
+void CGI::parseBody(Response &response)
+{
+	if (buffer.empty())
+		state = CGI_OVER;
+	response.setBody(buffer);
+	buffer.clear();
+}
 
-// 	std::map<std::string, std::string> headers;
-// 	std::string body;
-// 	bool ok = cgi.parse();
-
-// 	std::cout << "parse ok: " << (ok ? "true" : "false") << std::endl;
-// 	std::cout << "body: " << body << std::endl;
-// 	for (std::map<std::string, std::string>::const_iterator it = headers.begin(); it != headers.end(); ++it)
-// 		std::cout << it->first << ": " << it->second << std::endl;
-// 	return 0;
-// }
+int CGI::parse(Response &response) {
+	if (CGI_PENDING)
+		state = CGI_HEADERS;
+	while (state != CGI_OVER && state != CGI_FAIL) {
+		if (state == CGI_HEADERS)
+			parseHeader(response);
+		else if (state == CGI_BODY)
+			parseBody(response);
+	}
+	return state;
+}
