@@ -71,7 +71,7 @@ void Server::SetupSockets()
 		addr.sin_port = htons(port);
 		addr.sin_addr.s_addr = htonl(INADDR_ANY); // check
 
-		if (bind(sock, (struct sockaddr*)&addr, sizeof(addr)) < 0)
+		if (bind(sock, (struct sockaddr*)&addr, sizeof(addr)) < 0) // check
 			throw std::runtime_error("bind() failed.");
 		if (listen(sock, 1024) < 0)
 			throw std::runtime_error("listen() failed.");
@@ -83,7 +83,7 @@ void Server::SetupSockets()
 
 int	Server::acceptConnection(int listener)
 {
-	struct sockaddr_in client_addr;
+	struct sockaddr_in client_addr; // check
 	socklen_t client_len = sizeof(client_addr);
 	int client = accept(listener, (struct sockaddr *)&client_addr, &client_len);
 	if (client < 0) { std::cerr << "Accept() failed" << std::endl; return false; }
