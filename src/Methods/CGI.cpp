@@ -177,6 +177,7 @@ int CGI::parse(Response &response) {
 	if (CGI_PENDING)
 		state = CGI_HEADERS;
 	while (state != CGI_OVER && state != CGI_FAIL) {
+		std::cout << "test" << std::endl;
 		if (state == CGI_HEADERS)
 			parseHeader(response);
 		else if (state == CGI_BODY)

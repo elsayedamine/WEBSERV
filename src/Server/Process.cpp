@@ -39,6 +39,12 @@ int Request::process(Response &response) {
 		if (pos != std::string::npos) {
 			for (map_it it = location->cgi.begin(); it != location->cgi.end(); ++it) {
 				if (!path.compare(pos, it->first.size(), it->first)) {
+					struct stat st;
+
+					if (stat(path.c_str(), &st) == -1)
+						return (response = Response(402 + (errno == EACCES) + 2 * (errno == ENOENT)), 0);
+					if (S_ISDIR(st.st_mode))
+						return (response = Response(403), 0);
 					cgi.handleCGI(*this, path, it->second);
 					return (1);
 				}
