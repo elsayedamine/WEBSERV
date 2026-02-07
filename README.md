@@ -7,8 +7,6 @@ amine:
 
 youssef:
 	high priorty:
-	- resolution (uploads)
-	- cgi parsing
 	- error pages
 
 i tried to write in the URL : http://127.0.0.1:8080/cgi-bin/
