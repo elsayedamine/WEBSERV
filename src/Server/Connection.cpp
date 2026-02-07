@@ -69,7 +69,6 @@ int Connection::write() {
 void Connection::processRequest() {
 	std::vector<ConfigBlock>::const_iterator candidate;
 
-	std::cout << request << std::endl;
 	if (parse.getStatus() == PARSE_FAIL) {
 		response = Response(400);
 		return;

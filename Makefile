@@ -21,7 +21,6 @@ SRC:= src/Config/ConfigBlock.cpp \
 	src/Server/Process.cpp \
 	src/Server/Response.cpp \
 	src/Server/Server.cpp \
-	src/utils/prints.cpp \
 	src/utils/strings.cpp \
 	src/main.cpp
 
