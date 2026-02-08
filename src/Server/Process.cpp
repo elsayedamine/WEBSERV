@@ -100,17 +100,38 @@ string dateTimeGMT() {
 	return oss.str();
 }
 
+std::string mkErrorPage(int code, std::string message) {
+	std::string body = std::string(
+		"<!DOCTYPE html>"
+		"<html lang=\"en\">"
+		"<head>"
+		"<meta charset=\"UTF-8\" />"
+		"<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />"
+		"<script src=\"https://cdn.tailwindcss.com\"></script>"
+		"<title>autoindex</title>"
+		"</head>"
+		"<body class=\"bg-gray-200 text-center\">"
+		"<div class=\"mx-auto min-h-screen max-w-3xl bg-blue-100 py-10 border-l-4 border-r-4 border-black px-6\">"
+		"<h1 class=\"font-bold text-8xl\">") + num_to_string(code) + std::string("</h1>"
+		"<h1 class=\"font-bold text-5xl my-8\">") + message + std::string(
+		"</h1></div></body></html>"
+	);
+
+	return (body);
+}
+
 void Response::process(const Request &request) {
 	if (code >= 400) { // Check for error pages
-		map<int, string>::const_iterator it = server.error_page.find(code);
+		map<int, string>::const_iterator it = server.error_page.find(code); //check (this map is always .size() == 1, maybe kat overwritih b lkher dima b7al kima tra f cgi)
 
-		if (it != server.error_page.end()) {
+		if (it != server.error_page.end())
 			setBody(getResource(it->second).first);
-			setHeader("Content-Type", "text/html");
-		}
+		else
+			setBody(mkErrorPage(code, getCodeMessage(code)));
+		setHeader("Content-Type", "text/html");
 	}
 	{ // Finalize response
-		setHeader("Connection", request.getHeader("Connection")); // check
+		setHeader("Connection", request.getHeader("Connection"));
 		setHeader("Date", dateTimeGMT());
 		setHeader("Server", "WEBSERV");
 		if (!body.empty())

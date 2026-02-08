@@ -75,7 +75,8 @@ const ConfigBlock *findLocation(const vector<ConfigBlock> &locations, const stri
 	for (; it != locations.end(); ++it) {
 		if (target.size() < it->prefix.size())
 			continue;
-		if (!target.compare(0, it->prefix.size(), it->prefix) || target[it->prefix.size()] == '/') // check
+		if (!target.compare(0, it->prefix.size(), it->prefix) &&
+			(target.size() == it->prefix.size() || target[it->prefix.size()] == '/'))
 			return &locations[it - locations.begin()];
 	}
 	return (NULL);

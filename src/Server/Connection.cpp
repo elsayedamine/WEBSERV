@@ -6,8 +6,10 @@
 
 std::vector<ConfigBlock>::const_iterator Request::getCandidate(const std::vector<ConfigBlock> &candidates) const {
 	std::vector<ConfigBlock>::const_iterator it = candidates.begin();
+	if (it->server_name.empty())
+		return candidates.end();
 	for (; it != candidates.end(); ++it) {
-		if (!it->server_name.empty() && it->server_name[0] == getHeader("Host"))
+		if (std::find(it->server_name.begin(), it->server_name.end(), getHeader("Host")) != it->server_name.end())
 			return it;
 	}
 	return candidates.end();

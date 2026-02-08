@@ -25,5 +25,6 @@ def list_directory(directory="."):
 if __name__ == "__main__":
     directory = sys.argv[1] if len(sys.argv) > 1 else "."
     files = list_directory(directory)
+    sys.stdout.write("Status: 200\nContent-Type: application/json\n\n")
     json.dump(files, sys.stdout, indent=2)
     sys.stdout.write("\n")
