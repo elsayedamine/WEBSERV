@@ -39,13 +39,12 @@ void Connection::read() {
 	char buffer[RSIZE];
 	string data;
 
-	ssize_t size = recv(fd, buffer, RSIZE - 1, 0);
+	ssize_t size = recv(fd, buffer, RSIZE, 0);
 	if (!size)
 		return Server::setEvents(fd, 0, EPOLL_CTL_DEL);
 	if (size < 0)
 		return Server::setEvents(fd, EPOLLERR, EPOLL_CTL_MOD);
-	buffer[size] = 0;
-	data = string(buffer);
+	data = string(buffer, size);
 	parse(data);
 	request = parse.getRequest();
 }

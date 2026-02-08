@@ -147,21 +147,23 @@ void Parser::parseHeader() {
 
 void Parser::parseBody() {
 	std::string body = request.getBody();
-	std::string body_size = request.getHeader("Content-Length");
-	int size = stringToInt(body_size);
-	size_t i = 0;
+	std::string content_length = request.getHeader("Content-Length");
+	size_t length = stringToInt(content_length);
 
-	if (size - body.size() <= 0) {
+	if (length <= body.size()) {
 		status = PARSE_OVER;
 		return;
 	}
-	size -= body.size();
-	while (i < min(current.size(), size)) {
-		body += current[i];
-		i++;
-	}
+	size_t remaining = length - body.size();
+	size_t chunk = min(current.size(), remaining);
+
+	body.append(current, 0, chunk);
 	request.setBody(body);
-	current = current.substr(i);
+	current = current.substr(chunk);
+	if (body.size() >= length)
+		status = PARSE_OVER;
+	else
+		status = PARSE_PENDING;
 }
 
 int validateMethod(const std::string meth) {
