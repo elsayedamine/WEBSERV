@@ -4,6 +4,7 @@ amine:
 	- comments under "// to check"
 	- session management
 	- close all fds at the end of the server (for signals)
+	- please remove the upload_store directive entirely
 
 youssef:
 	high priorty:

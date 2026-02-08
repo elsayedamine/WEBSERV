@@ -81,13 +81,13 @@ string getFilename(const string &path) {
 	return (num_to_string(file_num + 1));
 }
 
-string createResource(const string &path, const Request &request, const ConfigBlock &location) {
+string createResource(const string &path, const Request &request, const string &prefix) {
 	string filepath;
 	string filename;
-	string uri = location.prefix;
+	string uri = prefix;
 
 	filename = getFilename(path) + getExtension(request.getHeader("Content-Type"));
-	filepath = location.upload_path + '/' + filename;
+	filepath = path + '/' + filename;
 	int fd = open(filepath.c_str(), O_WRONLY | O_CREAT, 0644);
 	if (fd == -1)
 		return ("");
@@ -102,9 +102,9 @@ string createResource(const string &path, const Request &request, const ConfigBl
 Response handlePost(const Request &request, const string &path, const ConfigBlock &location) {
 	string name;
 
-	if (!location.upload_enable || location.upload_path.empty())
+	if (!location.upload_enable)
 		return (Response(403));
-	name = createResource(path, request, location);
+	name = createResource(path, request, location.prefix);
 	{ // Form response
 		Response response(201);
 
