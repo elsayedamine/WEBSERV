@@ -23,7 +23,7 @@ def list_directory(directory="."):
     return files
 
 if __name__ == "__main__":
-    directory = sys.argv[1] if len(sys.argv) > 1 else "."
+    directory = "../uploads"
     files = list_directory(directory)
     sys.stdout.write("Status: 200\nContent-Type: application/json\n\n")
     json.dump(files, sys.stdout, indent=2)

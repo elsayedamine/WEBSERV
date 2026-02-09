@@ -1,20 +1,61 @@
 #!/usr/bin/python3
-from sys import stdin, stdout
+from sys import stdin, stdout, stderr
+from urllib.parse import parse_qs
 import os
 import socket
 
-r1 = b"GET /cgi-bin/list_files.py?a=b&z=y HTTP/1.1\r\nAccept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\nAccept-Encoding: gzip, deflate, br, zstd\r\nConnection: keep-alive\r\nAccept-Language: en-US,en;q=0.9\r\nHost: 127.0.0.1:8080\r\nPriority: u=0, i\r\nSec-Fetch-Dest: document\r\nSec-Fetch-Mode: navigate\r\nSec-Fetch-Site: none\r\nSec-Fetch-User: ?1\r\nUpgrade-Insecure-Requests: 1\r\nUser-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:147.0) Gecko/20100101 Firefox/147.0\r\n\r\n"
-
 if __name__ == "__main__":
-    # request = stdin.buffer.read()
-    request = r1
+    query = parse_qs(os.environ.get("QUERY_STRING"), keep_blank_values=True)
+    request = query.get("request", [""])[0]
+    if not request:
+        stdout.write("Status: 400 Bad Request\r\n")
+        stdout.write("Content-Type: text/plain\r\n\r\n")
+        stdout.write("Missing 'request' query parameter.\n")
+        stdout.flush()
+        raise SystemExit(0)
+
     resp = b""
     with socket.create_connection(("127.0.0.1", 8080)) as sock:
-        sock.sendall(request)
+        sock.sendall(request.encode("utf-8"))
         while True:
             chunk = sock.recv(1024)
             if not chunk:
                 break
             resp += chunk
-    stdout.buffer.write(resp)
+
+    sep = b"\r\n\r\n"
+    split_at = resp.find(sep)
+    if split_at == -1:
+        sep = b"\n\n"
+        split_at = resp.find(sep)
+
+    if split_at == -1:
+        headers_bytes = b""
+        body = resp
+    else:
+        headers_bytes = resp[:split_at]
+        body = resp[split_at + len(sep):]
+
+    header_lines = headers_bytes.decode("iso-8859-1").splitlines() if headers_bytes else []
+    status_line = header_lines[0] if header_lines else ""
+    code = "502"
+    reason = "Bad Gateway"
+
+    if status_line.startswith("HTTP/"):
+        parts = status_line.split(" ", 2)
+        if len(parts) >= 2:
+            code = parts[1]
+        if len(parts) == 3:
+            reason = parts[2]
+
+    stdout.buffer.write(f"Status: {code} {reason}\r\n".encode("utf-8"))
+    start_idx = 1 if status_line.startswith("HTTP/") else 0
+    for line in header_lines[start_idx:]:
+        if not line.strip():
+            continue
+        if ":" not in line:
+            continue
+        stdout.buffer.write((line + "\r\n").encode("iso-8859-1"))
+    stdout.buffer.write(b"\r\n")
+    stdout.buffer.write(body)
     stdout.flush()

@@ -33,7 +33,7 @@ void	CGI::CreateVariables(const Request &request, const std::string &script)
 	if (request.getMethod() == "POST")
 		variables.push_back("CONTENT_LENGTH=" + InttoString(request.getBody().size()));
 	variables.push_back("REQUEST_METHOD=" + request.getMethod());
-	variables.push_back("QUERY_STRING=" + ((sep == string::npos) ? "" : request.getTarget().substr(sep + 1)));
+	variables.push_back("QUERY_STRING=" + ((request.getQuery().empty()) ? "" : request.getQuery()));
 	variables.push_back("CONTENT_TYPE=" + request.getHeader("Content-Type"));
 	variables.push_back("PATH_INFO=" + ((sep == string::npos) ? request.getTarget() : request.getTarget().substr(0, sep)));
 	variables.push_back("SCRIPT_NAME=" + script);

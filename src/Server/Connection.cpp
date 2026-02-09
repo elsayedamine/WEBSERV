@@ -40,13 +40,13 @@ void Connection::read() {
 	string data;
 
 	ssize_t size = recv(fd, buffer, RSIZE, 0);
+	data = string(buffer, size);
+	parse(data);
+	request = parse.getRequest();
 	if (!size)
 		return Server::setEvents(fd, 0, EPOLL_CTL_DEL);
 	if (size < 0)
 		return Server::setEvents(fd, EPOLLERR, EPOLL_CTL_MOD);
-	data = string(buffer, size);
-	parse(data);
-	request = parse.getRequest();
 }
 
 int Connection::write() {
@@ -70,13 +70,8 @@ int Connection::write() {
 void Connection::processRequest() {
 	std::vector<ConfigBlock>::const_iterator candidate;
 
-	std::cout << request << std::endl;
-	if (parse.getStatus() == PARSE_FAIL) {
-		response = Response(400);
-		return;
-	}
 	candidate = request.getCandidate(getServers());
-	if (candidate == getServers().end())
+	if (parse.getStatus() == PARSE_FAIL || candidate == getServers().end())
 		response = Response(400);
 	else {
 		request.setServer(*candidate);

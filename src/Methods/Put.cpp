@@ -17,6 +17,7 @@ Response handlePut(const Request &req, const std::string &path)
 	file.close();
 
 	Response resp;
+	resp.setHeader("Location", req.getTarget());
 	if (!existed)
 	{
 		resp.setStatus(201);

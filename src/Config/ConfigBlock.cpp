@@ -115,7 +115,7 @@ ConfigBlock	validate_allowed_methods(const Directive &methods)
 		std::string method = methods.getValues()[i];
 		if (method.find('"') != std::string::npos || method.find('\'') != std::string::npos)
 			return server.err = ERROR_INVALID_ALLOWED_METHODS, server;
-		if (method != "GET" && method != "POST" && method != "DELETE")
+		if (method != "GET" && method != "POST" && method != "DELETE" && method != "PUT")
 			return server.err = ERROR_INVALID_ALLOWED_METHODS, server;
 		server.methods.push_back(method);
 	}

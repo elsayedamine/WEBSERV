@@ -37,7 +37,7 @@ void Parser::parseMethod() {
 	std::string method = request.getMethod();
 	size_t i = 0;
 
-	if (current[i] == ' ') {
+	if (current.empty() || current[i] == ' ') {
 		status = PARSE_FAIL;
 		return;
 	}
@@ -109,7 +109,7 @@ void Parser::parseVersion() {
 	while (i < current.size()) {
 		if (current[i] == '\n') {
 			cr = current[i - 1] == '\r' ? 1 : 0;
-			i += cr;
+			i += 1;
 			status = PARSE_SUCCESS;
 			break;
 		}
