@@ -70,6 +70,7 @@ int Connection::write() {
 void Connection::processRequest() {
 	std::vector<ConfigBlock>::const_iterator candidate;
 
+	std::cout << request << std::endl;
 	if (parse.getStatus() == PARSE_FAIL) {
 		response = Response(400);
 		return;
@@ -77,7 +78,7 @@ void Connection::processRequest() {
 	candidate = request.getCandidate(getServers());
 	if (candidate == getServers().end())
 		response = Response(400);
-	else {		
+	else {
 		request.setServer(*candidate);
 		if (request.process(response))
 			return request.setReady(0);

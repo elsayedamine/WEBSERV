@@ -35,6 +35,7 @@ class Parser {
 	
 		void parseMethod();
 		void parseTarget();
+		void parseQuery();
 		void parseVersion();
 		void parseHeader();
 		void parseBody();
@@ -51,6 +52,7 @@ typedef void (Parser::*stateHandler)();
 
 int validateMethod(const std::string meth);
 int validateTarget(const std::string tar);
+int validateQuery(const std::string que);
 int validateVersion(const std::string ver);
 int validateHeader(const std::pair<std::string, std::string> head, const std::multimap<std::string, std::string> map);
 int validateBody(const std::string str);

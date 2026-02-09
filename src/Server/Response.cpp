@@ -64,6 +64,7 @@ std::string Response::getCodeMessage(int code) const {
 		messages[403] = "Forbidden";
 		messages[404] = "Not Found";
 		messages[405] = "Method Not Allowed";
+		messages[408] = "Request Timeout";
 		messages[411] = "Length Required";
 		messages[413] = "Payload Too Large";
 		messages[414] = "URI Too Long";

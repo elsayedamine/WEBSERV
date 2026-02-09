@@ -14,6 +14,8 @@ void Request::setMethod(const std::string &m) { method = m; }
 
 void Request::setTarget(const std::string &t) { target = t; }
 
+void Request::setQuery(const std::string &q) { query = q; }
+
 void Request::setVersion(const std::string &v) { version = v; }
 
 void Request::setReady(bool r) { ready = r; }
@@ -21,6 +23,8 @@ void Request::setReady(bool r) { ready = r; }
 const std::string &Request::getMethod() const { return method; }
 
 const std::string& Request::getTarget() const { return target; }
+
+const std::string& Request::getQuery() const { return query; }
 
 const std::string& Request::getVersion() const { return version; }
 
@@ -46,6 +50,9 @@ std::ostream& operator<<(std::ostream& os, const Request& req) {
 	os << "========== REQUEST ==========\n";
 	os << "Method:  " << req.getMethod() << "\n";
 	os << "Target:  " << req.getTarget() << "\n";
+	if (!req.getQuery().empty()) {
+		os << "Query:   " << req.getQuery() << "\n";
+	}
 	os << "Version: " << req.getVersion() << "\n";
 	os << "\nHeaders:\n";
 	

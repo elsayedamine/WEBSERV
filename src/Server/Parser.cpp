@@ -13,6 +13,7 @@ void Parser::operator()(std::string data) {
 	static stateHandler handlers[] = {
 		&Parser::parseMethod,
 		&Parser::parseTarget,
+		&Parser::parseQuery,
 		&Parser::parseVersion,
 		&Parser::parseHeader,
 		&Parser::parseBody
@@ -21,14 +22,14 @@ void Parser::operator()(std::string data) {
 	current += data;
 	while (status != PARSE_OVER && status != PARSE_FAIL) {
 		(this->*handlers[state])();
-		if (status == PARSE_FAIL || status == PARSE_PENDING)
+		if (status == PARSE_PENDING)
 			return;
 		if (status == PARSE_SUCCESS) {
 			status = PARSE_CURRENT;
 			state++;
 		}
 	}
-	if (status == PARSE_OVER)
+	if (status == PARSE_OVER || status == PARSE_FAIL)
 		request.setReady(true);
 }
 
@@ -64,8 +65,8 @@ void Parser::parseTarget() {
 		return;
 	}
 	while (i < current.size()) {
-		if (current[i] == ' ') {
-			i++;
+		if (current[i] == ' ' || current[i] == '?') {
+			i += current[i] == '?';
 			status = PARSE_SUCCESS;
 			break;
 		}
@@ -75,6 +76,25 @@ void Parser::parseTarget() {
 	if (status == PARSE_SUCCESS && !validateTarget(target))
 		status = PARSE_FAIL;
 	request.setTarget(target);
+	current = current.substr(i);
+}
+
+void Parser::parseQuery() {
+	std::string query = request.getQuery();
+	size_t i = 0;
+
+	while (i < current.size()) {
+		if (current[i] == ' ') {
+			i++;
+			status = PARSE_SUCCESS;
+			break;
+		}
+		query += current[i];
+		i++;
+	}
+	if (status == PARSE_SUCCESS && !validateQuery(query))
+		status = PARSE_FAIL;
+	request.setQuery(query);
 	current = current.substr(i);
 }
 
@@ -180,6 +200,24 @@ int validateTarget(const std::string tar) {
 	if (tar[0] == '/')
 		return (1);
 	return (0);
+}
+
+int validateQuery(const std::string que) {
+	char c = '&';
+
+	for (size_t i = 0; i < que.size(); i++) {
+		if (c == '&' && que[i] == '=') {
+			c = '=';
+			continue;
+		}
+		if (c == '=' && que[i] == '&') {
+			c = '&';
+			continue;
+		}
+		if (c == '=' && que[i] == '=')
+			return (0);
+	}
+	return (1);
 }
 
 int validateVersion(const std::string ver) {

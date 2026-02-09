@@ -19,6 +19,7 @@ class Request {
 	private:
 		std::string method;
 		std::string target;
+		std::string query;
 		std::string version;
 		std::multimap<std::string, std::string> headers; 
 		std::string body;
@@ -35,12 +36,14 @@ class Request {
 		void setServer(const ConfigBlock &server);
 		void setMethod(const std::string &m);
 		void setTarget(const std::string &t);
+		void setQuery(const std::string &q);
 		void setVersion(const std::string &v);
 		void setReady(bool r);
 
 		const std::string &getMethod() const;
 		Method getMethodEnum() const;
 		const std::string &getTarget() const;
+		const std::string &getQuery() const;
 		const std::string &getVersion() const;
 		const std::multimap<std::string, std::string> &getHeaders() const;
 		std::string getHeader(const std::string &key) const;

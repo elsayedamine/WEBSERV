@@ -21,7 +21,7 @@ int Request::process(Response &response) {
 	string path;
 
 	{ // Resolve path
-		stable_sort(server.locations.begin(), server.locations.end(), compare);
+		// stable_sort(server.locations.begin(), server.locations.end(), compare);
 		normalizeTarget(target);
 		location = findLocation(server.locations, target);
 		if (!location)
