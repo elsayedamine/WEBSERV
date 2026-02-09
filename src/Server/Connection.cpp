@@ -3,6 +3,7 @@
 #include <Server.hpp>
 #include <Utils.hpp>
 #include <unistd.h>
+// #include <chrono>
 
 std::vector<ConfigBlock>::const_iterator Request::getCandidate(const std::vector<ConfigBlock> &candidates) const {
 	std::vector<ConfigBlock>::const_iterator it = candidates.begin();
@@ -37,16 +38,17 @@ void Connection::reset() {
 
 void Connection::read() {
 	char buffer[RSIZE];
-	string data;
+	std::string data;
 
 	ssize_t size = recv(fd, buffer, RSIZE, 0);
-	data = string(buffer, size);
-	parse(data);
-	request = parse.getRequest();
 	if (!size)
 		return Server::setEvents(fd, 0, EPOLL_CTL_DEL);
 	if (size < 0)
 		return Server::setEvents(fd, EPOLLERR, EPOLL_CTL_MOD);
+	read_timer = 0;
+	data = std::string(buffer, size);
+	parse(data);
+	request = parse.getRequest();
 }
 
 int Connection::write() {
@@ -75,9 +77,9 @@ void Connection::processRequest() {
 		response = Response(400);
 	else {
 		request.setServer(*candidate);
+		response.setServer(*candidate);
 		if (request.process(response))
 			return request.setReady(0);
-		response.setServer(*candidate);
 		response.setReady(true);
 	}
 	request.setReady(0);

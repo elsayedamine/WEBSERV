@@ -1,13 +1,11 @@
 server {
     listen 8080;
     server_name 127.0.0.1:8080 localhost:8080;
-    error_page 403 /home/gnxrly/webserv/testing/errors/403.html;
-    error_page 404 /home/gnxrly/webserv/testing/errors/404.html;
-    error_page 500 /home/gnxrly/webserv/testing/errors/500.html;
+    error_page 404 /home/aelsayed/webserv/testing/errors/404.html;
     client_max_body_size 10M;
-    root /home/gnxrly/webserv/testing;
     location / {
-        return 301 /desc;
+        autoindex on;
+        root /home/gnxrly/webserv/testing;
         allow_methods GET;
     }
     location /desc {
@@ -22,14 +20,9 @@ server {
     }
     location /uploads {
         root /home/gnxrly/webserv/testing/uploads;
+        upload_store /home/gnxrly/webserv/testing/uploads;
         upload_enable on;
         autoindex on;
-        allow_methods POST PUT GET DELETE;
-    }
-    location /cgi-bin {
-        root /home/gnxrly/webserv/testing/cgi-bin;
-        cgi .py /usr/bin/python3;
-        # cgi .js /usr/bin/node;
-        cgi .sh /usr/bin/bash;
+        allow_methods POST GET;
     }
 }

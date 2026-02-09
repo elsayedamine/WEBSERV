@@ -5,7 +5,7 @@
 #include <sstream>
 #include <iomanip>
 
-Response handleReturn(const std::pair<int, string> &ret) {
+Response handleReturn(const std::pair<int, std::string> &ret) {
 	Response response(ret.first);
 
 	if (ret.second.empty())
@@ -18,7 +18,7 @@ Response handleReturn(const std::pair<int, string> &ret) {
 
 int Request::process(Response &response) {
 	const ConfigBlock *location;
-	string path;
+	std::string path;
 
 	{ // Resolve path
 		// stable_sort(server.locations.begin(), server.locations.end(), compare);
@@ -66,7 +66,7 @@ int Request::process(Response &response) {
 	return (0);
 }
 
-int validateType(const string &target, const string &type) {
+int validateType(const std::string &target, const std::string &type) {
 	if (target[0] == '*')
 		return (1);
 	if (target[target.size() - 1] == '*') {
@@ -82,7 +82,7 @@ int validateType(const string &target, const string &type) {
 	return (1);
 }
 
-string dateTimeGMT() {
+std::string dateTimeGMT() {
 	static const char* wkday[] = {"Sun","Mon","Tue","Wed","Thu","Fri","Sat"};
 	static const char* month[] = {"Jan","Feb","Mar","Apr","May","Jun",
 								"Jul","Aug","Sep","Oct","Nov","Dec"};
@@ -108,7 +108,7 @@ std::string mkErrorPage(int code, std::string message) {
 		"<meta charset=\"UTF-8\" />"
 		"<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />"
 		"<script src=\"https://cdn.tailwindcss.com\"></script>"
-		"<title>autoindex</title>"
+		"<title>Error</title>"
 		"</head>"
 		"<body class=\"bg-gray-200 text-center\">"
 		"<div class=\"mx-auto min-h-screen max-w-3xl bg-blue-100 py-10 border-l-4 border-r-4 border-black px-6\">"
@@ -122,7 +122,7 @@ std::string mkErrorPage(int code, std::string message) {
 
 void Response::process(const Request &request) {
 	if (code >= 400) { // Check for error pages
-		map<int, string>::const_iterator it = server.error_page.find(code); //check (this map is always .size() == 1, maybe kat overwritih b lkher dima b7al kima tra f cgi)
+		std::map<int, std::string>::const_iterator it = server.error_page.find(code);
 
 		if (it != server.error_page.end())
 			setBody(getResource(it->second).first);

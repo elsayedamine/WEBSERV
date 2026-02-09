@@ -19,7 +19,6 @@ void	fill_errors(std::map<e_error, std::string> &error)
 	error[ERROR_INVALID_RETURN] = "ERROR_INVALID_RETURN";
 	error[ERROR_INVALID_CGI] = "ERROR_INVALID_CGI";
 	error[ERROR_INVALID_AUTOINDEX] = "ERROR_INVALID_AUTOINDEX";
-	error[ERROR_INVALID_UPLOAD_PATH] = "ERROR_INVALID_UPLOAD_PATH";
 	error[ERROR_INVALID_UPLOAD_STATE] = "ERROR_INVALID_UPLOAD_STATE";
 	error[ERROR_INVALID_KEY_IN_LOCATION] = "ERROR_INVALID_KEY_IN_LOCATION";
 	error[ERROR_MISSING_LISTEN] = "ERROR_MISSING_LISTEN";
@@ -38,7 +37,6 @@ void	fill_server_keys(std::map<std::string, Validators> &server_keys)
 	server_keys["location"] = &validate_location;
 	server_keys["client_max_body_size"] = &validate_clients;
 	server_keys["autoindex"] = &validate_autoindex;
-	server_keys["upload_store"] = &validate_upload_store;
 	server_keys["upload_enable"] = &validate_upload_enable;
 	server_keys["return"] = &validate_return;
 }
@@ -49,7 +47,6 @@ void	fill_location_keys(std::map<std::string, Validators> &location_keys)
 	location_keys["index"] = &validate_index;
 	location_keys["autoindex"] = &validate_autoindex;
 	location_keys["upload_enable"] = &validate_upload_enable;
-	location_keys["upload_store"] = &validate_upload_store;
 	location_keys["return"] = &validate_return;
 	location_keys["error_page"] = &validate_error_page;
 	location_keys["client_max_body_size"] = &validate_clients;
@@ -65,7 +62,6 @@ void	Configuration::resolve_config()
 			ConfigBlock &location = server.locations[j];
 			if (location.root.empty()) location.root = server.root;
 			if (location.client_max_body_size == -1) location.client_max_body_size = server.client_max_body_size;
-			if (location.upload_path.empty()) location.upload_path = server.upload_path;
 			if (location.autoindex == -1) location.autoindex = server.autoindex;
 			if (location.upload_enable == -1) location.upload_enable = server.upload_enable;
 			if (location.index.empty()) location.index = server.index;

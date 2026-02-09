@@ -16,7 +16,6 @@ SRC:= src/Config/ConfigBlock.cpp \
 	src/Server/Connection.cpp \
 	src/Server/PreProcess.cpp \
 	src/Server/Request.cpp \
-	src/Server/Compare.cpp \
 	src/Server/Parser.cpp \
 	src/Server/Process.cpp \
 	src/Server/Response.cpp \

@@ -7,19 +7,18 @@
 #include <ConfigBlock.hpp>
 #include <CGI.hpp>
 
-using namespace std;
 
-const string getMimeType(const string &file);
-string autoIndex(const string &path, const string &prefix);
-pair<string, int> getResource(const string &path);
-pair<string, int> processDir(const string &path, const ConfigBlock &location);
-pair<string, int> processPath(const string &path, const ConfigBlock &location);
-const ConfigBlock *findLocation(const vector<ConfigBlock> &locations, const string &target);
-bool normalizeTarget(string &target);
+const std::string getMimeType(const std::string &file);
+std::string autoIndex(const std::string &path, const std::string &prefix);
+std::pair<std::string, int> getResource(const std::string &path);
+std::pair<std::string, int> processDir(const std::string &path, const ConfigBlock &location);
+std::pair<std::string, int> processPath(const std::string &path, const ConfigBlock &location);
+const ConfigBlock *findLocation(const std::vector<ConfigBlock> &locations, const std::string &target);
+bool normalizeTarget(std::string &target);
 bool compare(const ConfigBlock &a, const ConfigBlock &b);
 // Methods' Handlers
-Response handleGet(const string &path, const ConfigBlock &location);
-Response handlePost(const Request &request, const string &path, const ConfigBlock &location);
+Response handleGet(const std::string &path, const ConfigBlock &location);
+Response handlePost(const Request &request, const std::string &path, const ConfigBlock &location);
 Response handlePut(const Request &req, const std::string &path);
 Response handleDelete(const std::string &path);
 

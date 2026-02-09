@@ -202,24 +202,6 @@ ConfigBlock	validate_index(const Directive &index)
 	return server;
 }
 
-ConfigBlock	validate_upload_store(const Directive &upload_store)
-{
-	ConfigBlock server;
-
-	if (upload_store.getValues().size() != 1 || !upload_store.getChildren().empty())
-		return server.err = ERROR_INVALID_UPLOAD_PATH, server;
-	std::string path = upload_store.getValues().front();
-	if (!path.empty() && ((path[0] == '"' && path[path.size()-1] == '"') || (path[0] == '\'' && path[path.size()-1] == '\'')))
-		path = path.substr(1, path.size() - 2);
-	if (path.find('"') != std::string::npos || path.find('\'') != std::string::npos)
-		return server.err = ERROR_INVALID_UPLOAD_PATH, server;
-	if (path.empty() || path[0] != '/')
-		return server.err = ERROR_INVALID_UPLOAD_PATH, server;
-	server.upload_path = path;
-	server.err = ERROR_NONE;
-	return server;
-}
-
 ConfigBlock validate_return(const Directive &ret)
 {
 	ConfigBlock server;
@@ -256,7 +238,7 @@ ConfigBlock validate_return(const Directive &ret)
 		if (size > 1) 
 			return server.err = ERROR_INVALID_RETURN, server;
 
-		server.ret.first = 302;
+		server.ret.first = 301;
 		if (!val1.empty() && ((val1[0] == '"' && val1[val1.size()-1] == '"') || (val1[0] == '\'' && val1[val1.size()-1] == '\'')))
 			val1 = val1.substr(1, val1.size() - 2);
 		if (val1.find('"') != std::string::npos || val1.find('\'') != std::string::npos)
@@ -356,13 +338,12 @@ ConfigBlock	validate_location(const Directive &location)
 		if (tmp.err) { LocationContainer.err = tmp.err; return LocationContainer ;}
 		if (!tmp.root.empty()) { loc.root = tmp.root; loc.has_root = true; }
 		if (tmp.client_max_body_size != -1) loc.client_max_body_size = tmp.client_max_body_size;
-		if (!tmp.upload_path.empty()) loc.upload_path = tmp.upload_path;
 		if (!tmp.methods.empty()) loc.methods = tmp.methods;
 		if (!tmp.ret.second.empty()) loc.ret = tmp.ret;
 		if (!tmp.index.empty()) loc.index = tmp.index;
 		if (tmp.autoindex != -1) loc.autoindex = tmp.autoindex;
 		if (tmp.upload_enable != -1) loc.upload_enable = tmp.upload_enable;
-		if (!tmp.error_page.empty()) loc.error_page = tmp.error_page;
+		if (!tmp.error_page.empty()) loc.error_page.insert(tmp.error_page.begin(), tmp.error_page.end());
 		if (!tmp.cgi.empty()) loc.cgi.insert(tmp.cgi.begin(), tmp.cgi.end());
 	}
 	loc.err = ERROR_NONE;
@@ -379,8 +360,6 @@ void ConfigBlock::applyDefaultsToLocations()
 			{ it->root = this->root; it->has_root = true; }
 		if (it->client_max_body_size == -1 && this->client_max_body_size != -1)
 			it->client_max_body_size = this->client_max_body_size;
-		if (it->upload_path.empty() && !this->upload_path.empty())
-			it->upload_path = this->upload_path;
 		if (it->methods.empty() && !this->methods.empty())
 			it->methods = this->methods;
 		if (it->index.empty() && !this->index.empty())
@@ -419,12 +398,11 @@ ConfigBlock::ConfigBlock(const Directive &server) : err((e_error)0), port(0), au
 		count++;
 		ConfigBlock tmp = it->second(d);
 		if (tmp.err) { this->err = tmp.err; return ; }
-		if (!tmp.error_page.empty()) this->error_page = tmp.error_page;
+		if (!tmp.error_page.empty()) this->error_page.insert(tmp.error_page.begin(), tmp.error_page.end());
 		if (tmp.port) { this->port = tmp.port; this->has_listen = true; }
 		if (!tmp.host.empty()) this->host = tmp.host;
 		if (!tmp.root.empty()) { this->root = tmp.root; this->has_root = true; }
 		if (tmp.client_max_body_size != -1) this->client_max_body_size = tmp.client_max_body_size;
-		if (!tmp.upload_path.empty()) this->upload_path = tmp.upload_path;
 		if (!tmp.methods.empty()) this->methods = tmp.methods;
 		if (!tmp.ret.second.empty()) this->ret = tmp.ret;
 		if (!tmp.server_name.empty()) { this->server_name = tmp.server_name; this->has_server_name = true; }

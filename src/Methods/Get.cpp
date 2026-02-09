@@ -4,14 +4,14 @@
 #include <algorithm>
 #include <Methods.hpp>
 
-string autoindexMakeEntry(const string &name, const string &prefix) {
-	string entry = "<a class=\"text-3xl my-3 hover:text-blue-400\" href=\"";
+std::string autoindexMakeEntry(const std::string &name, const std::string &prefix) {
+	std::string entry = "<a class=\"text-3xl my-3 hover:text-blue-400\" href=\"";
 
 	entry += prefix + (prefix[prefix.size() - 1] != '/' ? "/" : "") + name + "\">" + name + "</a>\n";
 	return (entry);
 }
 
-string autoIndex(DIR *dir, const string &prefix) {
+std::string autoIndex(DIR *dir, const std::string &prefix) {
 	struct dirent *ent;
 	std::string body = std::string(
 		"<!DOCTYPE html>"
@@ -45,26 +45,26 @@ string autoIndex(DIR *dir, const string &prefix) {
 	return body;
 }
 
-pair<string, int> getResource(const string &path) {
+std::pair<std::string, int> getResource(const std::string &path) {
 	int fd;
 	char buf[1024];
 	ssize_t readSize;
-	string resource;
+	std::string resource;
 
 	fd = open(path.c_str(), O_RDONLY);
 	if (fd == -1)
-		return (make_pair("", (errno == EACCES) + 2 * (errno == ENOENT)));
+		return (std::make_pair("", (errno == EACCES) + 2 * (errno == ENOENT)));
 	while ((readSize = read(fd, buf, 1024)) > 0)
 		resource.append(buf, static_cast<size_t>(readSize));
-	return (make_pair(resource, 0));
+	return (std::make_pair(resource, 0));
 }
 
-pair<string, int> processDir(const string &path, const ConfigBlock &location) {
+std::pair<std::string, int> processDir(const std::string &path, const ConfigBlock &location) {
 	if (!location.index.empty()) {
-		vector<string>::const_iterator it = location.index.begin();
+		std::vector<std::string>::const_iterator it = location.index.begin();
 	
 		while (it != location.index.end()) {
-			string index = path + '/' + *it;
+			std::string index = path + '/' + *it;
 			if (!access(index.c_str(), F_OK))
 				return (getResource(index));
 			++it;
@@ -74,31 +74,31 @@ pair<string, int> processDir(const string &path, const ConfigBlock &location) {
 		DIR *dir = opendir(path.c_str());
 
 		if (!dir)
-			return (make_pair("", 2));
-		return (make_pair(autoIndex(dir, location.prefix), 0));
+			return (std::make_pair("", 2));
+		return (std::make_pair(autoIndex(dir, location.prefix), 0));
 	}
-	return (make_pair("", 1));
+	return (std::make_pair("", 1));
 }
 
-pair<string, int> processPath(const string &path, const ConfigBlock &location) {
+std::pair<std::string, int> processPath(const std::string &path, const ConfigBlock &location) {
 	struct stat st;
 
 	if (stat(path.c_str(), &st) == -1)
-		return (make_pair("", (errno == EACCES) + 2 * (errno == ENOENT)));
+		return (std::make_pair("", (errno == EACCES) + 2 * (errno == ENOENT)));
 	if (S_ISDIR(st.st_mode))
 		return (processDir(path, location));
 	return (getResource(path));
 }
 
-string setType(const string &path, const ConfigBlock &location) {
+std::string setType(const std::string &path, const ConfigBlock &location) {
 	struct stat st;
 
 	stat(path.c_str(), &st);
 	if (S_ISDIR(st.st_mode)) {
-		vector<string>::const_iterator it = location.index.begin();
+		std::vector<std::string>::const_iterator it = location.index.begin();
 
 		while (!location.index.empty() && it != location.index.end()) {
-			string index = path + '/' + *it;
+			std::string index = path + '/' + *it;
 			if (!access(index.c_str(), F_OK))
 				return (getMimeType(index));
 			++it;
@@ -109,8 +109,8 @@ string setType(const string &path, const ConfigBlock &location) {
 	return("application/octet-stream");
 }
 
-Response handleGet(const string &path, const ConfigBlock &location) {
-	pair<string, int> body;
+Response handleGet(const std::string &path, const ConfigBlock &location) {
+	std::pair<std::string, int> body;
 	
 	{ // Find location and process path
 		if (path[path.size() - 1] == '/')
@@ -122,7 +122,7 @@ Response handleGet(const string &path, const ConfigBlock &location) {
 		Response response(200);
 		
 		if (body.first.empty())
-			return (Response(402 + body.second));
+			return (Response(402 + body.second)); // check ()
 		response.setBody(body.first);
 		response.setHeader("Content-Type", setType(path, location));
 		return (response);

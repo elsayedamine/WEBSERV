@@ -3,7 +3,7 @@
 #include <Response.hpp>
 
 const std::string getMimeType(const std::string &file) {
-	static map<std::string, std::string> types;
+	static std::map<std::string, std::string> types;
 	if (types.empty()) {
 		types["html"] =  "text/html";
 		types["htm"] =   "text/html";
@@ -49,28 +49,28 @@ const std::string getMimeType(const std::string &file) {
 	}
 }
 
-bool normalizeTarget(string &target) {
+bool normalizeTarget(std::string &target) {
 	if (target[0] != '/')
 		return (false);
 	while (1) {
 		size_t pos = target.find("/./");
-		if (pos == string::npos)
+		if (pos == std::string::npos)
 			pos = target.find("/../");
-		if (pos == string::npos)
+		if (pos == std::string::npos)
 			break;
 		target.erase(pos, 2 + (target[pos + 2] == '.'));
 	}
 	while (1) {
 		size_t pos = target.find("//");
-		if (pos == string::npos)
+		if (pos == std::string::npos)
 			break;
 		target.erase(pos, 1);
 	}
 	return (true);
 }
 
-const ConfigBlock *findLocation(const vector<ConfigBlock> &locations, const string &target) {
-	vector<ConfigBlock>::const_iterator it = locations.begin();
+const ConfigBlock *findLocation(const std::vector<ConfigBlock> &locations, const std::string &target) {
+	std::vector<ConfigBlock>::const_iterator it = locations.begin();
 
 	for (; it != locations.end(); ++it) {
 		if (target.size() < it->prefix.size())
@@ -80,4 +80,32 @@ const ConfigBlock *findLocation(const vector<ConfigBlock> &locations, const stri
 			return &locations[it - locations.begin()];
 	}
 	return (NULL);
+}
+
+
+static size_t depthPrefix(const std::string &prefix) {
+	size_t count = 0;
+	size_t i = 0;
+	while (i < prefix.size()) {
+		while (i < prefix.size() && prefix[i] == '/')
+			++i;
+		if (i >= prefix.size())
+			break;
+		size_t j = prefix.find('/', i);
+		if (j == std::string::npos) {
+			++count;
+			break;
+		}
+		++count;
+		i = j + 1;
+	}
+	return (count);
+}
+
+bool compare(const ConfigBlock &a, const ConfigBlock &b) {
+	size_t da = depthPrefix(a.prefix);
+	size_t db = depthPrefix(b.prefix);
+	if (da != db)
+		return (da > db);
+	return (a.prefix.size() > b.prefix.size());
 }

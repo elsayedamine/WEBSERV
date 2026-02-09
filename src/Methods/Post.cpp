@@ -6,7 +6,7 @@
 #include <Utils.hpp>
 
 const std::string getExtension(const std::string &type) {
-	static map<std::string, std::string> types;
+	static std::map<std::string, std::string> types;
 	if (types.empty()) {
 		types["text/html"] = "html";
 		types["text/css"] = "css";
@@ -42,8 +42,8 @@ const std::string getExtension(const std::string &type) {
 	return ('.' + types[type]);
 }
 
-string getFilename(const string &path) {
-	string last_file;
+std::string getFilename(const std::string &path) {
+	std::string last_file;
 	int file_num;
 
 	{ // Find most recent file
@@ -52,7 +52,7 @@ string getFilename(const string &path) {
 		time_t most_recent = 0;
 	
 		while ((ent = readdir(d)) != NULL) {
-			string curr = path + '/' + ent->d_name;
+			std::string curr = path + '/' + ent->d_name;
 			struct stat st;
 	
 			if (ent->d_name[0] == '.') continue;
@@ -66,13 +66,13 @@ string getFilename(const string &path) {
 	}
 	{ // Turn filename into int
 		size_t end;
-		string name;
+		std::string name;
 		
 		if (last_file.empty())
 			file_num = 0;
 		else {
 			end = last_file.find_first_of('.');
-			if (end == string::npos)
+			if (end == std::string::npos)
 				end = last_file.size();
 			name = last_file.substr(0, end);
 			file_num = stringToInt(name);
@@ -81,10 +81,10 @@ string getFilename(const string &path) {
 	return (num_to_string(file_num + 1));
 }
 
-string createResource(const string &path, const Request &request, const string &prefix) {
-	string filepath;
-	string filename;
-	string uri = prefix;
+std::string createResource(const std::string &path, const Request &request, const std::string &prefix) {
+	std::string filepath;
+	std::string filename;
+	std::string uri = prefix;
 
 	filename = getFilename(path) + getExtension(request.getHeader("Content-Type"));
 	filepath = path + '/' + filename;
@@ -99,8 +99,8 @@ string createResource(const string &path, const Request &request, const string &
 	return (uri);
 }
 
-Response handlePost(const Request &request, const string &path, const ConfigBlock &location) {
-	string name;
+Response handlePost(const Request &request, const std::string &path, const ConfigBlock &location) {
+	std::string name;
 
 	if (!location.upload_enable)
 		return (Response(403));

@@ -35,7 +35,7 @@ void	CGI::CreateVariables(const Request &request, const std::string &script)
 	variables.push_back("REQUEST_METHOD=" + request.getMethod());
 	variables.push_back("QUERY_STRING=" + ((request.getQuery().empty()) ? "" : request.getQuery()));
 	variables.push_back("CONTENT_TYPE=" + request.getHeader("Content-Type"));
-	variables.push_back("PATH_INFO=" + ((sep == string::npos) ? request.getTarget() : request.getTarget().substr(0, sep)));
+	variables.push_back("PATH_INFO=" + ((sep == std::string::npos) ? request.getTarget() : request.getTarget().substr(0, sep)));
 	variables.push_back("SCRIPT_NAME=" + script);
 	variables.push_back("SCRIPT_FILENAME=" + std::string(getcwd(buffer, 10000)) + ((script[0] != '/') ? "/" : "") + script);
 	variables.push_back("SERVER_PROTOCOL=" + request.getVersion());
@@ -109,7 +109,7 @@ void CGI::handleCGI(const Request &request, const std::string &script, const std
 		close(pipe_in[0]);
 		close(pipe_out[1]);
 
-		fcntl(pipe_in[1], F_SETFL, O_NONBLOCK); //check
+		fcntl(pipe_in[1], F_SETFL, O_NONBLOCK); // check
 		fcntl(pipe_out[0], F_SETFL, O_NONBLOCK);
 
 		// adding the pipe ends to the epoll()

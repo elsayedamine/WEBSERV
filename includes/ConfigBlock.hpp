@@ -22,7 +22,7 @@ enum e_error {
 	ERROR_INVALID_CLIENT_MAX_BODY_SIZE, ERROR_INVALID_LOCATION,
 	ERROR_INVALID_PREFIX, ERROR_INVALID_RETURN,
 	ERROR_INVALID_CGI, ERROR_INVALID_AUTOINDEX,
-	ERROR_INVALID_UPLOAD_PATH, ERROR_INVALID_UPLOAD_STATE,
+	ERROR_INVALID_UPLOAD_STATE,
 	ERROR_INVALID_KEY_IN_LOCATION,
 	ERROR_MISSING_LISTEN, ERROR_MISSING_SERVER_NAME,
 	ERROR_MISSING_ROOT,
@@ -42,7 +42,6 @@ struct ConfigBlock
 	int				autoindex;
 	int				upload_enable;
 	std::string		root;
-	std::string		upload_path;
 	long		client_max_body_size;
 	std::map<int,std::string> error_page;
 	std::pair<int,std::string> ret;
@@ -70,7 +69,6 @@ ConfigBlock	validate_error_page(const Directive &);
 ConfigBlock	validate_location(const Directive &);
 ConfigBlock	validate_clients(const Directive &);
 ConfigBlock	validate_autoindex(const Directive &);
-ConfigBlock	validate_upload_store(const Directive &);
 ConfigBlock	validate_upload_enable(const Directive &);
 ConfigBlock	validate_return(const Directive &);
 ConfigBlock	validate_cgi(const Directive &);
