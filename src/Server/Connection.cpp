@@ -82,6 +82,7 @@ void Connection::processRequest() {
 			return request.setReady(0);
 		response.setReady(true);
 	}
+	std::cout << request << std::endl;
 	request.setReady(0);
 }
 

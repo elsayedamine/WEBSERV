@@ -60,7 +60,7 @@ int Request::process(Response &response) {
 			response = handlePut(*this, path); break;
 		case DELETE:
 			response = handleDelete(path); break;
-		default:
+		case UNKNOWN:
 			response = Response(501);
 	}
 	return (0);

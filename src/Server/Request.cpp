@@ -46,6 +46,7 @@ Method Request::getMethodEnum() const {
 	if (method == "DELETE") return (DELETE);
 	return (UNKNOWN);
 }
+
 std::ostream& operator<<(std::ostream& os, const Request& req) {
 	os << "========== REQUEST ==========\n";
 	os << "Method:  " << req.getMethod() << "\n";
