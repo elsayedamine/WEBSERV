@@ -170,6 +170,10 @@ void Parser::parseBody() {
 	std::string content_length = request.getHeader("Content-Length");
 	size_t length = stringToInt(content_length);
 
+	if (current.size() && content_length.empty()) {
+		status = PARSE_FAIL;
+		return;
+	}
 	if (length <= body.size()) {
 		status = PARSE_OVER;
 		return;

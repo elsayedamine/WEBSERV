@@ -70,7 +70,7 @@ std::pair<std::string, int> processDir(const std::string &path, const ConfigBloc
 			++it;
 		}
 	}
-	if (location.autoindex) {
+	else if (location.autoindex) {
 		DIR *dir = opendir(path.c_str());
 
 		if (!dir)
@@ -121,8 +121,8 @@ Response handleGet(const std::string &path, const ConfigBlock &location) {
 	{ // Form response
 		Response response(200);
 		
-		if (body.first.empty())
-			return (Response(402 + body.second)); // check ()
+		if (body.second)
+			return (Response(402 + body.second));
 		response.setBody(body.first);
 		response.setHeader("Content-Type", setType(path, location));
 		return (response);

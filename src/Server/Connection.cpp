@@ -73,16 +73,23 @@ void Connection::processRequest() {
 	std::vector<ConfigBlock>::const_iterator candidate;
 
 	candidate = request.getCandidate(getServers());
-	if (parse.getStatus() == PARSE_FAIL || candidate == getServers().end())
-		response = Response(400);
+	if (parse.getStatus() == PARSE_FAIL || candidate == getServers().end()) {
+		if (request.getHeader("Content-Length").empty())
+			response = Response(411);
+		else if ((size_t)candidate->client_max_body_size < stringToInt(request.getHeader("Content-Length")))
+			response = Response(413);
+		else
+			response = Response(400);
+	}
 	else {
 		request.setServer(*candidate);
 		response.setServer(*candidate);
-		if (request.process(response))
+		if (!request.getMethodEnum())
+			response = Response(501);
+		else if (request.process(response))
 			return request.setReady(0);
 		response.setReady(true);
 	}
-	std::cout << request << std::endl;
 	request.setReady(0);
 }
 

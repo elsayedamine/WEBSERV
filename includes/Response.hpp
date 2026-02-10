@@ -3,6 +3,7 @@
 
 #include <string>
 #include <map>
+#include <vector>
 #include <iostream>
 #include <ConfigBlock.hpp>
 
@@ -13,6 +14,7 @@ class Response {
 		int code;
 		int ready;
 		std::map<std::string, std::string> headers;   
+		std::vector<std::string> setCookieHeaders;
 		std::string body;
 		ConfigBlock server;
 
@@ -32,6 +34,7 @@ class Response {
 		int isReady() const;
 		int getCode() const;
 		const std::map<std::string, std::string>& getHeaders() const;
+		const std::vector<std::string>& getSetCookieHeaders() const;
 		const std::string& getBody() const;
 		std::string getHeader(const std::string& key) const;
 		const ConfigBlock &getServer() const;

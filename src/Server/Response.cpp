@@ -1,5 +1,15 @@
 #include <Utils.hpp>
 #include <Response.hpp>
+#include <algorithm>
+#include <cctype>
+
+static bool headerKeyEqualsInsensitive(const std::string& key, const char* literal) {
+	std::string lowered;
+	lowered.reserve(key.size());
+	for (size_t i = 0; i < key.size(); ++i)
+		lowered.push_back(static_cast<char>(std::tolower(static_cast<unsigned char>(key[i]))));
+	return lowered == literal;
+}
 
 int Response::getCode() const { return code; }
 
@@ -9,6 +19,10 @@ const ConfigBlock &Response::getServer() const { return server; }
 
 void Response::setHeader(const std::string& key, const std::string& value) {
 	if (value.empty()) return;
+	if (headerKeyEqualsInsensitive(key, "set-cookie")) {
+		setCookieHeaders.push_back(value);
+		return;
+	}
 	headers[key] = value;
 }
 
@@ -21,6 +35,8 @@ void Response::setReady(int r) { ready = (r != 0); }
 int Response::isReady() const { return ready; }
 
 const std::map<std::string, std::string>& Response::getHeaders() const { return headers; }
+
+const std::vector<std::string>& Response::getSetCookieHeaders() const { return setCookieHeaders; }
 
 const std::string& Response::getBody() const { return body; }
 
@@ -43,6 +59,8 @@ std::string Response::mkResponse() {
 			buffer.append(it->first + ": " + it->second + "\r\n");
 			++it;
 		}
+		for (size_t i = 0; i < setCookieHeaders.size(); ++i)
+			buffer.append("Set-Cookie: " + setCookieHeaders[i] + "\r\n");
 	}
 	if (!body.empty()) { // Body
 		buffer.append("\r\n");

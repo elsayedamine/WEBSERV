@@ -5,6 +5,7 @@ const queryString = process.env.QUERY_STRING || "";
 const queryParams = new URLSearchParams(queryString);
 const queryUser = queryParams.get("user");
 const queryMode = queryParams.get("mode");
+const queryCount = queryParams.get("count");
 
 function serializeCookie(name, value, options) {
 	let cookieString = `${name}=${value}`;
@@ -16,12 +17,18 @@ function serializeCookie(name, value, options) {
 	return cookieString;
 }
 
-function writeRedirect(statusLine, location, setCookieHeader) {
+function writeRedirect(statusLine, location, setCookieHeaders) {
 	const body = "Redirecting...\n";
 	let headers = "";
 	headers += `Status: ${statusLine}\r\n`;
 	headers += `Location: ${location}\r\n`;
-	if (setCookieHeader) headers += `Set-Cookie: ${setCookieHeader}\r\n`;
+	if (setCookieHeaders) {
+		const headerList = Array.isArray(setCookieHeaders) ? setCookieHeaders : [setCookieHeaders];
+		for (let i = 0; i < headerList.length; i++) {
+			if (!headerList[i]) continue;
+			headers += `Set-Cookie: ${headerList[i]}\r\n`;
+		}
+	}
 	headers += "Content-Type: text/plain; charset=utf-8\r\n";
 	headers += `Content-Length: ${Buffer.byteLength(body, "utf8")}\r\n`;
 	headers += "\r\n";
@@ -44,6 +51,35 @@ function parseCookies(cookieHeader) {
 	return cookies;
 }
 
+function safeDecodeURIComponent(value) {
+	if (value == null) return "";
+	try {
+		return decodeURIComponent(String(value));
+	} catch (e) {
+		return String(value);
+	}
+}
+
+function decodeSessionCookieValue(rawValue) {
+	if (!rawValue) return null;
+	let decoded = rawValue;
+	try {
+		decoded = decodeURIComponent(rawValue);
+	} catch (e) {
+		// keep raw value
+	}
+	try {
+		const parsed = JSON.parse(decoded);
+		if (!parsed || typeof parsed !== "object") return null;
+		return {
+			user: parsed.user != null ? String(parsed.user) : "",
+			count: parsed.count != null ? String(parsed.count) : "",
+		};
+	} catch (e) {
+		return null;
+	}
+}
+
 if (queryMode === "set") {
 	if (!queryUser) {
 		const body = "Missing 'user' in query string\n";
@@ -57,33 +93,57 @@ if (queryMode === "set") {
 		process.exit(0);
 	}
 
-	const cookieValue = encodeURIComponent(queryUser);
-	const setCookie = serializeCookie("user", cookieValue, {
+	const encodedUser = encodeURIComponent(String(queryUser));
+	const encodedCount = encodeURIComponent(String(queryCount != null ? queryCount : "0"));
+	const sessionToken = `${Date.now().toString(36)}.${Math.random().toString(36).slice(2)}`;
+	const setSessionCookie = serializeCookie("session", sessionToken, {
 		path: "/",
 		httpOnly: true,
 		sameSite: "Lax",
 	});
-
-	const selfPath = "/cgi-bin/cookie_manager.js";
-	writeRedirect("301 Moved Permanently", selfPath, setCookie);
+	const setUserCookie = serializeCookie("user", encodedUser, {
+		path: "/",
+		sameSite: "Lax",
+	});
+	const setCountCookie = serializeCookie("count", encodedCount, {
+		path: "/",
+		sameSite: "Lax",
+	});
+	writeRedirect("302 Found", "/cgi-bin/cookie_manager.js", [setSessionCookie, setUserCookie, setCountCookie]);
 	process.exit(0);
 }
 
 if (queryMode === "delete") {
-	const deleteCookie = serializeCookie("user", "", {
+	const deleteSessionCookie = serializeCookie("session", "", {
 		path: "/",
 		maxAge: 0,
 		httpOnly: true,
 		sameSite: "Lax",
 	});
-
-	const selfPath = "/cgi-bin/cookie_manager.js";
-	writeRedirect("301 Moved Permanently", selfPath, deleteCookie);
+	const deleteUserCookie = serializeCookie("user", "", {
+		path: "/",
+		maxAge: 0,
+		sameSite: "Lax",
+	});
+	const deleteCountCookie = serializeCookie("count", "", {
+		path: "/",
+		maxAge: 0,
+		sameSite: "Lax",
+	});
+	writeRedirect("302 Found", "/cgi-bin/cookie_manager.js", [deleteSessionCookie, deleteUserCookie, deleteCountCookie]);
 	process.exit(0);
 }
 
 
-if (!process.env.HTTP_COOKIE) {
+const cookies = parseCookies(process.env.HTTP_COOKIE);
+
+// Backward-compat: older version stored JSON in the `session` cookie.
+const legacySession = decodeSessionCookieValue(cookies.session);
+const hasSession = Boolean(cookies.session);
+const userFromCookie = cookies.user ? safeDecodeURIComponent(cookies.user) : (legacySession && legacySession.user ? legacySession.user : "");
+const countFromCookie = cookies.count ? safeDecodeURIComponent(cookies.count) : (legacySession && legacySession.count ? legacySession.count : "0");
+
+if (!hasSession || !userFromCookie) {
 	const filePath = path.join(__dirname, "../login/index.html");
 
 	try {
@@ -105,18 +165,11 @@ if (!process.env.HTTP_COOKIE) {
 	process.exit(0);
 }
 
-const cookies = parseCookies(process.env.HTTP_COOKIE);
-let userFromCookie = cookies.user || "";
-try {
-	userFromCookie = decodeURIComponent(userFromCookie);
-} catch (e) {
-	// keep raw value
-}
-
 const filePath = path.join(__dirname, "../tests/index.html");
 try {
 	let body = fs.readFileSync(filePath, "utf8");
 	body = body.replace(/\{\{USER\}\}/g, userFromCookie);
+	body = body.replace(/\{\{COUNT\}\}/g, countFromCookie);
 	process.stdout.write(
 		"Status: 200 OK\r\n" +
 		"Content-Type: text/html; charset=utf-8\r\n" +

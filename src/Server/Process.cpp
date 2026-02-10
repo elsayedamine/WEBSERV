@@ -66,22 +66,6 @@ int Request::process(Response &response) {
 	return (0);
 }
 
-int validateType(const std::string &target, const std::string &type) {
-	if (target[0] == '*')
-		return (1);
-	if (target[target.size() - 1] == '*') {
-		size_t t1 = target.find_first_of('/');
-		size_t t2 = type.find_first_of('/');
-
-		if (target.substr(0, t1) != type.substr(0, t2))
-			return (0);
-		return (1);
-	}
-	if (target != type)
-		return (0);
-	return (1);
-}
-
 std::string dateTimeGMT() {
 	static const char* wkday[] = {"Sun","Mon","Tue","Wed","Thu","Fri","Sat"};
 	static const char* month[] = {"Jan","Feb","Mar","Apr","May","Jun",

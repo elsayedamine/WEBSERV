@@ -414,8 +414,12 @@ ConfigBlock::ConfigBlock(const Directive &server) : err((e_error)0), port(0), au
 	}
 
 	// apply server defaults
-	if (index.empty()) index.push_back("index.html");
-	if (methods.empty()) methods.push_back("GET");
+
+
+	// if (index.empty()) index.push_back("index.html");
+	// if (methods.empty()) methods.push_back("GET");
+	// i removed these two 7it makhashomch ykono
+	
 	if (autoindex == -1) autoindex = 0;
 	if (upload_enable == -1) upload_enable = 0;
 	if (client_max_body_size == -1) client_max_body_size = 1048576;
