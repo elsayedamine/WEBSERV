@@ -13,7 +13,7 @@ class Response {
 	private: 
 		int code;
 		int ready;
-		std::map<std::string, std::string> headers;   
+		std::map<std::string, std::string> headers;
 		std::vector<std::string> setCookieHeaders;
 		std::string body;
 		ConfigBlock server;

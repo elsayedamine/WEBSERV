@@ -46,12 +46,10 @@ class CGI
 		// Getters
 		const std::vector<std::string> &getVariables() const { return this->variables; }
 		const std::string &getBuffer() const;
-		int isReady() const;
 		int getState() const { return state; }
 
 		// Setters
 		void setBuffer(const std::string &buf);
-		void setReady(int r);
 		void setState(int s) { state = s; }
 
 		void	handleCGI(const Request &, const std::string &, const std::string &);

@@ -1,6 +1,40 @@
 #include <Server.hpp>
 
-void Server::handleCGIWrite(Connection &connection, int fd)
+void Server::cleanupCGI(Connection &con)
+{
+    if (con.request.cgi.in > 0)
+		{ close(con.request.cgi.in); con.request.cgi.in = -1; }
+    if (con.request.cgi.out > 0)
+		{ close(con.request.cgi.out); con.request.cgi.out = -1; }
+    if (con.request.cgi.pid > 0)
+		{ waitpid(con.request.cgi.pid, NULL, WNOHANG); con.request.cgi.pid = -1; }
+}
+
+pid_t Server::handleCGIExit(pid_t &cgi_pid, Response &response)
+{
+	int status;
+	pid_t ret = waitpid(cgi_pid, &status, WNOHANG);
+
+	if (ret == 0)
+		return 0;
+	else if (ret == -1)
+	{
+		response = Response(500);
+		response.setReady(1);
+		cgi_pid = -1;
+		return -1;
+	} 
+	else
+	{
+		if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
+			response = Response(500);
+			response.setReady(1);
+		}
+		return ret;
+	}
+}
+
+void Server::handleCGIWrite(Connection &connection, int &fd)
 {
 	std::string body = connection.request.getBody(); 
 
@@ -15,33 +49,11 @@ void Server::handleCGIWrite(Connection &connection, int fd)
 	{
 		epoll_ctl(Server::epoll_fd, EPOLL_CTL_DEL, fd, NULL);
 		close(fd);
+		fd = -1;
 	}
 }
 
-pid_t Server::handleCGIExit(pid_t cgi_pid, Response &response)
-{
-	int status;
-	pid_t ret = waitpid(cgi_pid, &status, WNOHANG);
-
-	if (ret == 0)
-		return 0;
-	else if (ret == -1)
-	{
-		response = Response(500);
-		response.setReady(1);
-		return -1;
-	} 
-	else
-	{
-		if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
-			response = Response(500);
-			response.setReady(1);
-		}
-		return ret;
-	}
-}
-
-void Server::handleCGIRead(Connection &connection, int fd)
+void Server::handleCGIRead(Connection &connection, int &fd)
 {
 	char buf[RSIZE];
 	ssize_t n = read(fd, buf, RSIZE - 1);
@@ -57,6 +69,7 @@ void Server::handleCGIRead(Connection &connection, int fd)
 	{
 		epoll_ctl(Server::epoll_fd, EPOLL_CTL_DEL, fd, NULL);
 		close(fd);
+		fd = -1;
 		pid_t ret = handleCGIExit(connection.request.cgi.pid, connection.response);
 		if (ret <= 0)
 			return ;
@@ -74,6 +87,7 @@ void Server::handleCGIRead(Connection &connection, int fd)
 	{
 		epoll_ctl(Server::epoll_fd, EPOLL_CTL_DEL, fd, NULL);
 		close(fd);
+		fd = -1;
 	}
 }
 

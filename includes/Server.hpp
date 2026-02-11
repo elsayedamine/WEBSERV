@@ -28,7 +28,7 @@ class Server
 
 	public:
 		Server() {}
-		~Server() {} // check clear the project ig && close fds
+		~Server(); // check clear the project ig && close fds
 		Server(const Configuration &);
 		void	run( void );
 		static void	setEvents(int fd, int events, int mode);
@@ -47,9 +47,10 @@ class Server
 		void		handleConnectionIO(int index);
 		void		handleWrite(int index);
 		void		handleCGIIO(int fd);
-		void		handleCGIWrite(Connection &connection, int fd);
-		void		handleCGIRead(Connection &connection, int fd);
-		pid_t		handleCGIExit(pid_t cgi_pid, Response &response);
+		void		handleCGIWrite(Connection &connection, int &fd);
+		void		handleCGIRead(Connection &connection, int &fd);
+		pid_t		handleCGIExit(pid_t &cgi_pid, Response &response);
+		void		cleanupCGI(Connection &con);
 };
 
 #include <dirent.h>

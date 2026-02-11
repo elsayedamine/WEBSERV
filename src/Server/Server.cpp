@@ -3,6 +3,37 @@
 int serverRunning = 1;
 int Server::epoll_fd = -1;
 
+Server::~Server()
+{
+	for (std::map<int,int>::iterator it = sockets_to_ports.begin(); it != sockets_to_ports.end(); ++it)
+		if (it->first >= 0)
+			close(it->first);
+	for (std::map<int, Connection>::iterator it = connections.begin(); it != connections.end(); ++it)
+	{
+		Connection &con = it->second;
+		if (con.getFD() >= 0) 
+		{ 
+			epoll_ctl(epoll_fd, EPOLL_CTL_DEL, con.getFD(), NULL);
+			close(con.getFD()); 
+		}
+		if (con.request.cgi.in >= 0)
+		{
+			epoll_ctl(epoll_fd, EPOLL_CTL_DEL, con.request.cgi.in, NULL);
+			close(con.request.cgi.in);
+			con.request.cgi.in = -1;
+		}
+		if (con.request.cgi.out >= 0)
+		{
+			epoll_ctl(epoll_fd, EPOLL_CTL_DEL, con.request.cgi.out, NULL);
+			close(con.request.cgi.out);
+			con.request.cgi.out = -1;
+		}
+	}
+	connections.clear();
+	if (epoll_fd >= 0)
+		close(epoll_fd);
+}
+
 Server::Server(const Configuration & conf) : config(conf)
 {
 	const std::vector<ConfigBlock> &servers = config.getServers();
@@ -132,9 +163,23 @@ int	Server::acceptConnection(int listener)
 
 void Server::closeConnection(int index)
 {
-	epoll_ctl(epoll_fd, EPOLL_CTL_DEL, events[index].data.fd, NULL);
-	connections.erase(events[index].data.fd);
-	close(events[index].data.fd);
+	int fd = events[index].data.fd;
+	Connection &con = connections[fd];
+	if (con.request.cgi.in > 0) {
+		epoll_ctl(epoll_fd, EPOLL_CTL_DEL, con.request.cgi.in, NULL);
+		close(con.request.cgi.in);
+	}
+	if (con.request.cgi.out > 0) {
+		epoll_ctl(epoll_fd, EPOLL_CTL_DEL, con.request.cgi.out, NULL);
+		close(con.request.cgi.out);
+	}
+	if (con.request.cgi.pid > 0) {
+		int status;
+		waitpid(con.request.cgi.pid, &status, WNOHANG);
+	}
+	epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, NULL);
+	close(fd);
+	connections.erase(fd);
 }
 
 void Server::setEvents(int fd, int events, int mode)
@@ -169,6 +214,5 @@ void Server::run()
 		}
 		fdTracker.scanAndReport();
 	}
-	close(epoll_fd);
 	std::cerr << "\nServer stopped\n";
 }

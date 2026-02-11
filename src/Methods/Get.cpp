@@ -56,6 +56,7 @@ std::pair<std::string, int> getResource(const std::string &path) {
 		return (std::make_pair("", (errno == EACCES) + 2 * (errno == ENOENT)));
 	while ((readSize = read(fd, buf, 1024)) > 0)
 		resource.append(buf, static_cast<size_t>(readSize));
+	close(fd);
 	return (std::make_pair(resource, 0));
 }
 
