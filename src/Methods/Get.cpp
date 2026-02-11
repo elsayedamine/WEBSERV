@@ -70,6 +70,7 @@ std::pair<std::string, int> processDir(const std::string &path, const ConfigBloc
 				return (getResource(index));
 			++it;
 		}
+		return (std::make_pair("", 2));
 	}
 	else if (location.autoindex) {
 		DIR *dir = opendir(path.c_str());
