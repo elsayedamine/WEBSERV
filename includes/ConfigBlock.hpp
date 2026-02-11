@@ -58,6 +58,7 @@ struct ConfigBlock
 					has_listen(false), has_root(false), has_server_name(false) {}
 	ConfigBlock(const Directive &);
 	void applyDefaultsToLocations();
+	void mergeForm(const ConfigBlock &other);
 };
 
 ConfigBlock	validate_listen(const Directive &);

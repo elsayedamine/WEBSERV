@@ -21,7 +21,6 @@ int Request::process(Response &response) {
 	std::string path;
 
 	{ // Resolve path
-		// stable_sort(server.locations.begin(), server.locations.end(), compare);
 		normalizeTarget(target);
 		location = findLocation(server.locations, target);
 		if (!location)
@@ -57,7 +56,7 @@ int Request::process(Response &response) {
 		case POST:
 			response = handlePost(*this, path, *location); break;
 		case PUT:
-			response = handlePut(*this, path); break;
+			response = handlePut(*this, path, location->upload_enable); break;
 		case DELETE:
 			response = handleDelete(path); break;
 		case UNKNOWN:

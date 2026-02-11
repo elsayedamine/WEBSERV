@@ -84,8 +84,12 @@ void CGI::handleCGI(const Request &request, const std::string &script, const std
 	if (pipe(pipe_in) < 0 || pipe(pipe_out) < 0)
 		{ freeEnvp(); return ; }
 	pid_t pid = fork();
-	if (pid < 0)
-		{ freeEnvp(); return ; }
+	if (pid < 0) {
+		close(pipe_in[0]); close(pipe_in[1]);
+		close(pipe_out[0]); close(pipe_out[1]);
+		freeEnvp();
+		return ;
+	}
 	if (pid == 0)
 	{
 		signal(SIGINT, SIG_DFL);
@@ -94,7 +98,6 @@ void CGI::handleCGI(const Request &request, const std::string &script, const std
 		std::string dir = (last_slash == std::string::npos) ? "." : script.substr(0, last_slash);
 		std::string file = (last_slash == std::string::npos) ? script : script.substr(last_slash + 1);
 
-		// check
 		if (chdir(dir.c_str()) < 0) exit(1);
 		dup2(pipe_in[0], STDIN_FILENO);
 		dup2(pipe_out[1], STDOUT_FILENO);
@@ -102,27 +105,24 @@ void CGI::handleCGI(const Request &request, const std::string &script, const std
 		close(pipe_out[0]); close(pipe_out[1]);
 		char *argv[] = {(char *)interpret.c_str(), (char *)file.c_str(), NULL};
 		execve(argv[0], argv, envp);
+		std::cerr << "Failed to execute command: " << argv[0] << std::endl;
+		std::cerr << "Error: " << strerror(errno) << std::endl;
 		exit(1);
 	}
 	else
 	{
-		close(pipe_in[0]);
-		close(pipe_out[1]);
-
-		fcntl(pipe_in[1], F_SETFL, O_NONBLOCK); // check
-		fcntl(pipe_out[0], F_SETFL, O_NONBLOCK);
+		close(pipe_in[0]); // cgi will write in pipe_in[1]
+		close(pipe_out[1]); // cgi will read from pipe_out[0]
 
 		// adding the pipe ends to the epoll()
 		Server::setEvents(pipe_in[1], EPOLLOUT, EPOLL_CTL_ADD);
 		Server::setEvents(pipe_out[0], EPOLLIN, EPOLL_CTL_ADD);
 
-		in = pipe_in[1];
-		out = pipe_out[0];
+		in = pipe_in[1]; // write to child
+		out = pipe_out[0]; // read from child
 		this->pid = pid;
-		// if (request.getMethod() == "GET" || request.getMethod() == "DELETE")
-		// 	{ close(pipe_in[1]); out = -1; }
 
-		// freeEnvp();
+		// check freeEnvp();
 	}
 }
 

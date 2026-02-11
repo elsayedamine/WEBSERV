@@ -12,6 +12,10 @@
 #include <sys/epoll.h>
 #include <wait.h>
 #include <cstring>
+#include <sys/types.h>
+#include <netdb.h>
+#include <arpa/inet.h>
+
 
 #define MAX_EVENTS 128
 
@@ -24,7 +28,7 @@ class Server
 
 	public:
 		Server() {}
-		~Server() {} // clear the project ig && close fds
+		~Server() {} // check clear the project ig && close fds
 		Server(const Configuration &);
 		void	run( void );
 		static void	setEvents(int fd, int events, int mode);
@@ -41,10 +45,11 @@ class Server
 		void		closeConnection(int index);
 		void		checkDuplicateServers(const ConfigBlock &new_server);
 		void		handleConnectionIO(int index);
+		void		handleWrite(int index);
 		void		handleCGIIO(int fd);
 		void		handleCGIWrite(Connection &connection, int fd);
 		void		handleCGIRead(Connection &connection, int fd);
-		void		handleWrite(int index);
+		pid_t		handleCGIExit(pid_t cgi_pid, Response &response);
 };
 
 #endif

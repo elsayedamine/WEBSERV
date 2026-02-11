@@ -2,12 +2,12 @@
 #include <sys/stat.h>
 #include <Methods.hpp>
 
-Response handlePut(const Request &req, const std::string &path)
+Response handlePut(const Request &req, const std::string &path, bool upload_eneable)
 {
 	struct stat st;
 	bool existed = (stat(path.c_str(), &st) == 0);
 
-	if (existed && S_ISDIR(st.st_mode)) // check (!upload_enable = 403)
+	if ((existed && S_ISDIR(st.st_mode)) || !upload_eneable)
 		return Response(403);
 
 	std::ofstream file(path.c_str(), std::ios::binary | std::ios::out | std::ios::trunc);

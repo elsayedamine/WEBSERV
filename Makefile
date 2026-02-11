@@ -14,7 +14,7 @@ SRC:= src/Config/ConfigBlock.cpp \
 	src/Methods/Put.cpp \
 	src/Methods/Utils.cpp \
 	src/Server/Connection.cpp \
-	src/Server/PreProcess.cpp \
+	src/Server/CGIIO.cpp \
 	src/Server/Request.cpp \
 	src/Server/Parser.cpp \
 	src/Server/Process.cpp \

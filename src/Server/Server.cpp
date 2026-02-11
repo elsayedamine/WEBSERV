@@ -50,40 +50,67 @@ void Server::checkDuplicateServers(const ConfigBlock &entering_server)
 	}
 }
 
+struct sockaddr_in resolveAddress(const std::string &ip, int port)
+{
+    struct sockaddr_in addr;
+    std::memset(&addr, 0, sizeof(addr));
+    struct addrinfo criteria, *res = NULL;
+    std::memset(&criteria, 0, sizeof(criteria));
+
+    criteria.ai_family = AF_INET; // ai stands for addr info 
+    criteria.ai_socktype = SOCK_STREAM;
+    criteria.ai_flags = AI_PASSIVE; // indicate the socket will be used for binding
+
+    int ret = getaddrinfo(ip.c_str(), NULL, &criteria, &res); // ip_string -> sockaddr linked list
+    if (ret != 0 || res == NULL)
+        throw std::runtime_error(std::string("Invalid IP: ") + gai_strerror(ret));
+
+    struct sockaddr_in *addr_in = (struct sockaddr_in *)res->ai_addr;
+    addr.sin_family = AF_INET;
+    addr.sin_port   = htons(port);
+    addr.sin_addr   = addr_in->sin_addr;
+
+    freeaddrinfo(res);
+    return addr;
+}
+
 void Server::SetupSockets()
 {
 	std::map<int, std::vector<ConfigBlock> >::iterator it;
 	for (it = config_map.begin(); it != config_map.end(); ++it) {
 		int port  = it->first;
-		int sock;
-		int opt = 1;
-		if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-			throw std::runtime_error("socket() failed.");
+		std::vector<ConfigBlock> &servers = it->second;
+		for (std::size_t i = 0; i < servers.size(); ++i)
+		{
+			int sock;
+			int opt = 1;
+			if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+				throw std::runtime_error("socket() failed.");
 
-		setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+			if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
+				throw std::runtime_error("setsockopt SO_REUSEADDR failed");
+			if (setsockopt(sock, SOL_SOCKET, SO_REUSEPORT, &opt, sizeof(opt)) < 0)
+				throw std::runtime_error("setsockopt SO_REUSEPORT failed");
 
-		if (fcntl(sock, F_SETFL, O_NONBLOCK) < 0)
-			throw std::runtime_error("fcntl() failed.");
+			if (fcntl(sock, F_SETFL, O_NONBLOCK) < 0)
+				throw std::runtime_error("fcntl() failed.");
 
-		struct sockaddr_in addr;
-		std::memset(&addr, 0, sizeof(addr));
-		addr.sin_family = AF_INET;
-		addr.sin_port = htons(port);
-		addr.sin_addr.s_addr = htonl(INADDR_ANY); // check
+			struct sockaddr_in addr = resolveAddress(servers[i].host, port);
 
-		if (bind(sock, (struct sockaddr*)&addr, sizeof(addr)) < 0) // check
-			throw std::runtime_error("bind() failed.");
-		if (listen(sock, 1024) < 0)
-			throw std::runtime_error("listen() failed.");
+			if (bind(sock, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
+				close(sock); throw std::runtime_error("bind() failed."); }
+			if (listen(sock, 1024) < 0)
+				throw std::runtime_error("listen() failed.");
 
-		this->sockets_to_ports[sock] = port;
-		std::cout << "Server listening on port " << port << "..." << std::endl;
+			this->sockets_to_ports[sock] = port;
+			std::cout << "Server listening on port " << port << "..." << std::endl;
+		}
 	}
 }
 
 int	Server::acceptConnection(int listener)
 {
-	struct sockaddr_in client_addr; // check
+	struct sockaddr_in client_addr;
 	socklen_t client_len = sizeof(client_addr);
 	int client = accept(listener, (struct sockaddr *)&client_addr, &client_len);
 	if (client < 0) { std::cerr << "Accept() failed" << std::endl; return false; }
@@ -111,74 +138,7 @@ void Server::closeConnection(int index)
 {
 	epoll_ctl(epoll_fd, EPOLL_CTL_DEL, events[index].data.fd, NULL);
 	connections.erase(events[index].data.fd);
-	close(events[index].data.fd); // check again
-}
-
-void Server::handleCGIWrite(Connection &connection, int fd)
-{
-	std::string body = connection.request.getBody(); 
-
-	if (!body.empty())
-	{
-		ssize_t n = write(fd, body.c_str() + connection.request.cgi.offset, body.size() - connection.request.cgi.offset);
-		if (n > 0)
-			connection.request.cgi.offset += n;
-	}
-
-	if (connection.request.cgi.offset == body.size())
-	{
-		epoll_ctl(Server::epoll_fd, EPOLL_CTL_DEL, fd, NULL);
-		close(fd);
-	}
-}
-
-void Server::handleCGIRead(Connection &connection, int fd)
-{
-	char buf[RSIZE];
-	ssize_t n = read(fd, buf, RSIZE - 1);
-
-	if (n > 0)
-	{
-		buf[n] = 0;
-		std::string currentBuffer = connection.request.cgi.getBuffer();
-		currentBuffer.append(buf, n);
-		connection.request.cgi.setBuffer(currentBuffer);
-	}
-	else if (n == 0)
-	{
-		epoll_ctl(Server::epoll_fd, EPOLL_CTL_DEL, fd, NULL);
-		close(fd);
-		waitpid(connection.request.cgi.pid, NULL, WNOHANG);
-		if (!connection.response.isReady())
-		{
-			int parse = connection.request.cgi.parse(connection.response);
-			if (parse <= 0) {
-				connection.response = parse == -1 ? Response(500) : connection.response;
-				connection.response.setReady(1);
-			}
-		}
-		Server::setEvents(connection.getFD(), EPOLLOUT, EPOLL_CTL_MOD);
-	}
-	else
-	{
-		epoll_ctl(Server::epoll_fd, EPOLL_CTL_DEL, fd, NULL);
-		close(fd);
-	}
-}
-
-void Server::handleCGIIO(int index)
-{
-	int fd = events[index].data.fd;
-	std::map<int, Connection>::iterator it = connections.begin();
-
-	for (; it != connections.end(); ++it)
-	{
-		Connection &con = it->second;
-		if (it->second.request.cgi.in == fd)
-			handleCGIWrite(con, con.request.cgi.in);
-		if (it->second.request.cgi.out == fd)
-			handleCGIRead(con, con.request.cgi.out);
-	}
+	close(events[index].data.fd);
 }
 
 void Server::setEvents(int fd, int events, int mode)

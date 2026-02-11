@@ -297,9 +297,6 @@ ConfigBlock	validate_cgi(const Directive &cgi)
 
 	if (extension.empty() || extension[0] != '.' || interpreter.empty())
 		return server.err = ERROR_INVALID_CGI, server;
-	struct stat s;
-	if (stat(interpreter.c_str(), &s) != 0 || !S_ISREG(s.st_mode) || access(interpreter.c_str(), X_OK) != 0)
-		return server.err = ERROR_INVALID_CGI, server;
 	server.cgi[extension] = interpreter;
 	server.err = ERROR_NONE;
 	return server;
@@ -330,21 +327,12 @@ ConfigBlock	validate_location(const Directive &location)
 		if (it == location_keys.end())
 			return LocationContainer.err = ERROR_INVALID_KEY_IN_LOCATION, LocationContainer;
 		int &count = directive_counts[name];
-		if (name != "location" && name != "error_page" && name != "cgi" && count > 0)
+		if (name != "location" && name != "error_page" && name != "cgi" && count++ > 0)
 			{ LocationContainer.err = ERROR_DUPLICATE_KEY; return LocationContainer; }
-
-		count++;
 		ConfigBlock tmp = it->second(d);
-		if (tmp.err) { LocationContainer.err = tmp.err; return LocationContainer ;}
-		if (!tmp.root.empty()) { loc.root = tmp.root; loc.has_root = true; }
-		if (tmp.client_max_body_size != -1) loc.client_max_body_size = tmp.client_max_body_size;
-		if (!tmp.methods.empty()) loc.methods = tmp.methods;
-		if (!tmp.ret.second.empty()) loc.ret = tmp.ret;
-		if (!tmp.index.empty()) loc.index = tmp.index;
-		if (tmp.autoindex != -1) loc.autoindex = tmp.autoindex;
-		if (tmp.upload_enable != -1) loc.upload_enable = tmp.upload_enable;
-		if (!tmp.error_page.empty()) loc.error_page.insert(tmp.error_page.begin(), tmp.error_page.end());
-		if (!tmp.cgi.empty()) loc.cgi.insert(tmp.cgi.begin(), tmp.cgi.end());
+		if (tmp.err)
+			{ LocationContainer.err = tmp.err; return LocationContainer ;}
+		loc.mergeForm(tmp);
 	}
 	loc.err = ERROR_NONE;
 	LocationContainer.locations.push_back(loc);
@@ -376,6 +364,23 @@ void ConfigBlock::applyDefaultsToLocations()
 		it->applyDefaultsToLocations();
 	}
 }
+
+void	ConfigBlock::mergeForm(const ConfigBlock &other)
+{
+	if (!other.error_page.empty()) this->error_page.insert(other.error_page.begin(), other.error_page.end());
+	if (other.port) { this->port = other.port; this->has_listen = true; }
+	if (!other.host.empty()) this->host = other.host;
+	if (!other.root.empty()) { this->root = other.root; this->has_root = true; }
+	if (other.client_max_body_size != -1) this->client_max_body_size = other.client_max_body_size;
+	if (!other.methods.empty()) this->methods = other.methods;
+	if (!other.ret.second.empty()) this->ret = other.ret;
+	if (!other.server_name.empty()) { this->server_name = other.server_name; this->has_server_name = true; }
+	if (!other.index.empty()) this->index = other.index;
+	if (other.autoindex != -1) this->autoindex = other.autoindex; 
+	if (other.upload_enable != -1) this->upload_enable = other.upload_enable; 
+	if (!other.locations.empty()) this->locations.insert(this->locations.end(), other.locations.begin(), other.locations.end());
+}
+
 ConfigBlock::ConfigBlock(const Directive &server) : err((e_error)0), port(0), autoindex(-1), upload_enable(-1)
 {
 	std::map<std::string, int> directive_counts;
@@ -391,42 +396,23 @@ ConfigBlock::ConfigBlock(const Directive &server) : err((e_error)0), port(0), au
 			return ;
 		}
 		int &count = directive_counts[name];
-		if (name != "location" && name != "error_page" && count > 0) {
+		if (name != "location" && name != "error_page" && count++ > 0) {
 			err = ERROR_DUPLICATE_KEY;
 			return ;
 		}
-		count++;
 		ConfigBlock tmp = it->second(d);
-		if (tmp.err) { this->err = tmp.err; return ; }
-		if (!tmp.error_page.empty()) this->error_page.insert(tmp.error_page.begin(), tmp.error_page.end());
-		if (tmp.port) { this->port = tmp.port; this->has_listen = true; }
-		if (!tmp.host.empty()) this->host = tmp.host;
-		if (!tmp.root.empty()) { this->root = tmp.root; this->has_root = true; }
-		if (tmp.client_max_body_size != -1) this->client_max_body_size = tmp.client_max_body_size;
-		if (!tmp.methods.empty()) this->methods = tmp.methods;
-		if (!tmp.ret.second.empty()) this->ret = tmp.ret;
-		if (!tmp.server_name.empty()) { this->server_name = tmp.server_name; this->has_server_name = true; }
-		if (!tmp.index.empty()) this->index = tmp.index;
-		if (tmp.autoindex != -1) this->autoindex = tmp.autoindex; 
-		if (tmp.upload_enable != -1) this->upload_enable = tmp.upload_enable; 
-		if (!tmp.locations.empty()) this->locations.insert(this->locations.end(), tmp.locations.begin(), tmp.locations.end());
-		// check (overload the operator= for these ifs)
+		if (tmp.err)
+			{ this->err = tmp.err; return ; }
+		this->mergeForm(tmp);
+
 	}
 
 	// apply server defaults
-
-
-	// if (index.empty()) index.push_back("index.html");
-	// if (methods.empty()) methods.push_back("GET");
-	// i removed these two 7it makhashomch ykono
-	
 	if (autoindex == -1) autoindex = 0;
 	if (upload_enable == -1) upload_enable = 0;
 	if (client_max_body_size == -1) client_max_body_size = 1048576;
-	//apply locations defaults
 	applyDefaultsToLocations();
 
-	// check the mandatory
 	if (!has_server_name) { this->err = ERROR_MISSING_SERVER_NAME; return; }
 	if (!has_listen) { this->err = ERROR_MISSING_LISTEN; return; }
 	bool any_location_has_root = false;
@@ -434,5 +420,6 @@ ConfigBlock::ConfigBlock(const Directive &server) : err((e_error)0), port(0), au
 		if (it->has_root) { any_location_has_root = true; break; } }
 	if (!has_root && !any_location_has_root)
 		{ this->err = ERROR_MISSING_ROOT; return; }
+
 	stable_sort(locations.begin(), locations.end(), compare);
 }

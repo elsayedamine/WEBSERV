@@ -3,7 +3,6 @@
 #include <Server.hpp>
 #include <Utils.hpp>
 #include <unistd.h>
-// #include <chrono>
 
 std::vector<ConfigBlock>::const_iterator Request::getCandidate(const std::vector<ConfigBlock> &candidates) const {
 	std::vector<ConfigBlock>::const_iterator it = candidates.begin();

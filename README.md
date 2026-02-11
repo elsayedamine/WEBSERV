@@ -10,6 +10,3 @@ amine:
 
 youssef:
 	high priorty:
-
-i tried to write in the URL : http://127.0.0.1:8080/cgi-bin/
-it hang loading <----- fixed

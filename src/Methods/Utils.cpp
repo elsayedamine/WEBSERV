@@ -82,7 +82,6 @@ const ConfigBlock *findLocation(const std::vector<ConfigBlock> &locations, const
 	return (NULL);
 }
 
-
 static size_t depthPrefix(const std::string &prefix) {
 	size_t count = 0;
 	size_t i = 0;

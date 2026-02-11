@@ -19,7 +19,7 @@ bool compare(const ConfigBlock &a, const ConfigBlock &b);
 // Methods' Handlers
 Response handleGet(const std::string &path, const ConfigBlock &location);
 Response handlePost(const Request &request, const std::string &path, const ConfigBlock &location);
-Response handlePut(const Request &req, const std::string &path);
+Response handlePut(const Request &req, const std::string &path, bool upload_enable);
 Response handleDelete(const std::string &path);
 
 
