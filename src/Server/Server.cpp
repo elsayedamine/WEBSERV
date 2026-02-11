@@ -92,9 +92,6 @@ void Server::SetupSockets()
 			if (setsockopt(sock, SOL_SOCKET, SO_REUSEPORT, &opt, sizeof(opt)) < 0)
 				throw std::runtime_error("setsockopt SO_REUSEPORT failed");
 
-			if (fcntl(sock, F_SETFL, O_NONBLOCK) < 0)
-				throw std::runtime_error("fcntl() failed.");
-
 			struct sockaddr_in addr = resolveAddress(servers[i].host, port);
 
 			if (bind(sock, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
@@ -115,7 +112,6 @@ int	Server::acceptConnection(int listener)
 	int client = accept(listener, (struct sockaddr *)&client_addr, &client_len);
 	if (client < 0) { std::cerr << "Accept() failed" << std::endl; return false; }
 
-	fcntl(client, F_SETFL, O_NONBLOCK);
 	struct epoll_event client_event;
 	client_event.events = EPOLLIN | EPOLLRDHUP | EPOLLHUP;
 	client_event.data.fd = client;
