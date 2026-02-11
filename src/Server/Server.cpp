@@ -148,7 +148,10 @@ void Server::setEvents(int fd, int events, int mode)
 
 void Server::run()
 {
-	std::cout << "WebServer is running..." << std::endl;
+	// std::cout << "WebServer is running..." << std::endl;
+	FDTracker fdTracker;
+	for (std::map<int,int>::iterator it = sockets_to_ports.begin(); it != sockets_to_ports.end(); ++it)
+		fdTracker.addExpected(it->first);
 	while (serverRunning)
 	{
 		int nevents = epoll_wait(epoll_fd, events, MAX_EVENTS, 3000);
@@ -164,6 +167,7 @@ void Server::run()
 			else
 				handleCGIIO(i);
 		}
+		fdTracker.scanAndReport();
 	}
 	close(epoll_fd);
 	std::cerr << "\nServer stopped\n";

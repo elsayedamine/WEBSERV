@@ -52,4 +52,51 @@ class Server
 		pid_t		handleCGIExit(pid_t cgi_pid, Response &response);
 };
 
+#include <dirent.h>
+#include <set>
+#include <string>
+#include <iostream>
+
+class FDTracker {
+private:
+    std::set<int> known_fds; // FDs we expect to be open (listeners, standard FDs)
+
+public:
+    FDTracker() {
+        // Initialize with standard FDs: 0,1,2 (stdin, stdout, stderr)
+        known_fds.insert(0);
+        known_fds.insert(1);
+        known_fds.insert(2);
+    }
+
+    // Add expected FDs like listener sockets
+    void addExpected(int fd) {
+        known_fds.insert(fd);
+    }
+
+	void scanAndReport() {
+		static std::set<int> reported; // remember already reported FDs
+		std::set<int> current_fds;
+
+		DIR *dir = opendir("/proc/self/fd/");
+		if (!dir) return;
+		struct dirent *entry;
+		while ((entry = readdir(dir)) != NULL) {
+			if (entry->d_name[0] == '.') continue;
+			int fd = atoi(entry->d_name);
+			current_fds.insert(fd);
+		}
+		closedir(dir);
+
+		for (std::set<int>::iterator it = current_fds.begin(); it != current_fds.end(); ++it) {
+			if (known_fds.find(*it) == known_fds.end() && reported.find(*it) == reported.end()) {
+				std::cerr << "Potential leaked FD: " << *it << std::endl;
+				reported.insert(*it);
+			}
+		}
+}
+
+};
+
+
 #endif

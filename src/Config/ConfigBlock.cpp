@@ -340,6 +340,25 @@ ConfigBlock	validate_location(const Directive &location)
 	return LocationContainer;
 }
 
+void ConfigBlock::mergeForm(const ConfigBlock &other)
+{
+	if (!this->err && other.err) this->err = other.err;
+	if (other.port) { this->port = other.port; this->has_listen = true; }
+	if (!other.host.empty()) this->host = other.host;
+	if (!other.server_name.empty()) { this->server_name = other.server_name; this->has_server_name = true; }
+	if (!other.prefix.empty()) this->prefix = other.prefix;
+	if (!other.cgi.empty()) this->cgi.insert(other.cgi.begin(), other.cgi.end());
+	if (other.autoindex != -1) this->autoindex = other.autoindex;
+	if (other.upload_enable != -1) this->upload_enable = other.upload_enable;
+	if (!other.root.empty()) { this->root = other.root; this->has_root = true; }
+	if (other.client_max_body_size != -1) this->client_max_body_size = other.client_max_body_size;
+	if (!other.error_page.empty()) this->error_page.insert(other.error_page.begin(), other.error_page.end());
+	if (other.ret.second != "") this->ret = other.ret;
+	if (!other.index.empty()) this->index = other.index;
+	if (!other.methods.empty()) this->methods = other.methods;
+	if (!other.locations.empty()) this->locations.insert(this->locations.end(), other.locations.begin(), other.locations.end());
+}
+
 void ConfigBlock::applyDefaultsToLocations()
 {
 	for (std::vector<ConfigBlock>::iterator it = locations.begin(); it != locations.end(); ++it)
@@ -365,22 +384,6 @@ void ConfigBlock::applyDefaultsToLocations()
 	}
 }
 
-void	ConfigBlock::mergeForm(const ConfigBlock &other)
-{
-	if (!other.error_page.empty()) this->error_page.insert(other.error_page.begin(), other.error_page.end());
-	if (other.port) { this->port = other.port; this->has_listen = true; }
-	if (!other.host.empty()) this->host = other.host;
-	if (!other.root.empty()) { this->root = other.root; this->has_root = true; }
-	if (other.client_max_body_size != -1) this->client_max_body_size = other.client_max_body_size;
-	if (!other.methods.empty()) this->methods = other.methods;
-	if (!other.ret.second.empty()) this->ret = other.ret;
-	if (!other.server_name.empty()) { this->server_name = other.server_name; this->has_server_name = true; }
-	if (!other.index.empty()) this->index = other.index;
-	if (other.autoindex != -1) this->autoindex = other.autoindex; 
-	if (other.upload_enable != -1) this->upload_enable = other.upload_enable; 
-	if (!other.locations.empty()) this->locations.insert(this->locations.end(), other.locations.begin(), other.locations.end());
-}
-
 ConfigBlock::ConfigBlock(const Directive &server) : err((e_error)0), port(0), autoindex(-1), upload_enable(-1)
 {
 	std::map<std::string, int> directive_counts;
@@ -391,20 +394,15 @@ ConfigBlock::ConfigBlock(const Directive &server) : err((e_error)0), port(0), au
 		const Directive &d = server.getChildren()[i];
 		const std::string &name = d.getName();
 		const std::map<std::string, Validators>::iterator & it = server_keys.find(name);
-		if (it == server_keys.end()) {
-			err = ERROR_UNKNOWN_KEY;
-			return ;
-		}
+		if (it == server_keys.end())
+			{ err = ERROR_UNKNOWN_KEY; return ; }
 		int &count = directive_counts[name];
-		if (name != "location" && name != "error_page" && count++ > 0) {
-			err = ERROR_DUPLICATE_KEY;
-			return ;
-		}
+		if (name != "location" && name != "error_page" && count++ > 0)
+			{ err = ERROR_DUPLICATE_KEY; return ; }
 		ConfigBlock tmp = it->second(d);
 		if (tmp.err)
 			{ this->err = tmp.err; return ; }
 		this->mergeForm(tmp);
-
 	}
 
 	// apply server defaults
