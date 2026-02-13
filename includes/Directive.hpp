@@ -67,5 +67,7 @@ enum NextState {
 
 extern int serverRunning;
 void	initSignals();
+void	handler(int signum);
+
 
 #endif

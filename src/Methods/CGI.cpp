@@ -28,8 +28,9 @@ std::string processHeader(const std::string &header)
 void	CGI::CreateVariables(const Request &request, const std::string &script)
 {
 	std::size_t sep = request.getTarget().find('?');
-	char buffer[10000];
+	char *buffer;
 
+	buffer = getcwd(NULL, 0);
 	if (request.getMethod() == "POST")
 		variables.push_back("CONTENT_LENGTH=" + InttoString(request.getBody().size()));
 	variables.push_back("REQUEST_METHOD=" + request.getMethod());
@@ -37,13 +38,14 @@ void	CGI::CreateVariables(const Request &request, const std::string &script)
 	variables.push_back("CONTENT_TYPE=" + request.getHeader("Content-Type"));
 	variables.push_back("PATH_INFO=" + ((sep == std::string::npos) ? request.getTarget() : request.getTarget().substr(0, sep)));
 	variables.push_back("SCRIPT_NAME=" + script);
-	variables.push_back("SCRIPT_FILENAME=" + std::string(getcwd(buffer, 10000)) + ((script[0] != '/') ? "/" : "") + script);
+	variables.push_back("SCRIPT_FILENAME=" + std::string(buffer) + ((script[0] != '/') ? "/" : "") + script);
 	variables.push_back("SERVER_PROTOCOL=" + request.getVersion());
 	variables.push_back("SERVER_SOFTWARE=" + std::string("webserv/1.0"));
 	variables.push_back("GATEWAY_INTERFACE=" + std::string("CGI/1.1"));
 	variables.push_back("REMOTE_ADDR=127.0.0.1");
 	for (std::multimap<std::string, std::string>::const_iterator it = request.getHeaders().begin(); it != request.getHeaders().end(); ++it)
 		variables.push_back("HTTP_" + processHeader((*it).first) + "=" + it->second);
+	free(buffer);
 }
 
 void 	CGI::freeEnvp()
@@ -53,14 +55,16 @@ void 	CGI::freeEnvp()
 	for (size_t i = 0; i < variables.size(); ++i)
 		delete[] envp[i];
 	delete[] envp;
+	envp = NULL;
 }
 
 void	CGI::ConvertEnvp()
 {
 	envp = new char*[variables.size() + 1];
+	size_t i = 0;
 	try
 	{
-		for (size_t i = 0; i < variables.size(); ++i)
+		for (;i < variables.size(); ++i)
 		{
 			envp[i] = new char[variables[i].size() + 1];
 			std::strcpy(envp[i], variables[i].c_str());
@@ -69,7 +73,10 @@ void	CGI::ConvertEnvp()
 	}
 	catch (...)
 	{
-		freeEnvp();
+		while (i > 0)
+			delete[] envp[--i];
+		delete[] envp;
+		envp = NULL;
 		throw std::runtime_error("Allocation failed!");
 	}
 }
@@ -90,7 +97,7 @@ void CGI::handleCGI(const Request &request, const std::string &script, const std
 		freeEnvp();
 		return ;
 	}
-	if (pid == 0)
+	else if (pid == 0)
 	{
 		signal(SIGINT, SIG_DFL);
 		signal(SIGQUIT, SIG_DFL);
@@ -98,19 +105,21 @@ void CGI::handleCGI(const Request &request, const std::string &script, const std
 		std::string dir = (last_slash == std::string::npos) ? "." : script.substr(0, last_slash);
 		std::string file = (last_slash == std::string::npos) ? script : script.substr(last_slash + 1);
 
-		if (chdir(dir.c_str()) < 0) exit(1);
+		if (chdir(dir.c_str()) < 0) std::exit(1);
 		dup2(pipe_in[0], STDIN_FILENO);
 		dup2(pipe_out[1], STDOUT_FILENO);
 		close(pipe_in[0]); close(pipe_in[1]);
 		close(pipe_out[0]); close(pipe_out[1]);
 		char *argv[] = {(char *)interpret.c_str(), (char *)file.c_str(), NULL};
 		execve(argv[0], argv, envp);
-		std::cerr << "Failed to execute command: " << argv[0] << std::endl;
-		std::cerr << "Error: " << strerror(errno) << std::endl;
-		exit(1);
+		// std::cerr << "Failed to execute command: " << argv[0] << std::endl;
+		// std::cerr << "Error: " << strerror(errno) << std::endl;
+		std::exit(1);
 	}
 	else
 	{
+		signal(SIGINT, handler);
+		signal(SIGQUIT, SIG_IGN);
 		close(pipe_in[0]); // cgi will write in pipe_in[1]
 		close(pipe_out[1]); // cgi will read from pipe_out[0]
 
@@ -122,7 +131,7 @@ void CGI::handleCGI(const Request &request, const std::string &script, const std
 		out = pipe_out[0]; // read from child
 		this->pid = pid;
 
-		// check freeEnvp();
+		freeEnvp();
 	}
 }
 
