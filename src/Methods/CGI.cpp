@@ -114,7 +114,7 @@ void CGI::handleCGI(const Request &request, const std::string &script, const std
 		execve(argv[0], argv, envp);
 		// std::cerr << "Failed to execute command: " << argv[0] << std::endl;
 		// std::cerr << "Error: " << strerror(errno) << std::endl;
-		std::exit(1);
+		std::exit(1); // the child is a snapshot of the living parent (peak jomla)
 	}
 	else
 	{

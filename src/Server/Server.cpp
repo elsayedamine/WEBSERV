@@ -196,7 +196,7 @@ void Server::run()
 	std::cout << "WebServer is running..." << std::endl;
 	while (serverRunning)
 	{
-		int nevents = epoll_wait(epoll_fd, events, MAX_EVENTS, 3000);
+		int nevents = epoll_wait(epoll_fd, events, MAX_EVENTS, MAX_WAIT);
 		if (nevents <= 0)
 			continue;
 		for (int i = 0; i < nevents; ++i)

@@ -8,4 +8,4 @@ amine:
 
 youssef:
 	high priorty:
-	- chno nta ma3ndk walo z3ma
+	- when i give the .js a wrong interpreter it hangs (returns no response precisely)

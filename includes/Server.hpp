@@ -18,6 +18,7 @@
 
 
 #define MAX_EVENTS 128
+#define MAX_WAIT 2000
 
 class Server 
 {
