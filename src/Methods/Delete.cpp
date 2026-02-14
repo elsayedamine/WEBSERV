@@ -4,7 +4,7 @@
 Response handleDelete(const std::string &path)
 {
 	Response resp;
-
+	// check (only files)
 	if (unlink(path.c_str()) == 0)
 	{
 		resp.setStatus(204);

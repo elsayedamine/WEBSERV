@@ -101,16 +101,20 @@ std::string createResource(const std::string &path, const Request &request, cons
 
 Response handlePost(const Request &request, const std::string &path, const ConfigBlock &location) {
 	std::string name;
+	struct stat st;
 
 	if (!location.upload_enable)
+		return (Response(403));
+	stat(path.c_str(), &st);
+	if (!S_ISDIR(st.st_mode))
 		return (Response(403));
 	name = createResource(path, request, location.prefix);
 	{ // Form response
 		Response response(201);
 
-		response.setBody(name);
+		// response.setBody(name);
+		// response.setHeader("Content-Type", "text/plain");
 		response.setHeader("Location", name);
-		response.setHeader("Content-Type", "text/plain");
 		return (response);
 	}
 }

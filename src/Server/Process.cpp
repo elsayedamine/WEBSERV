@@ -20,6 +20,7 @@ int Request::process(Response &response) {
 	const ConfigBlock *location;
 	std::string path;
 
+	
 	{ // Resolve path
 		normalizeTarget(target);
 		location = findLocation(server.locations, target);
