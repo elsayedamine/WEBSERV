@@ -80,7 +80,6 @@ void Connection::processRequest() {
 			response = Response(400);
 	}
 	else {
-		std::cout << request << std::endl;
 		request.setServer(*candidate);
 		response.setServer(*candidate);
 		if (!request.getMethodEnum())

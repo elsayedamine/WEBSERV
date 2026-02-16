@@ -19,16 +19,16 @@ void Parser::operator()(std::string data) {
 		&Parser::parseBody
 	};
 
-
 	current += data;
-	while (status != PARSE_OVER && status != PARSE_FAIL && !current.empty()) {
+	while (status != PARSE_OVER && status != PARSE_FAIL) {
 		(this->*handlers[state])();
-		if (status == PARSE_PENDING)
-			return;
 		if (status == PARSE_SUCCESS) {
 			status = PARSE_CURRENT;
 			state++;
+			continue;
 		}
+		if (status == PARSE_PENDING || (current.empty() && status != PARSE_OVER))
+			return;
 	}
 	if (status == PARSE_OVER || status == PARSE_FAIL)
 		request.setReady(true);
@@ -57,10 +57,6 @@ void Parser::parseTarget() {
 	std::string target = request.getTarget();
 	size_t i = 0;
 
-	if (current[i] == ' ') {
-		status = PARSE_FAIL;
-		return;
-	}
 	while (i < current.size()) {
 		if (current[i] == ' ' || current[i] == '?') {
 			i += current[i] == '?';
