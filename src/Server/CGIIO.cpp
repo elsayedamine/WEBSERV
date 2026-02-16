@@ -98,9 +98,13 @@ void Server::handleCGIIO(int index)
 	for (; it != connections.end(); ++it)
 	{
 		Connection &con = it->second;
-		if (it->second.request.cgi.in == fd)
+		if (it->second.request.cgi.in == fd) {
+			con.timeout = TIMEOUT;
 			handleCGIWrite(con, con.request.cgi.in);
-		if (it->second.request.cgi.out == fd)
+		}
+		if (it->second.request.cgi.out == fd) {
+			con.timeout = TIMEOUT;
 			handleCGIRead(con, con.request.cgi.out);
+		}
 	}
 }

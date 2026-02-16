@@ -1,5 +1,12 @@
 #include <Server.hpp>
 
+static long long	monotonicMs()
+{
+	struct timespec ts;
+	clock_gettime(CLOCK_MONOTONIC, &ts);
+	return ts.tv_sec * 1000LL + ts.tv_nsec / 1000000LL;
+}
+
 int serverRunning = 1;
 int Server::epoll_fd = -1;
 
@@ -193,16 +200,40 @@ void Server::setEvents(int fd, int events, int mode)
 	epoll_ctl(epoll_fd, mode, fd, &ev);
 }
 
+void Server::checkTimeout(long long time)
+{
+	if (time <= 0)
+		return;
+	std::map<int, Connection>::iterator it;
+	for (it = connections.begin(); it != connections.end(); ++it) {
+		Connection &con = it->second;
+		if (con.timed_out)
+			continue;
+		con.timeout -= (int)time;
+		if (con.timeout <= 0)
+		{
+			int code = (con.request.cgi.pid > 0) ? 504 : 408;
+			if (con.request.cgi.pid > 0)
+				kill(con.request.cgi.pid, SIGINT);
+			cleanupCGI(con);
+			con.response = Response(code);
+			con.response.setHeader("Connection", "close");
+			con.processResponse();
+			con.timed_out = true;
+		}
+	}
+}
+
 void Server::run()
 {
 	std::cout << "WebServer is running..." << std::endl;
+	long long last_tick = monotonicMs();
 	while (serverRunning)
 	{
 		int nevents = epoll_wait(epoll_fd, events, MAX_EVENTS, MAX_WAIT);
-		if (nevents <= 0) {
-			
-			continue;
-		}
+		long long now = monotonicMs();
+		checkTimeout(now - last_tick);
+		last_tick = now;
 		for (int i = 0; i < nevents; ++i)
 		{
 			int curr = events[i].data.fd;
@@ -214,5 +245,5 @@ void Server::run()
 				handleCGIIO(i);
 		}
 	}
-	std::cerr << "\nServer stopped\n";
+	std::cerr << "\nServer stopped" << std::endl;
 }

@@ -52,6 +52,7 @@ class Server
 		void		handleCGIRead(Connection &connection, int &fd);
 		pid_t		handleCGIExit(pid_t &cgi_pid, Response &response);
 		void		cleanupCGI(Connection &con);
+		void		checkTimeout(long long elapsed_ms);
 };
 
 #endif

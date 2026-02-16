@@ -51,7 +51,6 @@ class Request {
 		bool isReady() const;
 
 		std::vector<ConfigBlock>::const_iterator getCandidate(const std::vector<ConfigBlock> &candidates) const;
-		int validateRequest() const;
 		int process(Response &response);
 };
 

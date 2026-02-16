@@ -77,7 +77,6 @@ std::string Response::getCodeMessage(int code) const {
 		messages[204] = "No Content";
 		messages[301] = "Moved Permanently";
 		messages[302] = "Found";
-		messages[304] = "Not Modified";
 		messages[400] = "Bad Request";
 		messages[403] = "Forbidden";
 		messages[404] = "Not Found";
@@ -86,10 +85,10 @@ std::string Response::getCodeMessage(int code) const {
 		messages[411] = "Length Required";
 		messages[413] = "Payload Too Large";
 		messages[414] = "URI Too Long";
-		messages[415] = "Unsupported Media Type";
 		messages[500] = "Internal Server Error";
 		messages[501] = "Not Implemented";
 		messages[502] = "Bad Gateway";
+		messages[504] = "Gateway Timeout";
 		messages[505] = "HTTP Version Not Supported";
 	}
 

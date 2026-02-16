@@ -115,7 +115,8 @@ void Response::process(const Request &request) {
 		setHeader("Content-Type", "text/html");
 	}
 	{ // Finalize response
-		setHeader("Connection", request.getHeader("Connection"));
+		if (getHeader("Connection").empty())
+			setHeader("Connection", request.getHeader("Connection"));
 		setHeader("Date", dateTimeGMT());
 		setHeader("Server", "WEBSERV");
 		if (!body.empty())

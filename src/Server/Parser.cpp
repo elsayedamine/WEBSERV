@@ -1,11 +1,15 @@
 #include <Parser.hpp>
 #include <Utils.hpp>
 
-Parser::Parser() : state(STATE_METHOD), status(PARSE_CURRENT) {}
+Parser::Parser() : state(STATE_METHOD), status(PARSE_CURRENT), err(400) {}
+
+Parser::Parser(std::vector<ConfigBlock> s) : servers(s),  state(STATE_METHOD), status(PARSE_CURRENT), err(400) {}
 
 const Request &Parser::getRequest() const { return request; }
 
 int Parser::getStatus() const { return status; }
+
+int Parser::getErr() const { return err; }
 
 void Parser::setStatus(::status s) { status = s; }
 
@@ -165,11 +169,18 @@ void Parser::parseBody() {
 	size_t length = stringToInt(content_length);
 
 	if (current.size() && content_length.empty()) {
+		err = LENGTH_REQUIRED;
 		status = PARSE_FAIL;
 		return;
 	}
 	if (length <= body.size()) {
 		status = PARSE_OVER;
+		return;
+	}
+	if (request.getCandidate(servers) != servers.end()) {
+		if (length > (size_t)request.getCandidate(servers)->client_max_body_size)
+			err = BODY_TOO_LONG;
+		status = PARSE_FAIL;
 		return;
 	}
 	size_t remaining = length - body.size();
@@ -184,7 +195,7 @@ void Parser::parseBody() {
 		status = PARSE_PENDING;
 }
 
-int validateMethod(const std::string meth) {
+int Parser::validateMethod(const std::string meth) {
 	static std::string inv = "()<>@,;:\"/[]?={}";
 
 	for (size_t i = 0; i < inv.size(); i++) {
@@ -194,13 +205,17 @@ int validateMethod(const std::string meth) {
 	return (1);
 }
 
-int validateTarget(const std::string tar) {
+int Parser::validateTarget(const std::string tar) {
+	if (tar.size() > MAX_TARGET_SIZE) {
+		err = URI_TOO_LONG;
+		return (0);
+	}
 	if (tar[0] == '/')
 		return (1);
 	return (0);
 }
 
-int validateQuery(const std::string que) {
+int Parser::validateQuery(const std::string que) {
 	char c = '&';
 
 	for (size_t i = 0; i < que.size(); i++) {
@@ -218,13 +233,16 @@ int validateQuery(const std::string que) {
 	return (1);
 }
 
-int validateVersion(const std::string ver) {
-	if (ver.length() != 8 || ver.compare(0, 5, "HTTP/"))
+int Parser::validateVersion(const std::string ver) {
+	if (ver != "HTTP/1.0" && ver != "HTTP/1.1") {
+		if (ver.size() == 8 && !ver.compare(0, 5, "HTTP/"))
+			err = UNSUPPORTED_HTTP;
 		return (0);
+	}
 	return (1);
 }
 
-int validateHeader(const std::pair<std::string, std::string> head, const std::multimap<std::string, std::string> map) {
+int Parser::validateHeader(const std::pair<std::string, std::string> head, const std::multimap<std::string, std::string> map) {
 	if (head.first.empty())
 		return (0);
 	for (int i = 0; (size_t)i < head.first.length(); i++) {
@@ -238,7 +256,7 @@ int validateHeader(const std::pair<std::string, std::string> head, const std::mu
 	return (map.count(head.first) == 0);
 }
 
-int validateBody(const std::string str) {
+int Parser::validateBody(const std::string str) {
 	(void)str;
 	return (true);
 }

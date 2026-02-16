@@ -27,11 +27,13 @@ void Server::handleWrite(int index) {
 void Connection::reset() {
 	offset = 0;
 	data.clear();
-	parse = Parser();
+	parse = Parser(servers);
 	request = Request();
 	request.setReady(0);
 	response = Response();
 	response.setReady(0);
+	timeout = TIMEOUT;
+	timed_out = false;
 	Server::setEvents(fd, EPOLLIN | EPOLLRDHUP | EPOLLHUP, EPOLL_CTL_MOD);
 }
 
@@ -39,6 +41,7 @@ void Connection::read() {
 	char buffer[RSIZE];
 	std::string data;
 
+	timeout = TIMEOUT;
 	ssize_t size = recv(fd, buffer, RSIZE, MSG_NOSIGNAL | MSG_DONTWAIT);
 	if (!size) {
 		request.setReady(1);
@@ -54,6 +57,7 @@ void Connection::read() {
 int Connection::write() {
 	std::string data = getData();
 
+	timeout = TIMEOUT;
 	if (data.size() > offset) {
 		ssize_t size = ::write(fd, data.c_str() + offset, std::min(static_cast<size_t>(WSIZE), data.size() - offset));
 		if (size > 0)
@@ -73,12 +77,8 @@ void Connection::processRequest() {
 	std::vector<ConfigBlock>::const_iterator candidate;
 
 	candidate = request.getCandidate(getServers());
-	if (parse.getStatus() == PARSE_FAIL || candidate == getServers().end()) {
-		if ((size_t)candidate->client_max_body_size < stringToInt(request.getHeader("Content-Length")))
-			response = Response(413);
-		else
-			response = Response(400);
-	}
+	if (parse.getStatus() == PARSE_FAIL || candidate == getServers().end())
+		response = Response(parse.getErr());
 	else {
 		request.setServer(*candidate);
 		response.setServer(*candidate);
@@ -105,8 +105,13 @@ void Server::handleConnectionIO(int index) {
 
 	if (ev & EPOLLERR)
 		return (closeConnection(index));
-	if (ev & (EPOLLIN | EPOLLRDHUP | EPOLLHUP))
+	if (ev & EPOLLIN)
 		connection.read();
+	if (connection.timed_out) {
+		if (ev & EPOLLOUT)
+			handleWrite(index);
+		return;
+	}
 	if (connection.request.isReady()) // Process request
 		connection.processRequest();
 	if (connection.response.isReady()) // Process response
