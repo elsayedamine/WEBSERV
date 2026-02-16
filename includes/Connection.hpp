@@ -12,7 +12,6 @@
 
 class Connection {
 	private:
-		time_t read_timer;
 		std::vector<ConfigBlock> servers;
 		ConfigBlock server;
 		int fd;

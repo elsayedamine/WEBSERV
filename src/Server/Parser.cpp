@@ -19,8 +19,9 @@ void Parser::operator()(std::string data) {
 		&Parser::parseBody
 	};
 
+
 	current += data;
-	while (status != PARSE_OVER && status != PARSE_FAIL) {
+	while (status != PARSE_OVER && status != PARSE_FAIL && !current.empty()) {
 		(this->*handlers[state])();
 		if (status == PARSE_PENDING)
 			return;
@@ -37,10 +38,6 @@ void Parser::parseMethod() {
 	std::string method = request.getMethod();
 	size_t i = 0;
 
-	if (current.empty() || current[i] == ' ') {
-		status = PARSE_FAIL;
-		return;
-	}
 	while (i < current.size()) {
 		if (current[i] == ' ') {
 			i++;
@@ -50,10 +47,10 @@ void Parser::parseMethod() {
 		method += current[i];
 		i++;
 	}
-	if (status == PARSE_SUCCESS && !validateMethod(method))
-		status = PARSE_FAIL;
 	current = current.substr(i);
 	request.setMethod(method);
+	if (status == PARSE_SUCCESS && !validateMethod(method))
+		status = PARSE_FAIL;
 }
 
 void Parser::parseTarget() {
@@ -73,10 +70,10 @@ void Parser::parseTarget() {
 		target += current[i];
 		i++;
 	}
-	if (status == PARSE_SUCCESS && !validateTarget(target))
-		status = PARSE_FAIL;
 	request.setTarget(target);
 	current = current.substr(i);
+	if (status == PARSE_SUCCESS && !validateTarget(target))
+		status = PARSE_FAIL;
 }
 
 void Parser::parseQuery() {
@@ -92,10 +89,10 @@ void Parser::parseQuery() {
 		query += current[i];
 		i++;
 	}
-	if (status == PARSE_SUCCESS && !validateQuery(query))
-		status = PARSE_FAIL;
 	request.setQuery(query);
 	current = current.substr(i);
+	if (status == PARSE_SUCCESS && !validateQuery(query))
+		status = PARSE_FAIL;
 }
 
 void Parser::parseVersion() {
@@ -108,7 +105,6 @@ void Parser::parseVersion() {
 	}
 	while (i < current.size()) {
 		if (current[i] == '\n') {
-			cr = current[i - 1] == '\r' ? 1 : 0;
 			i += 1;
 			status = PARSE_SUCCESS;
 			break;
@@ -116,9 +112,11 @@ void Parser::parseVersion() {
 		version += current[i];
 		i++;
 	}
-	version = version.substr(0, version.size() - cr);
-	if (status == PARSE_SUCCESS && !validateVersion(version))
-		status = PARSE_FAIL;
+	if (status == PARSE_SUCCESS) {
+		cr = version[version.size() - 1] == '\r' ? 1 : 0;
+		version = version.substr(0, version.size() - cr);
+		status = validateVersion(version);
+	}
 	request.setVersion(version);
 	current = current.substr(i);
 }

@@ -29,7 +29,7 @@ void Connection::reset() {
 	data.clear();
 	parse = Parser();
 	request = Request();
-	request.setReady(false);
+	request.setReady(0);
 	response = Response();
 	response.setReady(0);
 	Server::setEvents(fd, EPOLLIN | EPOLLRDHUP | EPOLLHUP, EPOLL_CTL_MOD);
@@ -39,12 +39,13 @@ void Connection::read() {
 	char buffer[RSIZE];
 	std::string data;
 
-	ssize_t size = recv(fd, buffer, RSIZE, 0);
-	if (!size)
+	ssize_t size = recv(fd, buffer, RSIZE, MSG_NOSIGNAL | MSG_DONTWAIT);
+	if (!size) {
+		request.setReady(1);
 		return Server::setEvents(fd, 0, EPOLL_CTL_DEL);
+	}
 	if (size < 0)
 		return Server::setEvents(fd, EPOLLERR, EPOLL_CTL_MOD);
-	read_timer = 0;
 	data = std::string(buffer, size);
 	parse(data);
 	request = parse.getRequest();
@@ -73,9 +74,7 @@ void Connection::processRequest() {
 
 	candidate = request.getCandidate(getServers());
 	if (parse.getStatus() == PARSE_FAIL || candidate == getServers().end()) {
-		if (request.getHeader("Content-Length").empty())
-			response = Response(411);
-		else if ((size_t)candidate->client_max_body_size < stringToInt(request.getHeader("Content-Length")))
+		if ((size_t)candidate->client_max_body_size < stringToInt(request.getHeader("Content-Length")))
 			response = Response(413);
 		else
 			response = Response(400);
@@ -105,9 +104,9 @@ void Server::handleConnectionIO(int index) {
 	int ev = events[index].events;
 	Connection &connection = connections[fd];
 
-	if (events[index].events & (EPOLLERR | EPOLLRDHUP | EPOLLHUP))
+	if (ev & EPOLLERR)
 		return (closeConnection(index));
-	if (ev & EPOLLIN) // Read
+	if (ev & (EPOLLIN | EPOLLRDHUP | EPOLLHUP))
 		connection.read();
 	if (connection.request.isReady()) // Process request
 		connection.processRequest();

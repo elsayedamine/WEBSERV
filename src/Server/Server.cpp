@@ -186,6 +186,8 @@ void Server::setEvents(int fd, int events, int mode)
 {
 	struct epoll_event ev;
 
+	if (fd == -1)
+		return;
 	ev.data.fd = fd;
 	ev.events = events;
 	epoll_ctl(epoll_fd, mode, fd, &ev);
@@ -197,8 +199,10 @@ void Server::run()
 	while (serverRunning)
 	{
 		int nevents = epoll_wait(epoll_fd, events, MAX_EVENTS, MAX_WAIT);
-		if (nevents <= 0)
+		if (nevents <= 0) {
+			
 			continue;
+		}
 		for (int i = 0; i < nevents; ++i)
 		{
 			int curr = events[i].data.fd;
