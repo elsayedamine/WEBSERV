@@ -56,11 +56,10 @@ void Server::handleCGIWrite(Connection &connection, int &fd)
 void Server::handleCGIRead(Connection &connection, int &fd)
 {
 	char buf[RSIZE];
-	ssize_t n = read(fd, buf, RSIZE - 1);
+	ssize_t n = read(fd, buf, RSIZE);
 
 	if (n > 0)
 	{
-		buf[n] = 0;
 		std::string currentBuffer = connection.request.cgi.getBuffer();
 		currentBuffer.append(buf, n);
 		connection.request.cgi.setBuffer(currentBuffer);

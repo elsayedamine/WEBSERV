@@ -6,7 +6,7 @@
 #include <sys/socket.h>
 #include <Request.hpp>
 
-#define RSIZE 3
+#define RSIZE 8000
 #define WSIZE 8000
 
 enum state {
