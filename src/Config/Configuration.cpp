@@ -74,7 +74,7 @@ void	Configuration::resolve_config()
 
 std::string check_configfile(int ac, char **av)
 {
-	std::string ConfigFile = "testing/webserv.conf";
+	std::string ConfigFile = "webserv.conf";
 	std::string filename;
 
 	if (ac > 2)
