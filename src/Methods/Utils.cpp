@@ -81,6 +81,19 @@ const ConfigBlock *findLocation(const std::vector<ConfigBlock> &locations, const
 	}
 	return (NULL);
 }
+// const ConfigBlock *findLocation(const std::vector<ConfigBlock> &locations, const std::string &target) {
+//     std::vector<ConfigBlock>::const_iterator it = locations.begin();
+
+//     for (; it != locations.end(); ++it) {
+//         if (target.size() < it->prefix.size())
+//             continue;
+//         if (!target.compare(0, it->prefix.size(), it->prefix) &&
+//             (it->prefix == "/" || target.size() == it->prefix.size() ||
+//              it->prefix[it->prefix.size() - 1] == '/' || target[it->prefix.size()] == '/'))
+//             return &locations[it - locations.begin()];
+//     }
+//     return (NULL);
+// }
 
 static size_t depthPrefix(const std::string &prefix) {
 	size_t count = 0;
