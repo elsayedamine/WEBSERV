@@ -177,9 +177,8 @@ void Parser::parseBody() {
 		status = PARSE_OVER;
 		return;
 	}
-	if (request.getCandidate(servers) != servers.end()) {
-		if (length > (size_t)request.getCandidate(servers)->client_max_body_size)
-			err = BODY_TOO_LONG;
+	if (request.getCandidate(servers) != servers.end() && length > (size_t)request.getCandidate(servers)->client_max_body_size) {
+		err = BODY_TOO_LONG;
 		status = PARSE_FAIL;
 		return;
 	}

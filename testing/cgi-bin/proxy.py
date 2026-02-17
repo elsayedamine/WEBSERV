@@ -15,7 +15,7 @@ if __name__ == "__main__":
         raise SystemExit(0)
 
     resp = b""
-    with socket.create_connection(("127.0.0.1", 8080)) as sock:
+    with socket.create_connection(("10.12.10.1", 8080)) as sock:
         sock.sendall(request.encode("utf-8"))
         while True:
             chunk = sock.recv(1024)
