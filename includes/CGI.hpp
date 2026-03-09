@@ -29,7 +29,6 @@ class CGI
 		std::vector<std::string> variables;
 		char **envp;
 		std::string buffer;
-		time_t startTime;
 
 		void parseHeader(Response &response);
 		void parseBody(Response &response);
